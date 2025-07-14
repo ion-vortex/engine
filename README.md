@@ -171,19 +171,16 @@ Apps link only what they use.  `zoned` omits `ui`, `audio`; `unid` omits `render
 
 ## 🤝  Contributing
 
-- Follow the **Oat Interactive C++ Manual** (see `CPP_MANUAL.md`).
-- One feature branch per PR; never commit generated files.
-- Run `./scripts/clang_format_fix.sh` before pushing.
-- All public headers live under `include/oat/oxide/...` with `#pragma once`.
+Please read **CONTRIBUTING.md** for coding standards, branch flow and AI‑generated content rules before opening a pull‑request.
 
 ---
 
 ## 📜  License
 
 
-Project Oxide source code is released under the **GNU Affero General Public License (AGPL)** (see `LICENSE`).
-**Synty Assets** included in this repository are subject to Synty's proprietary license and are NOT covered by AGPL. You must comply with Synty's terms for any use, distribution, or modification of these assets.
-Each third‑party library retains its own license as declared by vcpkg.
+All C++ source under **GNU AGPL v3**.  Public‑domain fallback assets under CC‑0.  Proprietary packs remain commercial.
+
+See `LICENSE` for the full text.
 
 ---
 
