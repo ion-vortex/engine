@@ -1,7 +1,5 @@
 # Project Oxide
 
-![oxide-banner](docs/oxide-banner.svg)
-
 > **A lightweight, fully‑authoritative real‑time space‑sim framework built in modern C++23.**
 
 Project Oxide is an internal R&D code‑base that demonstrates how far a *clean, library‑per‑layer* architecture can go without the baggage of a monolithic “engine.”  Each subsystem is its own CMake target; the top‑level apps just link what they need.
@@ -10,14 +8,48 @@ This repository purposely avoids hype‑driven rewrites.  No ECS.  No data‑o
 
 ---
 
+## ©️ License & Asset Policy
+
+| Part                                                           | License                                            | Notes                                                                                         |
+| -------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **C++ source code** (`src/`, `include/`, build scripts, tests) | **GNU AGPL v3**                                    | Copy, fork, redistribute *code* under copyleft terms.  External contributors welcome.         |
+| **Default fallback assets** (`assets/public/`)                 | CC‑0 / public‑domain                               | Low‑poly models & textures used for CI and open‑source builds.                                |
+| **Proprietary asset packs** (`assets/private/`)                | 💰 Commercial (Synty Polygon packs + internal art) | **Not** in the repo.  Only Oat Interactive staff with valid licenses may use or redistribute. |
+
+### Building with public assets (anyone)
+
+```bash
+cmake --preset debug
+cmake --build --preset debug --target client
+# Runs with CC‑0 ships & UI; perfect for pull‑requests.
+```
+
+### Building with proprietary assets (employees only)
+
+1. Mount the studio asset share or grab the encrypted *.pak* from the asset vault.
+2. Run the helper script (it validates the license hash and unpacks):
+   ```bash
+   ./scripts/get_assets_internal.sh  # copies into assets/private/
+   ```
+3. Configure with the **internal preset** which toggles the proprietary‐asset CMake option:
+   ```bash
+   cmake --preset debug-internal     # sets -DOXIDE_USE_PRIVATE_ASSETS=ON
+   cmake --build --preset debug-internal --target client
+   ```
+4. Distributing binaries: *Publish the compiled **`.pak`** plus the AGPLv3 notice; DO NOT upload Synty source files.*
+
+`OXIDE_USE_PRIVATE_ASSETS` is runtime‑checked.  If the .pak file isn’t present the executable silently falls back to the public models so external contributors can still run the game.
+
+---
+
 ## 🔑  Goals
 
-| Tier    | Milestone                                                  | Outcome                                                                         |
-| ------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| **MVP** | Static single‑player sandbox                               | Ship spawns, sc-like motion, HUD, and projectiles with deterministic rollback. |
-| **R1**  | Headless **zone** server + authoritative client prediction | 30 Hz tick rate, client interpolation, bullet‑proof reconnection.               |
-| **R2**  | Multi‑zone universe router (**unid**)                      | Transparent warp between zone shards, hot‑patch asset streaming.                |
-| **R3**  | Public alpha                                               | Self‑contained dedicated server binary & automatic asset diff‑patcher.          |
+| Tier    | Milestone                                                  | Outcome                                                                                  |
+| ------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **MVP** | Single‑zone sandbox (no networking yet)                    | Ship spawns, car‑style momentum, HUD, and basic projectiles with deterministic rollback. |
+| **R1**  | Headless **zone** server + authoritative client prediction | 30 Hz tick rate, client interpolation, bullet‑proof reconnection.                        |
+| **R2**  | Multi‑zone universe router (**unid**)                      | Transparent warp between zone shards, hot‑patch asset streaming.                         |
+| **R3**  | Public alpha                                               | Self‑contained dedicated server binary & automatic asset diff‑patcher.                   |
 
 ---
 
@@ -53,8 +85,7 @@ All core/business logic lives in libraries under `include/` + `src/`.  Apps are 
 sudo apt update && sudo apt install -y \
   git build-essential ninja-build pkg-config cmake \
   libx11-dev libxi-dev libxrandr-dev libxinerama-dev libxcursor-dev libxfixes-dev \
-  libgl1-mesa-dev libglu1-mesa-dev libssl-dev zlib1g-dev \
-  autoconf libtool
+  libgl1-mesa-dev libglu1-mesa-dev libssl-dev zlib1g-dev
 ```
 
 ### macOS 12+  (Homebrew)
@@ -107,40 +138,6 @@ Unity builds and PCH are enabled by default to keep compile times civil.
 
 ---
 
-## ©️ License & Asset Policy
-
-| Part                                                           | License                                            | Notes                                                                                         |
-| -------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| **C++ source code** (`src/`, `include/`, build scripts, tests) | **GNU AGPL v3**                                    | Copy, fork, redistribute *code* under copyleft terms.  External contributors welcome.         |
-| **Default fallback assets** (`assets/public/`)                 | CC‑0 / public‑domain                               | Low‑poly models & textures used for CI and open‑source builds.                                |
-| **Proprietary asset packs** (`assets/private/`)                | 💰 Commercial (Synty Polygon packs + internal art) | **Not** in the repo.  Only Oat Interactive staff with valid licenses may use or redistribute. |
-
-### Building with public assets (anyone)
-
-```bash
-cmake --preset debug
-cmake --build --preset debug --target client
-# Runs with CC‑0 ships & UI; perfect for pull‑requests.
-```
-
-### Building with proprietary assets (employees only)
-
-1. Mount the studio asset share or grab the encrypted *.pak* from the asset vault.
-2. Run the helper script (it validates the license hash and unpacks):
-   ```bash
-   ./scripts/get_assets_internal.sh  # copies into assets/private/
-   ```
-3. Configure with the **internal preset** which toggles the proprietary‐asset CMake option:
-   ```bash
-   cmake --preset debug-internal     # sets -DOXIDE_USE_PRIVATE_ASSETS=ON
-   cmake --build --preset debug-internal --target client
-   ```
-4. Distributing binaries: *Publish the compiled **`.pak`** plus the AGPLv3 notice; DO NOT upload Synty source files.*
-
-`OXIDE_USE_PRIVATE_ASSETS` is runtime‑checked.  If the .pak file isn’t present the executable silently falls back to the public models so external contributors can still run the game.
-
----
-
 ## 🧩  Library Breakdown
 
 | Lib        | What it owns                                               |
@@ -180,10 +177,7 @@ Apps link only what they use.  `zoned` omits `ui`, `audio`; `unid` omits `render
 
 ## 📜  License
 
-
-Project Oxide source code is released under the **GNU Affero General Public License (AGPL)** (see `LICENSE`).
-**Synty Assets** included in this repository are subject to Synty's proprietary license and are NOT covered by AGPL. You must comply with Synty's terms for any use, distribution, or modification of these assets.
-Each third‑party library retains its own license as declared by vcpkg.
+Project Oxide is released under the **BSD 2‑Clause** license (see `LICENSE`), plus each third‑party library retains its own license as declared by vcpkg.
 
 ---
 
@@ -198,3 +192,4 @@ Each third‑party library retains its own license as declared by vcpkg.
 ## 🚗 Movement model
 
 Ships behave like top‑down cars, **not** Asteroids.  `W/S` (or Up/Down) adjusts scalar speed; `A/D` (or Left/Right) rotate the forward vector.  Momentum always re‑aligns with the current heading—there’s no reversing thrust to drift backwards.  This keeps controls intuitive for new players and simplifies collision response against Bullet hulls.
+
