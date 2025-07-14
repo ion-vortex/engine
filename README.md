@@ -146,7 +146,10 @@ Apps link only what they use.  `zoned` omits `ui`, `audio`; `unid` omits `render
 
 ## 📜  License
 
-Project Oxide is released under the **BSD 2‑Clause** license (see `LICENSE`), plus each third‑party library retains its own license as declared by vcpkg.
+
+Project Oxide source code is released under the **GNU Affero General Public License (AGPL)** (see `LICENSE`).
+**Synty Assets** included in this repository are subject to Synty's proprietary license and are NOT covered by AGPL. You must comply with Synty's terms for any use, distribution, or modification of these assets.
+Each third‑party library retains its own license as declared by vcpkg.
 
 ---
 
