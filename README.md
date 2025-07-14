@@ -1,7 +1,163 @@
-# Project Oxide
+# Project Oxide
 
 ![oxide-banner](docs/oxide-banner.svg)
 
-## Getting Started
+> **A lightweight, fully‑authoritative real‑time space‑sim framework built in modern C++23.**
 
-...
+Project Oxide is an internal R&D code‑base that demonstrates how far a *clean, library‑per‑layer* architecture can go without the baggage of a monolithic “engine.”  Each subsystem is its own CMake target; the top‑level apps just link what they need.
+
+This repository purposely avoids hype‑driven rewrites.  No ECS.  No data‑oriented crusade.  Just conventional interfaces + factories (see `CPP_MANUAL.md`) and plain old objects.
+
+---
+
+## 🔑  Goals
+
+| Tier    | Milestone                                                  | Outcome                                                                         |
+| ------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **MVP** | Static single‑player sandbox                               | Ship spawns, sc-like motion, HUD, and projectiles with deterministic rollback. |
+| **R1**  | Headless **zone** server + authoritative client prediction | 30 Hz tick rate, client interpolation, bullet‑proof reconnection.               |
+| **R2**  | Multi‑zone universe router (**unid**)                      | Transparent warp between zone shards, hot‑patch asset streaming.                |
+| **R3**  | Public alpha                                               | Self‑contained dedicated server binary & automatic asset diff‑patcher.          |
+
+---
+
+## 📁  Repository Layout
+
+```text
+/apps
+   client/    ← Desktop GUI launcher (bgfx + ImGui)
+   zoned/     ← Headless zone‑simulation server
+   unid/      ← Universe‑directory + matchmaking service
+   tools/     ← CLI helpers (mesh optimiser, ibl baker, etc.)
+/include      ← Public headers per lib (oat/oxide/…)
+/src          ← Implementation per lib
+/tests        ← Integration & unit tests (Catch2)
+/vcpkg.json   ← Locked manifest of third‑party ports
+```
+
+All core/business logic lives in libraries under `include/` + `src/`.  Apps are thin façades that compose libs.
+
+---
+
+## 🛠  Prerequisites
+
+| Requirement      | Version                        | Notes                                                   |
+| ---------------- | ------------------------------ | ------------------------------------------------------- |
+| **CMake**        | **≥ 3.28**                     | Needed for Unity builds & pre‑compiled headers.         |
+| **C++ Compiler** | Clang 16 / GCC 13 / MSVC 19.39 | Must fully support C++23.                               |
+| **vcpkg**        | Latest master                  | Manifest mode only; repo ships `vcpkg.json` + lockfile. |
+
+### Ubuntu 24.04 Boilerplate
+
+```bash
+sudo apt update && sudo apt install -y \
+  git build-essential ninja-build pkg-config cmake \
+  libx11-dev libxi-dev libxrandr-dev libxinerama-dev libxcursor-dev libxfixes-dev \
+  libgl1-mesa-dev libglu1-mesa-dev libssl-dev zlib1g-dev \
+  autoconf libtool
+```
+
+### macOS 12+  (Homebrew)
+
+```bash
+brew install git cmake ninja pkg-config
+```
+
+### Windows 10/11 (PowerShell admin)
+
+```powershell
+choco install -y git cmake ninja visualstudio2022buildtools windows-sdk-10
+```
+
+---
+
+## 🔗  Third‑Party Libraries (via vcpkg)
+
+- **bgfx** – cross‑platform renderer (GL / Vulkan / Metal / D3D)
+- **glfw3** – window + input
+- **ImGui** – immediate‑mode UI (no browser dependency)
+- **glm** – math (deterministic, header‑only)
+- **Bullet 3** – convex hull generation & collision queries only (movement is deterministic via glm)
+- **libuv** – cross‑platform TCP/UDP/event loop
+- **miniaudio** – tiny 3‑D sound
+- **nlohmann‑json**, **tomlplusplus** – config/serialisation
+- **meshoptimizer**, **cgltf**, **stb** – asset import helpers
+
+All versions are locked by `builtin-baseline` + overrides in `vcpkg.json`.
+
+---
+
+## 🚀  Quick Start
+
+```bash
+# clone + bootstrap vcpkg once
+$ git clone --recursive https://github.com/<org>/oxide.git
+$ cd oxide
+$ ./scripts/bootstrap.sh        # bootstraps vcpkg & installs deps
+
+# configure & build via CMake presets (Debug)
+$ cmake --preset debug            # generates out/build-debug/
+$ cmake --build --preset debug --target client
+
+# run the sandbox
+$ out/build-debug/apps/client --dev
+```
+
+Unity builds and PCH are enabled by default to keep compile times civil.
+
+---
+
+## 🧩  Library Breakdown
+
+| Lib        | What it owns                                               |
+| ---------- | ---------------------------------------------------------- |
+| **core**   | Error wrapper, logger, fixed allocators, timing helpers    |
+| **math**   | glm aliases, units, deterministic helpers                  |
+| **net**    | Reliable UDP, compression, snapshot/rollback pipes         |
+| **sim**    | Ships, projectiles, world grid, deterministic integrator   |
+| **phys**   | Bullet‑backed hull cache & broad‑phase collision queries   |
+| **asset**  | glTF loader, meshoptimizer, IBL bake cache                 |
+| **render** | bgfx init, view & frame orchestration, PBR shader registry |
+| **ui**     | ImGui context per‑view, dockspace, debug widgets           |
+| **audio**  | miniaudio device, 3‑D voice emitter wrapper                |
+
+Apps link only what they use.  `zoned` omits `ui`, `audio`; `unid` omits `render` entirely.
+
+---
+
+## 🧪  Tests & CI
+
+- All libraries expose deterministic, headless tests in `./tests` (Catch2).
+- GitHub Actions matrix: `ubuntu‑24.04`, `macos‑14`, `windows‑2022` (MSVC).  Each job:
+  1. Caches vcpkg installed dir.
+  2. `cmake .. -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake`
+  3. Builds Unity+PCH, runs tests, packages artifacts.
+
+---
+
+## 🤝  Contributing
+
+- Follow the **Oat Interactive C++ Manual** (see `CPP_MANUAL.md`).
+- One feature branch per PR; never commit generated files.
+- Run `./scripts/clang_format_fix.sh` before pushing.
+- All public headers live under `include/oat/oxide/...` with `#pragma once`.
+
+---
+
+## 📜  License
+
+Project Oxide is released under the **BSD 2‑Clause** license (see `LICENSE`), plus each third‑party library retains its own license as declared by vcpkg.
+
+---
+
+> "Engines are optional.  Clean code isn’t." – Oxide Team
+
+---
+
+## 🛰️ Networking model
+
+*Baseline first, polish later.*  Oxide starts with **brute‑force position replication**: each simulation tick the server sends a compact `PosRot` for every entity in scope.  No delta compression, no rewind, just the dumb pipe.  It proves serialization, visibility culling, and packet budgeting *before* we waste weeks on prediction that might not be needed.  Once we can measure bandwidth and jitter we evolve to interpolation / interest management in measured steps.
+
+## 🚗 Movement model
+
+Ships behave like top‑down cars, **not** Asteroids.  `W/S` (or Up/Down) adjusts scalar speed; `A/D` (or Left/Right) rotate the forward vector.  Momentum always re‑aligns with the current heading—there’s no reversing thrust to drift backwards.  This keeps controls intuitive for new players and simplifies collision response against Bullet hulls.
