@@ -62,9 +62,6 @@ sc-server.exe
 # Debug symbols
 *.dSYM/
 
-# Core dumps
-core
-
 # Temporary files
 *.tmp
 *.temp
@@ -74,14 +71,3 @@ core
 *.rpm
 *.tar.gz
 *.zip
-
-# Runtime data
-data/
-logs/
-crashes/
-
-# MacOS Cruft
-*.DS_Store
-*.AppleDouble
-.AppleDB
-.AppleDesktop
