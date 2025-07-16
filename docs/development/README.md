@@ -51,6 +51,48 @@ Testing philosophy and practices:
 - Mocking interfaces
 - CI/CD integration
 
+## Roadmap
+
+### Current Status: Tier 0 (MVP Foundation)
+
+**Goal**: Static single-player sandbox with basic ship movement and rendering.
+
+**Tier 0 Requirements**:
+1. ✅ Spawn one ship in a single zone
+2. 🔄 Car-style steering (hold W to accelerate forward; heading changes momentum)
+3. 🔄 Server replicates pos/rot/vel each tick; client interpolates & renders
+4. 🔄 ImGui shows FPS/ping
+
+### Upcoming Milestones
+
+| Tier | Milestone | Outcome |
+|------|-----------|---------|
+| **R1** | Headless **zone** server + authoritative client prediction | 30 Hz tick rate, client interpolation, bullet-proof reconnection |
+| **R2** | Multi-zone universe router (**unid**) | Transparent warp between zone shards, hot-patch asset streaming |  
+| **R3** | Public alpha | Self-contained dedicated server binary & automatic asset diff-patcher |
+
+### Repository Structure
+
+```text
+/apps
+   client/    ← Desktop GUI launcher (bgfx + ImGui)
+   zoned/     ← Headless zone-simulation server  
+   unid/      ← Universe-directory + matchmaking service
+/libs
+   asset/     ← glTF loader, meshoptimizer, IBL bake cache
+   audio/     ← miniaudio device, 3D voice emitter wrapper
+   core/      ← Error wrapper, logger, fixed allocators, timing helpers
+   crypto/    ← Cryptographic utilities
+   physics/   ← Bullet-backed hull cache & collision queries
+   protocol/  ← Network protocol definitions
+   render/    ← bgfx init, view & frame orchestration, PBR shader registry
+   ui/        ← ImGui context per-view, dockspace, debug widgets
+```
+
+**Architecture Philosophy**: No ECS. No data-oriented crusade. Just conventional interfaces + factories and plain old objects. Apps are thin façades that compose libs.
+
+> "Engines are optional. Clean code isn't." – Oxide Team
+
 ## Development Workflow
 
 ### Daily Development Cycle
