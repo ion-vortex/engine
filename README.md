@@ -65,9 +65,15 @@ brew install git cmake ninja pkg-config libtool autoconf automake
 
 ### Windows 10/11 (PowerShell admin)
 
+**Step 1. Download build-time dependencies**
+
 ```powershell
-choco install -y git cmake ninja visualstudio2022buildtools windows-sdk-10
+choco install -y git cmake ninja
 ```
+
+**Step 2. Make sure you have the VS2022 Build Tools and Windows SDK installed.**
+
+Use the Visual Studio installer. Select “C++ Desktop development”, plus “Windows 11 SDK” if offered.
 
 ---
 

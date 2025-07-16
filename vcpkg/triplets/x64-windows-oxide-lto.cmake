@@ -12,6 +12,3 @@ set(VCPKG_LINKER_FLAGS_RELEASE "/LTCG")
 # ---- Debug ---------------------------------------------------------------
 set(VCPKG_C_FLAGS_DEBUG        "/Zi /Od")
 set(VCPKG_CXX_FLAGS_DEBUG      "/Zi /Od")
-
-# System Configuration
-set(VCPKG_CMAKE_SYSTEM_NAME Windows)
