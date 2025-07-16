@@ -1,0 +1,132 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "release-base",
+      "generator": "Ninja",
+      "displayName": "Release • generic",
+      "binaryDir": "${sourceDir}/build/release/${hostSystemName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_STANDARD": "23",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets"
+      },
+      "hidden": true
+    },
+    {
+      "name": "debug-base",
+      "generator": "Ninja",
+      "displayName": "Debug • generic",
+      "binaryDir": "${sourceDir}/build/debug/${hostSystemName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "23",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "BUILD_TESTING": "ON",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets"
+      },
+      "hidden": true
+    },
+
+    {
+      "name": "release-linux",
+      "displayName": "🟢  Release • Linux (lto)",
+      "inherits": "release-base",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux-oxide-lto"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+
+    {
+      "name": "release-macos",
+      "displayName": "🟢  Release • macOS-arm64 (lto)",
+      "inherits": "release-base",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "arm64-osx-oxide-lto"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+
+    {
+      "name": "release-windows",
+      "displayName": "🟢  Release • Windows-x64 (lto)",
+      "inherits": "release-base",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows-oxide-lto"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+
+    {
+      "name": "debug-linux",
+      "displayName": "🐞  Debug • Linux",
+      "inherits": "debug-base",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+
+    {
+      "name": "debug-macos",
+      "displayName": "🐞  Debug • macOS-arm64",
+      "inherits": "debug-base",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "arm64-osx"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+
+    {
+      "name": "debug-windows",
+      "displayName": "🐞  Debug • Windows-x64",
+      "inherits": "debug-base",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "release-linux",   "configurePreset": "release-linux"   },
+    { "name": "release-macos",   "configurePreset": "release-macos"   },
+    { "name": "release-windows", "configurePreset": "release-windows" },
+
+    { "name": "debug-linux",     "configurePreset": "debug-linux"     },
+    { "name": "debug-macos",     "configurePreset": "debug-macos"     },
+    { "name": "debug-windows",   "configurePreset": "debug-windows"   }
+  ]
+}

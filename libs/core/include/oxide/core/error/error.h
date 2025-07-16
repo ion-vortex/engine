@@ -53,7 +53,6 @@ enum class ErrorCode : std::uint32_t
     FunctionNotImplemented                      =  38,  // ENOSYS
     DirectoryNotEmpty                           =  39,  // ENOTEMPTY
     TooManyLevelsOfSymbolicLinks                =  40,  // ELOOP
-    WouldBlock                                  =  41,  // EWOULDBLOCK
     NoMessageOfDesiredType                      =  42,  // ENOMSG
     IdentifierRemoved                           =  43,  // EIDRM
     ChannelNumberOutOfRange                     =  44,  // ECHRNG
@@ -166,16 +165,21 @@ struct Error
     ErrorCode   code { ErrorCode::Unknown };
     std::string message;
 
-    constexpr Error()                              = default;
+    Error()                                        = default;
     constexpr Error(ErrorCode c) noexcept          : code(c) {}
     Error(ErrorCode c, std::string_view m)         : code(c), message(m) {}
 
     [[nodiscard]] constexpr bool ok() const noexcept
     { return code == ErrorCode::Ok; }
 
-    [[nodiscard]] std::string_view what() const noexcept;
+    [[nodiscard]] std::string_view what() const noexcept
+    {
+    }
 };
 
-std::string_view to_string(ErrorCode);
+    // Forward declaration of to_string for ErrorCode
+    constexpr std::string_view to_string(ErrorCode) noexcept;
 
 } // namespace oxide::core
+
+#include "error_strings.h"
