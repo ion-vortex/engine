@@ -54,13 +54,13 @@ sudo apt update && sudo apt install -y \
   git build-essential ninja-build pkg-config cmake \
   libx11-dev libxi-dev libxrandr-dev libxinerama-dev libxcursor-dev libxfixes-dev \
   libgl1-mesa-dev libglu1-mesa-dev libssl-dev zlib1g-dev \
-  autoconf libtool
+  autoconf libtool automake
 ```
 
 ### macOS 12+  (Homebrew)
 
 ```bash
-brew install git cmake ninja pkg-config
+brew install git cmake ninja pkg-config libtool autoconf automake
 ```
 
 ### Windows 10/11 (PowerShell admin)
