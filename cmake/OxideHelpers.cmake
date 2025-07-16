@@ -244,6 +244,9 @@ function(oxide_add_test)
         message(FATAL_ERROR "oxide_add_test: NAME is required")
     endif()
 
+    # Ensure Catch2 is available
+    find_package(Catch2 CONFIG REQUIRED)
+
     # Automatically discover test sources
     file(GLOB_RECURSE _sources CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
@@ -336,8 +339,6 @@ function(oxide_setup_build_interface)
             /W4 /WX
             /permissive-
             /sdl
-            /GR-
-            /EHsc-
         )
         target_compile_definitions(oxide_build INTERFACE _WIN32_WINNT=0x0601)
 
@@ -348,7 +349,6 @@ function(oxide_setup_build_interface)
     else()
         target_compile_options(oxide_build INTERFACE
             -Wall -Wextra -Werror
-            -fno-exceptions -fno-rtti
         )
 
         target_compile_options(oxide_build INTERFACE
@@ -363,4 +363,10 @@ function(oxide_setup_build_interface)
             $<$<AND:$<CONFIG:Release>,$<BOOL:${OXIDE_ENABLE_MARCH_NATIVE}>>:-march=native>
         )
     endif()
+
+    # install build-interface so that each library's public dependencies are satisfied
+    install(TARGETS oxide_build
+        EXPORT OxideTargets
+        INCLUDES DESTINATION include
+    )
 endfunction()

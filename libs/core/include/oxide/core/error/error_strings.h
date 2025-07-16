@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-#include "error.h"
+#include "error_impl.h"
 
 namespace oxide::core {
 
