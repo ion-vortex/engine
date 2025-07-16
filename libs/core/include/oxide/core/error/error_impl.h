@@ -160,6 +160,9 @@ enum class ErrorCode : std::uint32_t
     // ── 30000-39999 reserved: unid app
 };
 
+// Forward declaration of to_string for ErrorCode
+constexpr std::string_view to_string(ErrorCode) noexcept;
+
 struct Error
 {
     ErrorCode   code { ErrorCode::Unknown };
@@ -186,9 +189,4 @@ private:
     }
 };
 
-    // Forward declaration of to_string for ErrorCode
-    constexpr std::string_view to_string(ErrorCode) noexcept;
-
 } // namespace oxide::core
-
-#include "error_strings.h"

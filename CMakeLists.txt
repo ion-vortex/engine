@@ -62,7 +62,8 @@ endif()
 add_subdirectory(libs)
 
 if(OXIDE_BUILD_APPS)
-    add_subdirectory(apps)
+    # disabling for now
+    # add_subdirectory(apps)
 endif()
 
 # ── Installation and packaging ────────────────────────────────
