@@ -65,11 +65,6 @@ function(oxide_add_library)
         target_link_libraries(${_target_name} PRIVATE oxide::build)
     endif()
 
-    # Set public headers for installation
-    set_target_properties(${_target_name} PROPERTIES
-        PUBLIC_HEADER "${_public_headers}"
-    )
-
     # Enable unity build if requested
     if(CMAKE_UNITY_BUILD)
         set_target_properties(${_target_name} PROPERTIES
@@ -87,7 +82,11 @@ function(oxide_add_library)
     install(TARGETS ${_target_name}
         EXPORT OxideTargets
         ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include/oxide/${ARG_NAME}
+    )
+
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/oxide/${ARG_NAME}/
+        DESTINATION include/oxide/${ARG_NAME}
+        FILES_MATCHING PATTERN "*.h"
     )
 endfunction()
 

@@ -7,7 +7,7 @@ This guide covers building Oxide from source on all supported platforms.
 For the impatient (after [prerequisites](prerequisites.md) are installed):
 
 ```bash
-git clone https://git.oat.im/oat/oxide.git
+git clone https://github.com/oat-im/oxide.git
 cd oxide
 ./scripts/bootstrap.sh           # bootstrap.ps1 on Windows
 cmake --preset debug-linux       # or debug-windows, debug-macos
@@ -19,7 +19,7 @@ cmake --build --preset debug-linux
 ### 1. Clone the Repository
 
 ```bash
-git clone https://git.oat.im/oat/oxide.git
+git clone https://github.com/oat-im/oxide.git
 cd oxide
 ```
 

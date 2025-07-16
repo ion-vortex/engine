@@ -8,7 +8,7 @@ If you're experienced with C++ and just want to dive in:
 
 ```bash
 # Clone and setup
-git clone https://git.oat.im/oat/oxide.git
+git clone https://github.com/oat-im/oxide.git
 cd oxide
 ./scripts/bootstrap.sh  # or bootstrap.ps1 on Windows
 
