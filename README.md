@@ -1,6 +1,6 @@
 # Project Oxide
 
-![oxide-banner](docs/oxide-banner.svg)
+![oxide-banner](docs/assets/oxide-banner.svg)
 
 > **A lightweight, fully‑authoritative real‑time space‑sim framework built in modern C++23.**
 
