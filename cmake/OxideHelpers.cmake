@@ -269,8 +269,14 @@ function(oxide_add_test)
             Catch2::Catch2WithMain
     )
 
-    # Add to CTest
-    add_test(NAME ${ARG_NAME} COMMAND ${ARG_NAME})
+    include(Catch)
+    
+    # Use Catch2's test discovery instead of manual add_test
+    # This will discover all TEST_CASE entries in your test files
+    catch_discover_tests(${ARG_NAME}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        EXTRA_ARGS --reporter console --durations yes
+    )
 endfunction()
 
 # ──────────────────────────────────────────────────────────────────────────────
