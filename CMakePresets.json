@@ -8,7 +8,6 @@
   "configurePresets": [
     {
       "name": "release-base",
-      "generator": "Ninja",
       "displayName": "Release • generic",
       "binaryDir": "${sourceDir}/build/release/${hostSystemName}",
       "cacheVariables": {
@@ -22,7 +21,6 @@
     },
     {
       "name": "debug-base",
-      "generator": "Ninja",
       "displayName": "Debug • generic",
       "binaryDir": "${sourceDir}/build/debug/${hostSystemName}",
       "cacheVariables": {
@@ -40,6 +38,7 @@
       "name": "release-linux",
       "displayName": "🟢  Release • Linux (lto)",
       "inherits": "release-base",
+      "generator": "Ninja",
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-linux-oxide-lto"
       },
@@ -54,6 +53,7 @@
       "name": "release-macos",
       "displayName": "🟢  Release • macOS-arm64 (lto)",
       "inherits": "release-base",
+      "generator": "Ninja",
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "arm64-osx-oxide-lto"
       },
@@ -82,6 +82,7 @@
       "name": "debug-linux",
       "displayName": "🐞  Debug • Linux",
       "inherits": "debug-base",
+      "generator": "Ninja",
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-linux"
       },
@@ -96,6 +97,7 @@
       "name": "debug-macos",
       "displayName": "🐞  Debug • macOS-arm64",
       "inherits": "debug-base",
+      "generator": "Ninja",
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "arm64-osx"
       },
