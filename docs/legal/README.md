@@ -34,7 +34,7 @@ The CLA is available in multiple formats:
    - **Employer-Sponsored Contributor**: Your employer owns the IP rights
 3. Fill out the appropriate section at the bottom of the document
 4. Submit the signed CLA via one of these methods:
-   - Email to: legal@oatinteractive.com
+   - Email to: dev@oat.im
    - Include with your first pull request
    - Submit through the contributor portal (if available)
 
@@ -94,7 +94,7 @@ If you want to use Oxide in a commercial product:
 2. **Public Assets**: Free to use commercially (CC0)
 3. **Private Assets**: Require separate commercial license
 
-For commercial licensing inquiries: business@oatinteractive.com
+For commercial licensing inquiries: dev@oat.im
 
 ## Third-Party Licenses
 
@@ -139,7 +139,7 @@ A: Yes, public assets are CC0 (public domain) and free for any use, regardless o
 
 ### Q: What if I want to keep my modifications or game private?
 A: You have two options:
-1. **Commercial License**: Contact us at business@oatinteractive.com for proprietary licensing
+1. **Commercial License**: Contact us at dev@oat.im for proprietary licensing
 2. **Don't use Oxide**: If you need a permissively licensed engine, Oxide isn't for you
 
 ### Q: Can I run a game server using Oxide without releasing my game's source?
@@ -157,7 +157,7 @@ A: See [Contributing Guidelines](../contributing/ai-policy.md) for our AI policy
 ## Legal Contact
 
 For legal questions not covered here:
-- Email: legal@oatinteractive.com
+- Email: dev@oat.im
 - Include "Oxide Legal Question" in subject line
 
 ## Disclaimer

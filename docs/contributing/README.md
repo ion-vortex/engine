@@ -161,7 +161,7 @@ cmake --build --preset debug --target oxide_core
 - **GitHub Issues** - Bug reports and features
 - **GitHub Discussions** - General questions
 - **Discord** - Real-time chat (if available)
-- **Email** - dev@oatinteractive.com for private matters
+- **Email** - dev@oat.im for private matters
 
 ### Response Times
 - **Issues**: 2-3 business days
