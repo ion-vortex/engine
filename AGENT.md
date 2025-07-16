@@ -1,87 +1,114 @@
-# AGENT.md  
-*Rules and check-list for any human or automated agent that touches the **Oxide** code-base.*
+# AGENT.md
+
+*Rules and check-list for every human **or** automated agent that touches the **Oxide** code-base.*
+*(This file is surfaced to both ChatGPT / Claude agents via project settings — keep it tight, explicit, and up-to-date.)*
 
 ---
 
-## 1.  Prime directive
-> **Do not widen project scope.**  
-> Every change must push us toward the stated goals in `README.md` without introducing new external dependencies, subsystems, or pattern creep.
-> Be sure to follow all the instructions in `docs/CPP_MANUAL.md`.
+## 1   Prime directive
+
+> **Stay within project scope.**
+> Every change **must** push toward the milestones in `README.md`.
+> No new external libs, no speculative subsystems, no pattern creep.
+> Obey `docs/CPP_MANUAL.md` *and* the constraints below.
 
 ---
 
-## 2.  Library boundaries
-| Layer           | May call                | Must NOT call                   |
-|-----------------|-------------------------|---------------------------------|
-| `libs/core`     | – (bottom layer)        | anything else                   |
-| `libs/crypto`   | `core`                  | net, render, ui, apps           |
-| `libs/net`      | `core`                  | render, ui                      |
-| `libs/asset`    | `core`, `crypto`, `net` | render, ui                      |
-| `libs/physics`.     | `core`                  | net, ui, asset                  |
-| `libs/render`   | `core`, `physics` (*)       | net, ui (except texture id)     |
-| `libs/ui`       | `core`, `render`        | net, physics                    |
-| `libs/platform` | `core`                  | anything but core               |
-| `apps/*`        | all libs via interfaces | –                               |
+## 2   Library boundaries
 
-(*) `render` only sees physics **read-only** for debug draw helpers.
+| Layer           | May call                           | **Must NOT** call                |
+| --------------- | ---------------------------------- | -------------------------------- |
+| `libs/core`     | – (bottom layer)                   | anything else                    |
+| `libs/crypto`   | `core`                             | asset, physics, render, ui       |
+| `libs/asset`    | `core`, `crypto`                   | physics, render, ui              |
+| `libs/physics`  | `core`                             | asset, render, ui, protocol      |
+| `libs/protocol` | `core`, `crypto`                   | render, ui, physics              |
+| `libs/audio`    | `core`                             | render, ui                       |
+| `libs/render`   | `core`, `physics` *(read-only)*    | protocol, ui (except imgui draw) |
+| `libs/ui`       | `core`, `render`                   | protocol, physics, crypto        |
+| `apps/*`        | all libs **via public interfaces** | –                                |
 
 ### Sanity macro
-Every `.cpp` must start with:
+
+Every `*.cpp` **must** start with:
 
 ```cpp
-#include "oxide/layer_assert.h"  // static_asserts that enforce the table above
-````
+#include "oxide/layer_assert.h"   // static_asserts the table above
+```
 
 ---
 
-## 3.  Coding contract (superset of `docs/CPP_MANUAL.md`)
+## 3   Coding contract (superset of `docs/CPP_MANUAL.md`)
 
-* No exceptions across public boundaries (`std::expected` only).
-* No RTTI (`dynamic_cast`, `typeid`) in libs.
-* No singletons.  Inject via factory or pass reference.
-* `std::shared_ptr` allowed only in UI code for Ultralight JS bindings – nowhere else.
+* **No exceptions** across public boundaries (`std::expected` only).
+* **No RTTI** (`dynamic_cast`, `typeid`) in libs.
+* **No singletons.**  Inject via factory or pass a reference.
+* **No `std::shared_ptr`** in engine libs.  Use `std::unique_ptr`; UI (ImGui) is immediate-mode and does not require shared ownership.
 * Public headers: `#pragma once`, no `using namespace std`.
-* Build must pass `-Wall -Wextra -Werror -Wshadow -Wconversion`.
+* Must compile with `-Wall -Wextra -Werror -Wshadow -Wconversion` (or MSVC equivalents).
+* Use CMake ≥ **3.28**.  Unity builds (`CMAKE_UNITY_BUILD`) and PCH are on by default via `CMakePresets.json`.
 
 ---
 
-## 4.  Platform layer (`libs/platform`)
+## 4   AI-generated content policy  *(mirrors CONTRIBUTING.md)*
 
-* GLFW is the only backend for now.  Hide it behind `IWindow` and `input()` as specified in README.
-* Do **not** pull bgfx headers into platform.  Pass native window handle (`void*`) upward.
-* Each poll cycle must fill `InputState` *once*; higher layers read but never mutate it.
-* In fact, for each internal library, we should *never* expose third party headers. It should wrap any external library properly in an interface so we chan swap them out if necessary.
+1. **AI-generated art assets are strictly forbidden.**
+2. **AI-generated code is allowed** *only* when **all** of the following hold:
 
----
+   * PR description clearly states *“contains AI-generated code”*.
+   * Author fully understands the code — no “vibe-coded” blobs.
+   * A complete PR review is provided, regardless of change size; assume AI will be wrong.
 
-## 5.  Security checklist
-
-* All external HTTP(S) fetches must use `rune::net::HttpsClient` (libcurl wrapper) with CA-pinning.
-* New cryptographic code goes through `rune::crypto` only—never open-code libsodium calls.
-* Never log secrets or private keys; redact before emitting to `ILog`.
+PRs that violate any of the above are closed without review.
 
 ---
 
-## 6.  Large file / history hygiene
+## 5   Security checklist
 
-* No asset larger than 10 MiB in Git history.
-* If you accidentally commit one:
+* All outbound HTTP(S) uses `oxide::protocol::HttpsClient` (libcurl wrapper) with CA-pinning.
+* Crypto work goes through `libs/crypto` only — never inline libsodium calls.
+* Never log secrets or private keys.  Mask before calling `ILog`.
 
-  ```
-  git filter-repo --path path/to/large.file --invert-paths
+---
+
+## 6   Large file / history hygiene
+
+* **No file > 10 MiB** in Git history.
+* If you slip one in:
+
+  ```bash
+  git filter-repo --path path/to/big.file --invert-paths
   git push --force-with-lease
   ```
 
-  Then add it to `.gitignore` and `.gitattributes` (git lfs)
+  Then add it to `.gitignore` and/or Git-LFS.
 
 ---
 
-## 7.  Documentation update required
+## 7   Documentation + version bump
 
-If you change:
+If you touch **any** of:
 
-* a public header in `libs/<lib>/include/`
-* runtime behavior of any daemon
-* the build workflow
+* public headers in `libs/**/include/`
+* runtime behaviour of `apps/client`, `apps/zoned`, `apps/unid`
+* the build workflow, presets, or triplets
 
-then update the relevant section in `README.md` or `docs/`, and bump the **minor** version in `vcpkg.json`.
+then:
+
+1. Update `README.md` **and** relevant docs under `docs/`.
+2. Bump the **minor** version in `vcpkg.json`.
+
+---
+
+## 8   Build quick-check
+
+```bash
+# configure + build debug preset
+cmake --preset debug
+cmake --build --preset debug --target client
+
+# run the sandbox
+./out/build/debug/apps/client --dev
+```
+
+The CI pipeline runs the same commands; if they fail locally they will fail in CI.

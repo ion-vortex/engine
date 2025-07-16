@@ -1,8 +1,8 @@
-// oxide/libs/core/include/oxide/core/error/error.h
 #pragma once
 #include <string>
 #include <string_view>
 #include <cstdint>
+#include <exception>
 
 namespace oxide::core {
 
@@ -165,15 +165,24 @@ struct Error
     ErrorCode   code { ErrorCode::Unknown };
     std::string message;
 
-    Error()                                        = default;
+    constexpr Error() noexcept = default;
     constexpr Error(ErrorCode c) noexcept          : code(c) {}
     Error(ErrorCode c, std::string_view m)         : code(c), message(m) {}
+    Error(ErrorCode c, const std::exception& e) noexcept : code(c), message(e.what()) {}
 
-    [[nodiscard]] constexpr bool ok() const noexcept
-    { return code == ErrorCode::Ok; }
+    [[nodiscard("Check error state")]]
+    constexpr bool ok() const noexcept { return code == ErrorCode::Ok; }
 
-    [[nodiscard]] std::string_view what() const noexcept
-    {
+    [[nodiscard("Error message should be used")]]
+    std::string_view what() const noexcept;
+
+private:
+    static std::string concat(ErrorCode code, const std::string& msg) noexcept {
+        try {
+            return std::string(to_string(code)) + ": " + msg;
+        } catch (...) {
+            return std::string(to_string(code));
+        }
     }
 };
 
