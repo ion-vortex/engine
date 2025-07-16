@@ -28,14 +28,22 @@ This repository purposely avoids hype‑driven rewrites.  No ECS.  No data‑o
    client/    ← Desktop GUI launcher (bgfx + ImGui)
    zoned/     ← Headless zone‑simulation server
    unid/      ← Universe‑directory + matchmaking service
-   tools/     ← CLI helpers (mesh optimiser, ibl baker, etc.)
-/include      ← Public headers per lib (oat/oxide/…)
-/src          ← Implementation per lib
-/tests        ← Integration & unit tests (Catch2)
+/libs
+   asset/     ← glTF loader, meshoptimizer, IBL bake cache
+   audio/     ← miniaudio device, 3D voice emitter wrapper
+   core/      ← Error wrapper, logger, fixed allocators, timing helpers
+   crypto/    ← Cryptographic utilities
+   physics/   ← Bullet‑backed hull cache & collision queries
+   protocol/  ← Network protocol definitions
+   render/    ← bgfx init, view & frame orchestration, PBR shader registry
+   ui/        ← ImGui context per‑view, dockspace, debug widgets
+/assets       ← Game assets (public & private)
+/docs         ← Documentation and design files
+/scripts      ← Build and utility scripts
 /vcpkg.json   ← Locked manifest of third‑party ports
 ```
 
-All core/business logic lives in libraries under `include/` + `src/`.  Apps are thin façades that compose libs.
+All core/business logic lives in libraries under `/libs`.  Apps are thin façades that compose libs.
 
 ---
 
