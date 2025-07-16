@@ -131,5 +131,84 @@
     { "name": "debug-linux",     "configurePreset": "debug-linux"     },
     { "name": "debug-macos",     "configurePreset": "debug-macos"     },
     { "name": "debug-windows",   "configurePreset": "debug-windows"   }
+  ],
+  "testPresets": [
+    {
+      "name": "test-base",
+      "hidden": true,
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      }
+    },
+    {
+      "name": "debug-linux",
+      "displayName": "Test Debug Linux",
+      "configurePreset": "debug-linux",
+      "inherits": "test-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "debug-macos",
+      "displayName": "Test Debug macOS",
+      "configurePreset": "debug-macos",
+      "inherits": "test-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "debug-windows",
+      "displayName": "Test Debug Windows",
+      "configurePreset": "debug-windows",
+      "inherits": "test-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "release-linux",
+      "displayName": "Test Release Linux",
+      "configurePreset": "release-linux",
+      "inherits": "test-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "release-macos",
+      "displayName": "Test Release macOS",
+      "configurePreset": "release-macos",
+      "inherits": "test-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "release-windows",
+      "displayName": "Test Release Windows",
+      "configurePreset": "release-windows",
+      "inherits": "test-base",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
   ]
 }
