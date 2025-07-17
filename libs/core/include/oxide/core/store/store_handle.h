@@ -20,7 +20,7 @@ struct OXIDE_CORE_API StoreHandle {
     /**
      * @brief Returns true if the handle is valid (nonzero).
      */
-    [[nodiscard("Check if handle is valid")]]
+    [[nodiscard("Check if handle is valid"), gnu::warn_unused_result]]
     constexpr bool valid() const noexcept { return raw != 0; }
 
     /**
@@ -28,7 +28,7 @@ struct OXIDE_CORE_API StoreHandle {
      * @param o The other handle.
      * @return True if both refer to the same node.
      */
-    [[nodiscard("Check if handles are equal")]]
+    [[nodiscard("Check if handles are equal"), gnu::warn_unused_result]]
     bool operator==(StoreHandle o) const noexcept { return raw == o.raw; }
 };
 

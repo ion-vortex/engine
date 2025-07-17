@@ -16,14 +16,15 @@
 ### API Design
 - **struct for POD** - Simple value types with public constructors
 - **class for complex** - Stateful objects with private constructors + factories
-- **[[nodiscard]]** - On all functions that return errors
+- **[[nodiscard, gnu::warn_unused_result]]
+** - On all functions that return errors
 
 ### Error Handling
 ```cpp
 enum class ErrorCode { Ok, InvalidArgument, ... };
 struct Error { ErrorCode code; std::string msg; };
 
-[[nodiscard("Handle this result!")]]
+[[nodiscard("Handle this result!"), gnu::warn_unused_result]]
 std::expected<std::unique_ptr<IFoo>, Error> create_foo();
 ```
 
@@ -36,7 +37,8 @@ public:
     virtual void log(std::string_view msg) = 0;
 };
 
-[[nodiscard]] std::expected<std::unique_ptr<ILogger>, Error> 
+[[nodiscard, gnu::warn_unused_result]]
+ std::expected<std::unique_ptr<ILogger>, Error> 
 create_logger(const Config& cfg);
 
 // Implementation (private)
@@ -89,6 +91,7 @@ tests/                   # Integration tests using public APIs
 
 ## Enforcement
 - All factory functions catch exceptions → return Error
-- [[nodiscard]] on all fallible operations
+- [[nodiscard, gnu::warn_unused_result]]
+ on all fallible operations
 - Static asserts for struct sizes
 - No dynamic_cast (RTTI disabled)

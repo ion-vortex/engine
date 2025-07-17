@@ -149,7 +149,7 @@ All runtime code SHALL use `std::expected` for error propagation. See API.3 for 
 ```cpp
 // Example of catching an internal exception in a factory
 // static
-[[nodiscard("Handle this result! Failure to do so is a bug.")]]
+[[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
 std::expected<std::unique_ptr<MyObject>, Error> MyObject::Create(const std::string& config_data) {
     try {
         // MyObjectImpl constructor might throw on bad config_data
@@ -186,7 +186,7 @@ public:
     virtual ~MyObject() = default;
 
     // Factory function
-    [[nodiscard("Handle this result! Failure to do so is a bug.")]]
+    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
     static std::expected<std::unique_ptr<MyObject>, Error> Create(...);
 
 protected:
@@ -282,7 +282,7 @@ These layers establish strict boundaries crucial for maintainability, testabilit
 
             virtual void tick(uint64_t now_ns) = 0;
 
-            [[nodiscard("Handle this result! Failure to do so is a bug.")]]
+            [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
             virtual std::expected<void, Error> sendMessage(BufferView payload) = 0;
             // ... other interface methods
         };
@@ -559,15 +559,15 @@ private:
 ```cpp
 class DataProcessor {
 public:
-    [[nodiscard("Handle this result! Failure to do so is a bug.")]]
+    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
     static std::expected<std::unique_ptr<DataProcessor>, Error> Create(Config& cfg);
 
     void submit_data(BufferView data);
     
-    [[nodiscard("Handle this result! Failure to do so is a bug.")]]
+    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
     bool is_processing() const;
 
-    [[nodiscard("Handle this result! Failure to do so is a bug.")]]
+    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
     std::optional<Result> get_result();
 
 private:
@@ -775,7 +775,7 @@ public:
 
 class ILoggerFactory {
 public:
-    [[nodiscard("Handle this result! Failure to do so is a bug.")]]
+    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
     virtual std::expected<std::unique_ptr<ILogger>, Error> createLogger() = 0;
     virtual ~ILoggerFactory() = default;
 };
@@ -798,7 +798,7 @@ public:
         stream_ << msg << '\n';
     }
 
-    [[nodiscard("Handle this result! Failure to do so is a bug.")]]
+    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
     static std::expected<std::unique_ptr<ILogger>, Error> Create(std::string_view path) {
         try {
             auto logger = std::unique_ptr<ConcreteLogger>(new ConcreteLogger(path));
@@ -838,7 +838,7 @@ private:
 
 class ConcreteLoggerFactory : public ILoggerFactory {
 public:
-    [[nodiscard("Handle this result! Failure to do so is a bug.")]]
+    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
     std::expected<std::unique_ptr<ILogger>, Error> createLogger() override {
         return ConcreteLogger::Create("log.txt");
     }
@@ -888,7 +888,7 @@ void reset_logger_factory() {
   class MockLogger : public ILogger { /* ... */ };
   class MockLoggerFactory : public ILoggerFactory {
   public:  
-      [[nodiscard("Handle this result! Failure to do so is a bug.")]]
+      [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
       std::expected<std::unique_ptr<ILogger>, Error> createLogger() override {
           return std::make_unique<MockLogger>();
       }
@@ -997,7 +997,8 @@ This keeps the API surface clean and makes it immediately obvious what's a value
 
 ---
 
-### API.4: **Error Handling: Use Tagged `Error` Wrappers with `ErrorCode` and `[[nodiscard]]`**
+### API.4: **Error Handling: Use Tagged `Error` Wrappers with `ErrorCode` and `[[nodiscard, gnu::warn_unused_result]]
+`**
 
 <a name="api4-error-codes"></a>
 
@@ -1079,7 +1080,7 @@ namespace oat::foo {
         Error(ErrorCode c, const std::exception& e) noexcept : code(c), message(concat(c, e.what())) {}
         Error(ErrorCode c, std::string msg) noexcept : code(c), message(concat(c, std::move(msg))) {}
     
-        [[nodiscard("You're ignoring an error message. Don't do that.")]]
+        [[nodiscard("You're ignoring an error message. Don't do that."), gnu::warn_unused_result]]
         std::string_view what() const noexcept {
             if (!message.empty()) {
                 return message;
@@ -1088,7 +1089,7 @@ namespace oat::foo {
             }
         }
     
-        [[nodiscard("If you're going to use this, you should probably do something with it.")]]
+        [[nodiscard("If you're going to use this, you should probably do something with it."), gnu::warn_unused_result]]
         ErrorCode code_value() const noexcept { return code; }
     
         bool operator==(ErrorCode other) const noexcept { return code == other; }
@@ -1134,7 +1135,7 @@ namespace oat::foo {
 
 Example for usage:
 ```cpp
-[[nodiscard("Ignoring this means you don't care about the result. Fix it.")]]
+[[nodiscard("Ignoring this means you don't care about the result. Fix it."), gnu::warn_unused_result]]
 std::expected<void, oat::foo::Error> always_fails() {
     return std::unexpected(oat::foo::ErrorCode::InvalidAddress);
 }
@@ -1142,13 +1143,14 @@ std::expected<void, oat::foo::Error> always_fails() {
 
 ---
 
-#### 3. Always Use `[[nodiscard]]` on Functions Returning `std::expected`
+#### 3. Always Use `[[nodiscard, gnu::warn_unused_result]]
+` on Functions Returning `std::expected`
 
 ```cpp
-[[nodiscard("Handle this result! Failure to do so is a bug.")]]
+[[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
 std::expected<Widget, Error> CreateWidget(std::string_view name);
 
-[[nodiscard("Handle this result! Failure to do so is a bug.")]]
+[[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
 std::expected<void, Error> SendMessage(const Widget& w, std::string_view msg);
 ```
 
@@ -1159,7 +1161,7 @@ Failing to check these results MUST trigger compiler warnings or errors. If your
 #### 4. Void Results Use `std::expected<void, Error>`
 
 ```cpp
-[[nodiscard("You must handle this shutdown result.")]]
+[[nodiscard("You must handle this shutdown result."), gnu::warn_unused_result]]
 std::expected<void, Error> Shutdown();
 ```
 
@@ -1168,7 +1170,7 @@ std::expected<void, Error> Shutdown();
 #### 5. Catch and Wrap Errors Properly
 
 ```cpp
-[[nodiscard("Handle this CreateAddr result!")]]
+[[nodiscard("Handle this CreateAddr result!"), gnu::warn_unused_result]]
 std::expected<Addr, Error> CreateAddr(const std::string& ip, uint16_t port) {
     try {
         return Addr(ip, port);
@@ -1209,7 +1211,8 @@ This is a modern, explicitly-typed, contract-driven system. You will not hide er
 
 | Rule                                                 | Enforcement                                  |
 | ---------------------------------------------------- | -------------------------------------------- |
-| All `std::expected` returns SHALL be `[[nodiscard]]` | Compiler will warn or error                  |
+| All `std::expected` returns SHALL be `[[nodiscard, gnu::warn_unused_result]]
+` | Compiler will warn or error                  |
 | All failures use `std::unexpected<Error>`            | No bare `std::unexpected` without an `Error` |
 | Errors MUST support equality with `ErrorCode`        | Required by `Error` wrapper                  |
 | Ignoring failures is a compile-time defect           | Not just discouraged—prohibited              |

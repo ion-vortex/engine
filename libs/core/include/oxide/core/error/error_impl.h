@@ -186,10 +186,10 @@ struct OXIDE_CORE_API Error
     Error(ErrorCode c, std::string_view m)         : code(c), message(m) {}
     Error(ErrorCode c, const std::exception& e) noexcept : code(c), message(e.what()) {}
 
-    [[nodiscard("Check error state")]]
+    [[nodiscard("Check error state"), gnu::warn_unused_result]]
     constexpr bool ok() const noexcept { return code == ErrorCode::Ok; }
 
-    [[nodiscard("Error message should be used")]]
+    [[nodiscard("Error message should be used"), gnu::warn_unused_result]]
     std::string_view what() const noexcept;
 
 private:

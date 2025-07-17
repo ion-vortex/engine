@@ -160,7 +160,8 @@ class RendererImpl : public IRenderer {
 ```
 
 ### 4. **Explicit Error Handling**
-Every fallible operation returns `std::expected<T, Error>` and is marked `[[nodiscard]]`.
+Every fallible operation returns `std::expected<T, Error>` and is marked `[[nodiscard, gnu::warn_unused_result]]
+`.
 
 ## Common Tasks
 

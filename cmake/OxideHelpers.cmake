@@ -171,6 +171,7 @@ function(oxide_add_library)
         target_compile_options(oxide_${ARG_NAME} PRIVATE
             /wd4251  # 'type' needs to have dll-interface
             /wd4275  # non dll-interface base class
+            /wd5030  # unrecognized attribute (gnu::...)
         )
     endif()
 
@@ -308,6 +309,7 @@ function(oxide_add_application)
         target_compile_options(${ARG_NAME} PRIVATE
             /wd4251  # 'type' needs to have dll-interface
             /wd4275  # non dll-interface base class
+            /wd5030  # unrecognized attribute (gnu::...)
         )
     endif()
 
@@ -408,6 +410,7 @@ function(oxide_add_test)
         target_compile_options(${ARG_NAME} PRIVATE
             /wd4251  # 'type' needs to have dll-interface
             /wd4275  # non dll-interface base class
+            /wd5030  # unrecognized attribute (gnu::...)
         )
     endif()
 
@@ -541,7 +544,7 @@ function(oxide_setup_build_interface)
         )
     else()
         target_compile_options(oxide_build INTERFACE
-            -Wall -Wextra -Werror
+            -Wall -Wextra -Wunused-result -Werror
         )
 
         target_compile_options(oxide_build INTERFACE

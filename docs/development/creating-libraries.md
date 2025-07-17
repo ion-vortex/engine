@@ -67,7 +67,7 @@ namespace oxide::your_library {
 class IYourInterface;
 
 // Factory function declaration
-[[nodiscard("Handle the result")]]
+[[nodiscard("Handle the result"), gnu::warn_unused_result]]
 std::expected<std::unique_ptr<IYourInterface>, core::Error> 
 makeYourInterface(/* parameters */);
 
@@ -79,7 +79,7 @@ public:
     // Core functionality
     virtual void doSomething() = 0;
     
-    [[nodiscard("Check the result")]]
+    [[nodiscard("Check the result"), gnu::warn_unused_result]]
     virtual std::expected<int, core::Error> computeValue() = 0;
     
     // No implementation details in interface!
@@ -159,7 +159,7 @@ namespace oxide::your_library::detail {
 class YourImplementation final : public IYourInterface {
 public:
     // Factory method
-    [[nodiscard("Handle the result")]]
+    [[nodiscard("Handle the result"), gnu::warn_unused_result]]
     static std::expected<std::unique_ptr<YourImplementation>, core::Error> 
     Create(/* parameters */);
     
@@ -420,7 +420,8 @@ Any important implementation details...
 - ✅ Keep interfaces minimal and focused
 - ✅ Hide all implementation details
 - ✅ Use `std::expected` for all fallible operations
-- ✅ Mark functions `[[nodiscard]]` when appropriate
+- ✅ Mark functions `[[nodiscard, gnu::warn_unused_result]]
+` when appropriate
 - ✅ Follow the dependency hierarchy strictly
 - ✅ Write comprehensive tests
 - ✅ Document the public API

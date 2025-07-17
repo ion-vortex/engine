@@ -47,7 +47,7 @@ public:
      * @brief Returns the root handle of the storage tree.
      * @return StoreHandle on success, or an error (e.g. IoFailure) on failure.
      */
-    [[nodiscard("Check for error or valid root handle")]]
+    [[nodiscard("Check for error or valid root handle"), gnu::warn_unused_result]]
     virtual std::expected<StoreHandle, Error> root() const = 0;
 
     /**
@@ -55,7 +55,7 @@ public:
      * @param h The handle to query.
      * @return The boolean value or an error.
      */
-    [[nodiscard("Check for error or valid bool value")]]
+    [[nodiscard("Check for error or valid bool value"), gnu::warn_unused_result]]
     virtual std::expected<bool,Error>
     get_bool   (StoreHandle h) const = 0;
 
@@ -64,7 +64,7 @@ public:
      * @param h The handle to query.
      * @return The integer value or an error.
      */
-    [[nodiscard("Check for error or valid int value")]]
+    [[nodiscard("Check for error or valid int value"), gnu::warn_unused_result]]
     virtual std::expected<int64_t,Error>
     get_int    (StoreHandle h) const = 0;
 
@@ -73,7 +73,7 @@ public:
      * @param h The handle to query.
      * @return The double value or an error.
      */
-    [[nodiscard("Check for error or valid double value")]]
+    [[nodiscard("Check for error or valid double value"), gnu::warn_unused_result]]
     virtual std::expected<double,Error>
     get_double (StoreHandle h) const = 0;
 
@@ -82,7 +82,7 @@ public:
      * @param h The handle to query.
      * @return The string value or an error.
      */
-    [[nodiscard("Check for error or valid string value")]]
+    [[nodiscard("Check for error or valid string value"), gnu::warn_unused_result]]
     virtual std::expected<std::string,Error>
     get_string (StoreHandle h) const = 0;
 
@@ -92,7 +92,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on set_bool")]]
+    [[nodiscard("Check for error on set_bool"), gnu::warn_unused_result]]
     virtual std::expected<void,Error>
     set_bool   (StoreHandle h, bool   v) = 0;
 
@@ -102,7 +102,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on set_int")]]
+    [[nodiscard("Check for error on set_int"), gnu::warn_unused_result]]
     virtual std::expected<void,Error>
     set_int    (StoreHandle h, int64_t v) = 0;
 
@@ -112,7 +112,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on set_double")]]
+    [[nodiscard("Check for error on set_double"), gnu::warn_unused_result]]
     virtual std::expected<void,Error>
     set_double (StoreHandle h, double  v) = 0;
 
@@ -122,7 +122,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on set_string")]]
+    [[nodiscard("Check for error on set_string"), gnu::warn_unused_result]]
     virtual std::expected<void,Error>
     set_string (StoreHandle h, std::string_view v) = 0;
 
@@ -132,7 +132,7 @@ public:
      * @param key The key for the new array.
      * @return Handle to the new array or error.
      */
-    [[nodiscard("Check for error or valid array handle")]]
+    [[nodiscard("Check for error or valid array handle"), gnu::warn_unused_result]]
     virtual std::expected<StoreHandle,Error>
     make_array  (StoreHandle parent, std::string_view key) = 0;
 
@@ -142,7 +142,7 @@ public:
      * @param key The key for the new object.
      * @return Handle to the new object or error.
      */
-    [[nodiscard("Check for error or valid object handle")]]
+    [[nodiscard("Check for error or valid object handle"), gnu::warn_unused_result]]
     virtual std::expected<StoreHandle,Error>
     make_object (StoreHandle parent, std::string_view key) = 0;
 
@@ -153,7 +153,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on make_bool")]]
+    [[nodiscard("Check for error on make_bool"), gnu::warn_unused_result]]
     virtual std::expected<void,Error>
     make_bool   (StoreHandle parent, std::string_view key, bool   v) = 0;
 
@@ -164,7 +164,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on make_int")]]
+    [[nodiscard("Check for error on make_int"), gnu::warn_unused_result]]
     virtual std::expected<void,Error>
     make_int    (StoreHandle parent, std::string_view key, int64_t v) = 0;
 
@@ -175,7 +175,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on make_double")]]
+    [[nodiscard("Check for error on make_double"), gnu::warn_unused_result]]
     virtual std::expected<void,Error>
     make_double (StoreHandle parent, std::string_view key, double  v) = 0;
 
@@ -186,7 +186,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on make_string")]]
+    [[nodiscard("Check for error on make_string"), gnu::warn_unused_result]]
     virtual std::expected<void,Error>
     make_string (StoreHandle parent, std::string_view key, std::string_view v) = 0;
 
@@ -196,7 +196,7 @@ public:
      * @param key The key to remove.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on remove")]]
+    [[nodiscard("Check for error on remove"), gnu::warn_unused_result]]
     virtual std::expected<void,Error>
     remove        (StoreHandle parent, std::string_view key) = 0;
 
@@ -206,7 +206,7 @@ public:
      * @param key The key to check.
      * @return True if exists, false otherwise, or error.
      */
-    [[nodiscard("Check for error or existence result")]]
+    [[nodiscard("Check for error or existence result"), gnu::warn_unused_result]]
     virtual std::expected<bool,Error>
     has           (StoreHandle parent, std::string_view key) const = 0;
 
@@ -216,7 +216,7 @@ public:
      * @param idx The index to remove.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on erase_element")]]
+    [[nodiscard("Check for error on erase_element"), gnu::warn_unused_result]]
     virtual std::expected<void,Error>
     erase_element (StoreHandle parent, size_t idx) = 0;
 
@@ -226,7 +226,7 @@ public:
      * @param idx The index to check.
      * @return True if exists, false otherwise, or error.
      */
-    [[nodiscard("Check for error or existence result")]]
+    [[nodiscard("Check for error or existence result"), gnu::warn_unused_result]]
     virtual std::expected<bool,Error>
     has_element   (StoreHandle parent, size_t idx) const = 0;
 
@@ -236,7 +236,7 @@ public:
      * @param key The key to retrieve.
      * @return The child handle or error.
      */
-    [[nodiscard("Check for error or valid child handle")]]
+    [[nodiscard("Check for error or valid child handle"), gnu::warn_unused_result]]
     virtual std::expected<StoreHandle,Error>
     child   (StoreHandle parent, std::string_view key) const = 0;
 
@@ -246,7 +246,7 @@ public:
      * @param idx The index to retrieve.
      * @return The element handle or error.
      */
-    [[nodiscard("Check for error or valid element handle")]]
+    [[nodiscard("Check for error or valid element handle"), gnu::warn_unused_result]]
     virtual std::expected<StoreHandle,Error>
     element (StoreHandle parent, size_t idx) const = 0;
 
@@ -254,7 +254,7 @@ public:
      * @brief Commits the transaction, making all changes durable.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on commit")]]
+    [[nodiscard("Check for error on commit"), gnu::warn_unused_result]]
     std::expected<void,Error> commit() {
         auto e = commit_impl();
         if (e) committed_ = true;
@@ -269,7 +269,7 @@ public:
      * @param path The navigation path (e.g. "foo.bar[2].baz").
      * @return The resulting handle or error.
      */
-    [[nodiscard("Check for error or valid navigation result")]]
+    [[nodiscard("Check for error or valid navigation result"), gnu::warn_unused_result]]
     std::expected<StoreHandle,Error>
     navigate(StoreHandle base, std::string_view path) const {
         if (!base.valid()) return std::unexpected(ErrorCode::InvalidHandle);
@@ -313,7 +313,7 @@ public:
      * @return The value or error.
      */
     template<typename T>
-    [[nodiscard("Check for error or valid value")]]
+    [[nodiscard("Check for error or valid value"), gnu::warn_unused_result]]
     std::expected<T,Error>
     get(StoreHandle base, std::string_view path) const {
         auto h = navigate(base, path);
@@ -329,7 +329,7 @@ protected:
     /**
      * @brief Implementation of commit. Must be provided by concrete class.
      */
-    [[nodiscard("Check for error on commit_impl")]]
+    [[nodiscard("Check for error on commit_impl"), gnu::warn_unused_result]]
     virtual std::expected<void,Error> commit_impl() = 0;
     /**
      * @brief Implementation of rollback. Must be provided by concrete class.

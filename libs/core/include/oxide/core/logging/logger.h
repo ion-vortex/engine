@@ -28,7 +28,8 @@ public:
             std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...)));
     }
     
-    [[nodiscard]]
+    [[nodiscard, gnu::warn_unused_result]]
+
     virtual bool isEnabled(LogLevel level) const = 0;
 };
 

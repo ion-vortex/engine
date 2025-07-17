@@ -154,7 +154,8 @@ auto result = some_complex_ai_generated_function_i_dont_understand();
 // ✅ Good: Understand and improve AI suggestions
 // AI suggested basic version, but I added error handling and
 // adapted to our Error/std::expected pattern
-[[nodiscard]]
+[[nodiscard, gnu::warn_unused_result]]
+
 std::expected<ProcessedData, Error> processData(BufferView input) {
     if (input.empty()) {
         return std::unexpected(Error(ErrorCode::InvalidInput));

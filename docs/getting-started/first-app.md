@@ -95,7 +95,8 @@ using namespace oxide;
 
 class CubeViewerApp {
 public:
-    [[nodiscard]]
+    [[nodiscard, gnu::warn_unused_result]]
+
     static std::expected<std::unique_ptr<CubeViewerApp>, core::Error> Create() {
         auto app = std::unique_ptr<CubeViewerApp>(new CubeViewerApp());
         
@@ -168,7 +169,8 @@ public:
 private:
     CubeViewerApp() = default;
     
-    [[nodiscard]]
+    [[nodiscard, gnu::warn_unused_result]]
+
     std::expected<void, core::Error> setupCube() {
         // Cube vertices (position + color)
         struct Vertex {
