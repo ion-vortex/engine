@@ -19,7 +19,7 @@ public:
     std::expected<void, Error> clear() override;
     
     [[nodiscard("Handle shrinkToFit result")]]
-    std::expected<void, Error> shrinkToFit() override;
+    std::expected<void, Error> shrink_to_fit() override;
     
     [[nodiscard("Handle append result")]]
     std::expected<void, Error> append(std::span<const std::byte> src) override;

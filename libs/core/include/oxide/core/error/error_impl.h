@@ -145,7 +145,16 @@ enum class OXIDE_CORE_API ErrorCode : std::uint32_t
     StateNotRecoverable                         = 131,  // ENOTRECOVERABLE
     OperationNotPossibleDueToRFKill             = 132,  // ERFKILL
     MemoryPageHasHardwareError                  = 133,  // EHWPOISON
-    NotSupported                                = 134   // ENOTSUP
+    NotSupported                                = 134,   // ENOTSUP
+
+    // ── Oxide-specific error codes ──────────────────────────────────────────
+    // ── 140 - 199 reserved: oxide core lib
+    InvalidHandle   = 140, // raw==0 or generation mismatch
+    PathSyntax      = 141, // malformed "[", non-digit index, etc.
+    KeyNotFound     = 142, // child key missing
+    IndexOutOfRange = 143, // array index >= size
+    TypeMismatch    = 144, // wrong type for op
+    IoFailure       = 145, // serialization / filesystem error
 
     // ── 1000-1999 reserved: render lib
     // ── 2000-2999 reserved: net lib

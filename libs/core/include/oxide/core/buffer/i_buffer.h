@@ -21,7 +21,7 @@ public:
     virtual std::expected<void, Error> clear() = 0;
 
     [[nodiscard("Handle shrink result")]]
-    virtual std::expected<void, Error> shrinkToFit() = 0;
+    virtual std::expected<void, Error> shrink_to_fit() = 0;
 
     [[nodiscard("Handle append result")]]
     virtual std::expected<void, Error> append(std::span<const std::byte> src) = 0;

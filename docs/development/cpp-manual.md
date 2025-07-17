@@ -551,10 +551,10 @@ private:
 
 ---
 
-#### 5. **Class Member Functions: `camelCase` (Default) or `PascalCase` (Factory/Important Statics)**
+#### 5. **Class Member Functions: `snake_case` (Default) or `PascalCase` (Factory/Important Statics)**
 
-* Use `camelCase` for normal methods.
-* Use `PascalCase` for static factory methods or functions that create/return significant API objects.
+* Use `snake_case` for all normal (non-static) member functions.
+* Use `PascalCase` for public static factory methods or functions that create/return significant API objects.
 
 ```cpp
 class DataProcessor {
@@ -562,16 +562,16 @@ public:
     [[nodiscard("Handle this result! Failure to do so is a bug.")]]
     static std::expected<std::unique_ptr<DataProcessor>, Error> Create(Config& cfg);
 
-    void submitData(BufferView data);
+    void submit_data(BufferView data);
     
     [[nodiscard("Handle this result! Failure to do so is a bug.")]]
-    bool isProcessing() const;
+    bool is_processing() const;
 
     [[nodiscard("Handle this result! Failure to do so is a bug.")]]
-    std::optional<Result> getResult();
+    std::optional<Result> get_result();
 
 private:
-    void internalProcessQueue();
+    void internal_process_queue();
 
     std::vector<Buffer> queue_;
     bool is_active_;
@@ -591,7 +591,7 @@ namespace oat::utils {
 
 ---
 
-#### 7. **Constants and `constexpr` Variables (Global or Static): `kPascalCase` or `kSnakeCase`**
+#### 7. **Constants and `constexpr` Variables (Global or Static): `kPascalCase`**
 
 * Prefix constants with `k`.
 * This signals they are immutable and compile-time known.
@@ -806,7 +806,7 @@ public:
         } catch (const std::exception& e) {
             return std::unexpected(Error(ErrorCode::ResourceUnavailable, e));
         } catch (...) {
-            return std::unexpected(Error(ErrorCode::UnknownError, "Unknown error during ConcreteLogger::Create"));
+            return std::unexpected(Error(ErrorCode::Unknown, "Unknown error during ConcreteLogger::Create"));
         }
     }
 
@@ -1462,7 +1462,7 @@ Managing dependencies and ensuring robust linking behavior is crucial for creati
 ### DL.1: **No Dynamic Dispatch to Optional 3rd-Party Code Without Explicit Injection.**
 <a name="dl1-no-dynamic-dispatch-to-3rd-party"></a>
 
-If your library or system has an *optional* dependency on a third-party library (e.g., a specific logging library, a metrics backend, a compression algorithm not always needed), this dependency MUST be provided as an interface that the user can implement or inject. Your system should not attempt to `dlopen`/`LoadLibrary` and `dlsym`/`GetProcAddress` third-party symbols directly as its primary integration mechanism for *optional core functionality*.
+If your library has an *optional* dependency on a third-party library (e.g., a specific logging library, a metrics backend, a compression algorithm not always needed), this dependency MUST be provided as an interface that the user can implement or inject. Your system should not attempt to `dlopen`/`LoadLibrary` and `dlsym`/`GetProcAddress` third-party symbols directly as its primary integration mechanism for *optional core functionality*.
 
 1.  **Inject Interfaces for Optional Services:**
     Core services like logging, metrics, or specialized processing that might have different backends should be abstracted behind an interface. The user of your library provides the concrete implementation.
@@ -1658,15 +1658,6 @@ The public headers of your library must reside in a namespaced subdirectory with
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> # Makes 'include' available for <oat/your_lib/header.h>
         # If installing, you'd point to the 'include' dir in the install prefix
         $<INSTALL_INTERFACE:.> # Assuming headers are installed to <prefix>/include
-    )
-    # This setup means consumers can find headers relative to the top-level 'include' directory
-    # that contains your 'oat/' (or other org) subdirectory.
-
-    # More common and explicit for public headers:
-    # Assume your_lib_target is 'oat_your_lib_impl'
-    target_include_directories(your_lib_target PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include> # e.g. include/oat/your_lib/header.h
     )
     # This makes consumers use #include <oat/your_lib/header.h>
     # because target_include_directories adds the path *up to but not including* the final component

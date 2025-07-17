@@ -28,7 +28,7 @@ VectorBuffer::clear() {
 }
 
 std::expected<void, Error>
-VectorBuffer::shrinkToFit() {
+VectorBuffer::shrink_to_fit() {
     data_.shrink_to_fit();
     return {};
 }

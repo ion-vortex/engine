@@ -2,7 +2,7 @@
 
 #include <oxide/core/export.h>
 
-#include "ibuffer.h"
+#include "i_buffer.h"
 #include "static_buffer.h"
 
 namespace oxide::core {
