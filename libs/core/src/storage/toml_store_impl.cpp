@@ -31,7 +31,12 @@ TomlStore::TomlStore(std::filesystem::path const& path, TomlStoreOptions const& 
  */
 TomlStore::~TomlStore() {
     if (is_open_) {
-        close();
+        auto result = close();
+        if (!result) {
+            // Not much we can do here if closing fails,
+            // but we should log or handle the error in a real application.
+            // For now, we just ignore it.
+        }
     }
 }
 
