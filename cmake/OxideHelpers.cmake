@@ -178,6 +178,7 @@ function(oxide_add_library)
     install(TARGETS ${_target_name}
         EXPORT OxideTargets
         ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
     )
 
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/oxide/${ARG_NAME}/
