@@ -325,7 +325,7 @@ public:
         else static_assert(sizeof(T)==0, "Unsupported get<> type");
     }
 
-private:
+protected:
     /**
      * @brief Implementation of commit. Must be provided by concrete class.
      */

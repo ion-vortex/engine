@@ -2,12 +2,15 @@
 
 #include <oxide/core/export.h>
 #include <oxide/core/store.h>
-
 #include <toml++/toml.hpp>
+#include <mutex>
+#include <fstream>
 
 namespace oxide::core::detail {
 
-class TomlStore final : public IStore {
+class TomlTransaction;
+
+class OXIDE_CORE_API TomlStore final : public IStore {
 public:
     TomlStore(std::filesystem::path const& path, TomlStoreOptions const& options);
     ~TomlStore();
@@ -17,9 +20,16 @@ public:
     std::expected<std::unique_ptr<ITransaction>, Error> begin_transaction() override;
 
 private:
+    friend class TomlTransaction;
+
     std::filesystem::path path_;
     TomlStoreOptions options_;
     toml::table data_;
+    bool is_open_ = false;
+    mutable std::mutex mutex_;
+    
+    std::expected<void, Error> load_from_file();
+    std::expected<void, Error> save_to_file(toml::table const& data);
 };
 
 }  // namespace oxide::core::detail

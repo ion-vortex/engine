@@ -148,6 +148,17 @@ namespace oxide::core {
             case E::MemoryPageHasHardwareError:           return "Memory page has hardware error";
             case E::NotSupported:                         return "Not supported";
 
+            // Oxide-specific error codes
+            case E::InvalidHandle:                        return "Invalid handle";
+            case E::PathSyntax:                           return "Path syntax error";
+            case E::KeyNotFound:                          return "Key not found";
+            case E::IndexOutOfRange:                      return "Index out of range";
+            case E::TypeMismatch:                         return "Type mismatch";
+            case E::IoFailure:                            return "I/O failure";
+            case E::ParseError:                           return "Parse error";
+            case E::AlreadyExists:                        return "Already exists";
+            case E::InvalidState:                         return "Invalid state";
+
             // fallback
             default: return "Unrecognised error";
         }

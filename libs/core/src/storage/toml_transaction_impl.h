@@ -10,7 +10,9 @@
 #include <vector>
 #include <toml++/toml.h>
 
-namespace oxide::core {
+namespace oxide::core::detail {
+
+class TomlStore;
 
 /**
  * @brief Implementation of ITransaction for TOML-based storage.
@@ -19,9 +21,9 @@ namespace oxide::core {
  * using an in-memory representation of TOML data. It supports ACID-compliant
  * operations on hierarchical storage data.
  */
-class TomlTransaction final : public ITransaction {
+class OXIDE_CORE_API TomlTransaction final : public ITransaction {
 public:
-    TomlTransaction();
+    TomlTransaction(toml::table const& initial_data, TomlStore* store, TomlStoreOptions const& options);
     ~TomlTransaction() noexcept override;
 
     [[nodiscard]] std::expected<StoreHandle, Error> root() const override;
@@ -53,9 +55,25 @@ private:
     [[nodiscard]] std::expected<void, Error> commit_impl() override;
     void rollback_impl() noexcept override;
 
-    // Internal representation of TOML data using toml::table.
+    // Node representation for handle mapping
+    struct Node {
+        std::vector<std::string> path;  // Path from root to reconstruct node access
+    };
+
     toml::table data_;
-    bool committed_ = false;
+    TomlStore* store_;
+    TomlStoreOptions options_;
+    mutable std::unordered_map<uint64_t, Node> handle_map_;
+    mutable uint64_t next_handle_ = 1;
+    
+    [[nodiscard]] StoreHandle make_handle(std::vector<std::string> path) const;
+    [[nodiscard]] toml::node* get_node(StoreHandle h);
+    [[nodiscard]] toml::node const* get_node(StoreHandle h) const;
+    [[nodiscard]] std::expected<toml::node*, Error> get_node_checked(StoreHandle h);
+    [[nodiscard]] std::expected<toml::node const*, Error> get_node_checked(StoreHandle h) const;
+    [[nodiscard]] toml::node* navigate_to_node(std::vector<std::string> const& path);
+    [[nodiscard]] toml::node const* navigate_to_node(std::vector<std::string> const& path) const;
+    [[nodiscard]] bool is_valid_key(std::string_view key) const;
 };
 
 } // namespace oxide::core

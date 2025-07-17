@@ -155,6 +155,9 @@ enum class OXIDE_CORE_API ErrorCode : std::uint32_t
     IndexOutOfRange = 143, // array index >= size
     TypeMismatch    = 144, // wrong type for op
     IoFailure       = 145, // serialization / filesystem error
+    ParseError      = 146, // Storage system parse error,
+    AlreadyExists   = 147, // key already exists in parent table
+    InvalidState    = 148, // operation not valid in current state
 
     // ── 1000-1999 reserved: render lib
     // ── 2000-2999 reserved: net lib
