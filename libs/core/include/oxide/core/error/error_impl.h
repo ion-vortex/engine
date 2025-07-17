@@ -3,10 +3,11 @@
 #include <string_view>
 #include <cstdint>
 #include <exception>
+#include <oxide/core/export.h>
 
 namespace oxide::core {
 
-enum class ErrorCode : std::uint32_t
+enum class OXIDE_CORE_API ErrorCode : std::uint32_t
 {
     // ── Oat-generic sentinel ────────────────────────────────────────────────
     Ok      = 0x00000000, // success, no error
@@ -161,9 +162,9 @@ enum class ErrorCode : std::uint32_t
 };
 
 // Forward declaration of to_string for ErrorCode
-constexpr std::string_view to_string(ErrorCode) noexcept;
+constexpr OXIDE_CORE_API std::string_view to_string(ErrorCode) noexcept;
 
-struct Error
+struct OXIDE_CORE_API Error
 {
     ErrorCode   code { ErrorCode::Unknown };
     std::string message;

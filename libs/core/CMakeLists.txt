@@ -9,6 +9,7 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     
     # Load helpers and set up build interface
     include(OxideHelpers)
+    include(OxideExportHeader)
     oxide_setup_build_interface()
     
     # Find external dependencies that core needs
@@ -34,6 +35,9 @@ oxide_add_library(
     NAME core
     DEPENDENCIES oxide::build  # core has no internal deps
 )
+
+# Generate export header
+oxide_generate_export_header(oxide_core)
 
 # Link the external dependencies
 target_link_libraries(oxide_core PUBLIC

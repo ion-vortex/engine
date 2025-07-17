@@ -2,11 +2,12 @@
 #include "ibuffer.h"
 #include <array>
 #include <cstring>
+#include <oxide/core/export.h>
 
 namespace oxide::core::detail {
 
 template <std::size_t N>
-class StaticBuffer final : public IBuffer {
+class OXIDE_CORE_API StaticBuffer final : public IBuffer {
     std::array<std::byte, N> data_;
     std::size_t size_ = 0;
 public:

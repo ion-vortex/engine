@@ -6,7 +6,7 @@
 
 namespace oxide::core {
 
-    constexpr std::string_view to_string(ErrorCode c) noexcept
+    constexpr OXIDE_CORE_API std::string_view to_string(ErrorCode c) noexcept
     {
         using E = ErrorCode;
         switch (c)
@@ -153,7 +153,7 @@ namespace oxide::core {
         }
     }
 
-    inline std::string_view Error::what() const noexcept
+    inline OXIDE_CORE_API std::string_view Error::what() const noexcept
     {
         if (!message.empty())
             return message;

@@ -3,10 +3,11 @@
 #include <memory>
 #include <expected>
 #include <oxide/core/error.h>
+#include <oxide/core/export.h>
 
 namespace oxide::core {
 
-class IBuffer {
+class OXIDE_CORE_API IBuffer {
 public:
     virtual ~IBuffer() = default;
 

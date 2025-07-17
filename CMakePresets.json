@@ -41,7 +41,7 @@
       "inherits": "release-base",
       "generator": "Ninja",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux-oxide-lto"
+        "VCPKG_TARGET_TRIPLET": "x64-linux-static"
       },
       "condition": {
         "type": "equals",
@@ -56,7 +56,7 @@
       "inherits": "release-base",
       "generator": "Ninja",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "arm64-osx-oxide-lto"
+        "VCPKG_TARGET_TRIPLET": "arm64-osx-static"
       },
       "condition": {
         "type": "equals",
@@ -70,7 +70,7 @@
       "displayName": "🟢  Release • Windows-x64 (lto)",
       "inherits": "release-base",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-oxide-lto"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
       },
       "condition": {
         "type": "equals",
@@ -85,7 +85,7 @@
       "inherits": "debug-base",
       "generator": "Ninja",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux"
+        "VCPKG_TARGET_TRIPLET": "x64-linux-static"
       },
       "condition": {
         "type": "equals",
@@ -100,7 +100,7 @@
       "inherits": "debug-base",
       "generator": "Ninja",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "arm64-osx"
+        "VCPKG_TARGET_TRIPLET": "arm64-osx-static"
       },
       "condition": {
         "type": "equals",
@@ -114,7 +114,7 @@
       "displayName": "🐞  Debug • Windows-x64",
       "inherits": "debug-base",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
       },
       "condition": {
         "type": "equals",

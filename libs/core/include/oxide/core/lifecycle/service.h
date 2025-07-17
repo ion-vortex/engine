@@ -1,8 +1,10 @@
 #pragma once
 
+#include <oxide/core/export.h>
+
 namespace oxide::core {
 
-class IService {
+class OXIDE_CORE_API IService {
 public:
     virtual ~IService() = default;
     

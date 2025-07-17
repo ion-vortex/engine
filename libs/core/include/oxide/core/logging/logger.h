@@ -3,9 +3,11 @@
 #include <string_view>
 #include <format>
 
+#include <oxide/core/export.h>
+
 namespace oxide::core {
 
-enum class LogLevel {
+enum class OXIDE_CORE_API LogLevel {
     Trace,   // super-verbose
     Debug,   // developer diagnostics
     Info,    // normal ops
@@ -14,7 +16,7 @@ enum class LogLevel {
     Critical // about to crash / abort
 };
 
-class ILogger {
+class OXIDE_CORE_API ILogger {
 public:
     virtual ~ILogger() = default;
     

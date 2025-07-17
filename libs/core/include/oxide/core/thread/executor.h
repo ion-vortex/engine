@@ -2,11 +2,13 @@
 
 #include <functional>
 
+#include <oxide/core/export.h>
+
 namespace oxide::core {
 
 using Task = std::function<void()>;
 
-class IThreadPool {
+class OXIDE_CORE_API IThreadPool {
 public:
     virtual ~IThreadPool() = default;
     
@@ -14,7 +16,7 @@ public:
     virtual void waitIdle() = 0;
 };
 
-class IExecutor {
+class OXIDE_CORE_API IExecutor {
 public:
     virtual ~IExecutor() = default;
     
