@@ -35,13 +35,12 @@ set(CMAKE_CXX_SCAN_FOR_MODULES  OFF)
 set(CMAKE_UNITY_BUILD ${OXIDE_ENABLE_UNITY_BUILD})
 set(CMAKE_PCH_ENABLE  ON)
 
-if(OXIDE_ENABLE_LTO)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE        ON)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
-endif()
-
 # ── Load our helper functions ─────────────────────────────────
 include(OxideHelpers)
+include(OxideExportHeader)
+
+# ── Set up the build environment for shared libraries ─────────
+oxide_setup_build_environment()
 
 # ── Set up the global build interface ─────────────────────────
 oxide_setup_build_interface()

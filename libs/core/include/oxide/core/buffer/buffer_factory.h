@@ -1,13 +1,15 @@
 #pragma once
 
-#include "ibuffer.h"
+#include <oxide/core/export.h>
+
+#include "i_buffer.h"
 #include "static_buffer.h"
 
 namespace oxide::core {
 
 // Factory function to create a dynamic buffer with an optional initial capacity
 [[nodiscard("Handle buffer creation result")]]
-std::expected<std::unique_ptr<IBuffer>, Error>
+OXIDE_CORE_API std::expected<std::unique_ptr<IBuffer>, Error>
 create_buffer(std::size_t initial_capacity = 0);
 
 // Factory function to create a static buffer with a fixed size

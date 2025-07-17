@@ -44,7 +44,7 @@ class LoggerImpl : public ILogger {
 private:
     LoggerImpl(...);  // Private constructor
 public:
-    static std::expected<std::unique_ptr<ILogger>, Error> create(...);
+    static std::expected<std::unique_ptr<ILogger>, Error> Create(...);
 };
 ```
 
@@ -59,6 +59,7 @@ tests/                   # Integration tests using public APIs
 - **Types**: `PascalCase`
 - **Variables/functions**: `snake_case`  
 - **Members**: `snake_case_` (trailing underscore)
+- **Member functions**: `snake_case` (non-static), `CamelCase` (public static)
 - **Interfaces**: `IClassName`
 - **Implementations**: `ClassNameImpl`
 

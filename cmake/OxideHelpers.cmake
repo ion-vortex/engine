@@ -4,6 +4,61 @@
 include_guard(GLOBAL)
 
 # ──────────────────────────────────────────────────────────────────────────────
+# oxide_setup_build_environment
+#   Configures the build environment for shared libraries with proper output paths
+# ──────────────────────────────────────────────────────────────────────────────
+function(oxide_setup_build_environment)
+    # Force single-configuration behavior on multi-config generators (MSVC)
+    if(CMAKE_CONFIGURATION_TYPES)
+        if(CMAKE_BUILD_TYPE)
+            set(CMAKE_CONFIGURATION_TYPES "${CMAKE_BUILD_TYPE}" CACHE STRING "" FORCE)
+        else()
+            set(CMAKE_CONFIGURATION_TYPES "Debug" CACHE STRING "" FORCE)
+            set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
+        endif()
+    endif()
+    
+    # Platform-appropriate default layout
+    if(WIN32)
+        # Windows: DLLs next to executables
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} PARENT_SCOPE)
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} PARENT_SCOPE)
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} PARENT_SCOPE)
+        # Override all configuration-specific directories
+        foreach(config ${CMAKE_CONFIGURATION_TYPES})
+            string(TOUPPER ${config} config_upper)
+            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR} PARENT_SCOPE)
+            set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR} PARENT_SCOPE)
+            set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR} PARENT_SCOPE)
+        endforeach()
+    else()
+        # Unix: executables in root, libraries in lib/
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} PARENT_SCOPE)
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib PARENT_SCOPE)
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib PARENT_SCOPE)
+    endif()
+    
+    # Configure RPATH to check all possible locations
+    set(CMAKE_SKIP_BUILD_RPATH FALSE PARENT_SCOPE)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE PARENT_SCOPE)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE PARENT_SCOPE)
+    
+    # Set RPATH to check multiple locations (in order of preference)
+    if(APPLE)
+        # Check: same dir, lib subdir, ../lib
+        set(CMAKE_INSTALL_RPATH "@loader_path;@loader_path/lib;@loader_path/../lib" PARENT_SCOPE)
+        set(CMAKE_BUILD_RPATH "@loader_path;@loader_path/lib;@loader_path/../lib" PARENT_SCOPE)
+    elseif(UNIX)
+        # Check: same dir, lib subdir, ../lib
+        set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/lib;$ORIGIN/../lib" PARENT_SCOPE)
+        set(CMAKE_BUILD_RPATH "$ORIGIN;$ORIGIN/lib;$ORIGIN/../lib" PARENT_SCOPE)
+    endif()
+    
+    # Force static linking for all external dependencies
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+endfunction()
+
+# ──────────────────────────────────────────────────────────────────────────────
 # oxide_add_library
 #   Creates a library target with standard Oxide settings
 #   Automatically discovers sources based on standard layout:
@@ -43,9 +98,42 @@ function(oxide_add_library)
 
     # Create the library target
     set(_target_name "oxide_${ARG_NAME}")
-    add_library(${_target_name} STATIC ${_sources})
+    add_library(oxide_${ARG_NAME} SHARED ${_sources} ${_public_headers})
     add_library(oxide::${ARG_NAME} ALIAS ${_target_name})
-
+    
+    # Set shared library properties
+    string(SUBSTRING ${ARG_NAME} 0 1 _first_letter)
+    string(TOUPPER ${_first_letter} _first_letter)
+    string(SUBSTRING ${ARG_NAME} 1 -1 _rest)
+    set(_windows_name "Oxide${_first_letter}${_rest}")
+    
+    set_target_properties(oxide_${ARG_NAME} PROPERTIES
+        VERSION ${PROJECT_VERSION}
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN ON
+        POSITION_INDEPENDENT_CODE ON
+        # Windows-specific: Use Windows naming convention
+        OUTPUT_NAME $<IF:$<PLATFORM_ID:Windows>,${_windows_name},oxide-${ARG_NAME}>
+        # Remove config-specific output directories
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    
+    # Define export macro for this library
+    string(TOUPPER ${ARG_NAME} _name_upper)
+    target_compile_definitions(oxide_${ARG_NAME}
+        PRIVATE "OXIDE_${_name_upper}_EXPORTS"
+        PUBLIC "OXIDE_SHARED_LIBS"
+    )
+    
     # Set up include directories
     target_include_directories(${_target_name}
         PUBLIC
@@ -78,10 +166,19 @@ function(oxide_add_library)
     get_property(_ext_deps GLOBAL PROPERTY OXIDE_${ARG_NAME}_EXTERNAL_DEPS)
     set_property(GLOBAL PROPERTY OXIDE_${ARG_NAME}_EXTERNAL_DEPS "${_ext_deps}")
 
+    # Ignore the STL dll-interface warnings MSVC generates. 
+    if(MSVC)
+        target_compile_options(oxide_${ARG_NAME} PRIVATE
+            /wd4251  # 'type' needs to have dll-interface
+            /wd4275  # non dll-interface base class
+        )
+    endif()
+
     # Export for find_package support
     install(TARGETS ${_target_name}
         EXPORT OxideTargets
         ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
     )
 
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/oxide/${ARG_NAME}/
@@ -196,6 +293,24 @@ function(oxide_add_application)
     # Create the executable
     add_executable(${ARG_NAME} ${_sources})
 
+    # Set output directories to avoid config subdirectories (MSVC)
+    set_target_properties(${ARG_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        PDB_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        PDB_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        PDB_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    )
+
+    # Ignore the STL dll-interface warnings MSVC generates. 
+    if(MSVC)
+        target_compile_options(${ARG_NAME} PRIVATE
+            /wd4251  # 'type' needs to have dll-interface
+            /wd4275  # non dll-interface base class
+        )
+    endif()
+
     # Collect ALL transitive dependencies
     oxide_collect_all_dependencies(_all_deps ${ARG_DEPENDENCIES})
 
@@ -212,6 +327,26 @@ function(oxide_add_application)
             UNITY_BUILD ON
             UNITY_BUILD_BATCH_SIZE 16
         )
+    endif()
+
+    # Windows: Copy DLLs to executable directory if using lib/ layout
+    if(WIN32 AND CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+        set(_oxide_deps)
+        foreach(_dep IN LISTS ARG_DEPENDENCIES)
+            if(_dep MATCHES "^oxide::")
+                string(REPLACE "oxide::" "oxide_" _target ${_dep})
+                list(APPEND _oxide_deps ${_target})
+            endif()
+        endforeach()
+        
+        foreach(_lib IN LISTS _oxide_deps)
+            add_custom_command(TARGET ${ARG_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:${_lib}>
+                $<TARGET_FILE_DIR:${ARG_NAME}>
+                COMMENT "Copying ${_lib} DLL to executable directory"
+            )
+        endforeach()
     endif()
 
     # Install the executable
@@ -257,6 +392,24 @@ function(oxide_add_test)
 
     # Create test executable
     add_executable(${ARG_NAME} ${_sources})
+    
+    # Set output directories to avoid config subdirectories (MSVC)
+    set_target_properties(${ARG_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+        PDB_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        PDB_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
+        PDB_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
+    # Ignore the STL dll-interface warnings MSVC generates. 
+    if(MSVC)
+        target_compile_options(${ARG_NAME} PRIVATE
+            /wd4251  # 'type' needs to have dll-interface
+            /wd4275  # non dll-interface base class
+        )
+    endif()
 
     # Collect ALL transitive dependencies
     oxide_collect_all_dependencies(_all_deps ${ARG_DEPENDENCIES})
@@ -271,12 +424,47 @@ function(oxide_add_test)
 
     include(Catch)
     
-    # Use Catch2's test discovery instead of manual add_test
-    # This will discover all TEST_CASE entries in your test files
-    catch_discover_tests(${ARG_NAME}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        EXTRA_ARGS --reporter console --durations yes
-    )
+    # On Windows, we need to ensure DLLs can be found during test discovery
+    if(WIN32)
+        # For test discovery, we need the DLL paths in the environment
+        set(_dll_paths "")
+        foreach(_dep IN LISTS ARG_DEPENDENCIES)
+            if(_dep MATCHES "^oxide::")
+                string(REPLACE "oxide::" "oxide_" _target ${_dep})
+                if(TARGET ${_target})
+                    list(APPEND _dll_paths $<TARGET_FILE_DIR:${_target}>)
+                endif()
+            endif()
+        endforeach()
+        
+        # Use DL_PATHS to set PATH environment variable during test discovery
+        catch_discover_tests(${ARG_NAME}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            EXTRA_ARGS --reporter console --durations yes
+            DL_PATHS ${_dll_paths}
+        )
+        
+        # Also copy DLLs to test directory for running tests manually
+        foreach(_dep IN LISTS ARG_DEPENDENCIES)
+            if(_dep MATCHES "^oxide::")
+                string(REPLACE "oxide::" "oxide_" _target ${_dep})
+                if(TARGET ${_target})
+                    add_custom_command(TARGET ${ARG_NAME} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        $<TARGET_FILE:${_target}>
+                        $<TARGET_FILE_DIR:${ARG_NAME}>
+                        COMMENT "Copying ${_target} DLL to test directory"
+                    )
+                endif()
+            endif()
+        endforeach()
+    else()
+        # On Unix, just use regular test discovery
+        catch_discover_tests(${ARG_NAME}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            EXTRA_ARGS --reporter console --durations yes
+        )
+    endif()
 endfunction()
 
 # ──────────────────────────────────────────────────────────────────────────────

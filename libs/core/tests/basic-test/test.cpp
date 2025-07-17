@@ -60,7 +60,7 @@ TEST_CASE("VectorBuffer basic test", "[vector_buffer]") {
         auto & buf = *buffer;
         REQUIRE(buf->append(std::as_bytes(std::span{"Data to shrink"sv})).has_value());
         REQUIRE(buf->size() > 0);
-        REQUIRE(buf->shrinkToFit().has_value());
+        REQUIRE(buf->shrink_to_fit().has_value());
         REQUIRE(buf->capacity() >= buf->size());
     }    
 }

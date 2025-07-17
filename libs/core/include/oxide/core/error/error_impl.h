@@ -3,10 +3,11 @@
 #include <string_view>
 #include <cstdint>
 #include <exception>
+#include <oxide/core/export.h>
 
 namespace oxide::core {
 
-enum class ErrorCode : std::uint32_t
+enum class OXIDE_CORE_API ErrorCode : std::uint32_t
 {
     // ── Oat-generic sentinel ────────────────────────────────────────────────
     Ok      = 0x00000000, // success, no error
@@ -144,7 +145,19 @@ enum class ErrorCode : std::uint32_t
     StateNotRecoverable                         = 131,  // ENOTRECOVERABLE
     OperationNotPossibleDueToRFKill             = 132,  // ERFKILL
     MemoryPageHasHardwareError                  = 133,  // EHWPOISON
-    NotSupported                                = 134   // ENOTSUP
+    NotSupported                                = 134,   // ENOTSUP
+
+    // ── Oxide-specific error codes ──────────────────────────────────────────
+    // ── 140 - 199 reserved: oxide core lib
+    InvalidHandle   = 140, // raw==0 or generation mismatch
+    PathSyntax      = 141, // malformed "[", non-digit index, etc.
+    KeyNotFound     = 142, // child key missing
+    IndexOutOfRange = 143, // array index >= size
+    TypeMismatch    = 144, // wrong type for op
+    IoFailure       = 145, // serialization / filesystem error
+    ParseError      = 146, // Storage system parse error,
+    AlreadyExists   = 147, // key already exists in parent table
+    InvalidState    = 148, // operation not valid in current state
 
     // ── 1000-1999 reserved: render lib
     // ── 2000-2999 reserved: net lib
@@ -161,9 +174,9 @@ enum class ErrorCode : std::uint32_t
 };
 
 // Forward declaration of to_string for ErrorCode
-constexpr std::string_view to_string(ErrorCode) noexcept;
+constexpr OXIDE_CORE_API std::string_view to_string(ErrorCode) noexcept;
 
-struct Error
+struct OXIDE_CORE_API Error
 {
     ErrorCode   code { ErrorCode::Unknown };
     std::string message;

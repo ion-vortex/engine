@@ -1,11 +1,12 @@
 #pragma once
 
+#include <oxide/core/export.h>
 #include <oxide/core/buffer.h>
 #include <vector>
 
 namespace oxide::core::detail {
 
-class VectorBuffer final : public IBuffer {
+class OXIDE_CORE_API VectorBuffer final : public IBuffer {
     std::vector<std::byte> data_;
 public:
     [[nodiscard("Handle resize result")]]
@@ -18,7 +19,7 @@ public:
     std::expected<void, Error> clear() override;
     
     [[nodiscard("Handle shrinkToFit result")]]
-    std::expected<void, Error> shrinkToFit() override;
+    std::expected<void, Error> shrink_to_fit() override;
     
     [[nodiscard("Handle append result")]]
     std::expected<void, Error> append(std::span<const std::byte> src) override;

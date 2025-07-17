@@ -2,11 +2,13 @@
 
 #include <cstdint>
 
+#include <oxide/core/export.h>
+
 namespace oxide::core {
 
-class ITimer {
+class OXIDE_CORE_API IClock {
 public:
-    virtual ~ITimer() = default;
+    virtual ~IClock() = default;
     
     [[nodiscard]]
     virtual uint64_t now_ns() const = 0;

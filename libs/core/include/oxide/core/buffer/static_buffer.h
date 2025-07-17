@@ -1,7 +1,8 @@
 #pragma once
-#include "ibuffer.h"
+#include "i_buffer.h"
 #include <array>
 #include <cstring>
+#include <oxide/core/export.h>
 
 namespace oxide::core::detail {
 
@@ -30,7 +31,7 @@ public:
         return {};
     }
 
-    std::expected<void, Error> shrinkToFit() override {
+    std::expected<void, Error> shrink_to_fit() override {
         // No-op for static buffer
         return {};
     }

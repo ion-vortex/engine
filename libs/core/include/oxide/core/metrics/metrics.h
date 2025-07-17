@@ -3,9 +3,11 @@
 #include <string_view>
 #include <cstdint>
 
+#include <oxide/core/export.h>
+
 namespace oxide::core {
 
-class IMetrics {
+class OXIDE_CORE_API IMetrics {
 public:
     virtual ~IMetrics() = default;
     

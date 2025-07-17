@@ -41,7 +41,7 @@
       "inherits": "release-base",
       "generator": "Ninja",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux-oxide-lto"
+        "VCPKG_TARGET_TRIPLET": "x64-linux-static"
       },
       "condition": {
         "type": "equals",
@@ -56,7 +56,7 @@
       "inherits": "release-base",
       "generator": "Ninja",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "arm64-osx-oxide-lto"
+        "VCPKG_TARGET_TRIPLET": "arm64-osx-static"
       },
       "condition": {
         "type": "equals",
@@ -70,7 +70,7 @@
       "displayName": "🟢  Release • Windows-x64 (lto)",
       "inherits": "release-base",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-oxide-lto"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
       },
       "condition": {
         "type": "equals",
@@ -85,7 +85,7 @@
       "inherits": "debug-base",
       "generator": "Ninja",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux"
+        "VCPKG_TARGET_TRIPLET": "x64-linux-static"
       },
       "condition": {
         "type": "equals",
@@ -100,7 +100,7 @@
       "inherits": "debug-base",
       "generator": "Ninja",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "arm64-osx"
+        "VCPKG_TARGET_TRIPLET": "arm64-osx-static"
       },
       "condition": {
         "type": "equals",
@@ -114,7 +114,7 @@
       "displayName": "🐞  Debug • Windows-x64",
       "inherits": "debug-base",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
       },
       "condition": {
         "type": "equals",
@@ -126,11 +126,11 @@
   "buildPresets": [
     { "name": "release-linux",   "configurePreset": "release-linux"   },
     { "name": "release-macos",   "configurePreset": "release-macos"   },
-    { "name": "release-windows", "configurePreset": "release-windows" },
+    { "name": "release-windows", "configurePreset": "release-windows", "configuration": "Release" },
 
     { "name": "debug-linux",     "configurePreset": "debug-linux"     },
     { "name": "debug-macos",     "configurePreset": "debug-macos"     },
-    { "name": "debug-windows",   "configurePreset": "debug-windows"   }
+    { "name": "debug-windows",   "configurePreset": "debug-windows", "configuration": "Debug" }
   ],
   "testPresets": [
     {
@@ -170,6 +170,7 @@
       "name": "debug-windows",
       "displayName": "Test Debug Windows",
       "configurePreset": "debug-windows",
+      "configuration": "Debug",
       "inherits": "test-base",
       "condition": {
         "type": "equals",
@@ -203,6 +204,7 @@
       "name": "release-windows",
       "displayName": "Test Release Windows",
       "configurePreset": "release-windows",
+      "configuration": "Release",
       "inherits": "test-base",
       "condition": {
         "type": "equals",
