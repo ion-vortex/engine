@@ -1,0 +1,80 @@
+#pragma once
+
+#include <oxide/core/store/i_store.h>
+#include <oxide/core/store/i_transaction.h>
+#include <oxide/core/error.h>
+#include <oxide/core/store/store_handle.h>
+#include <expected>
+#include <string>
+#include <unordered_map>
+#include <variant>
+#include <vector>
+#include <nlohmann/json.hpp>
+
+namespace oxide::core::detail {
+
+class JsonStore;
+
+/**
+ * @brief Implementation of ITransaction for JSON-based storage.
+ *
+ * This class provides a concrete implementation of the ITransaction interface,
+ * using an in-memory representation of JSON data. It supports ACID-compliant
+ * operations on hierarchical storage data.
+ */
+class OXIDE_CORE_API JsonTransaction final : public ITransaction {
+public:
+    JsonTransaction(nlohmann::json const& initial_data, JsonStore* store, JsonStoreOptions const& options);
+    ~JsonTransaction() noexcept override;
+
+    [[nodiscard]] std::expected<StoreHandle, Error> root() const override;
+    [[nodiscard]] std::expected<bool, Error> get_bool(StoreHandle h) const override;
+    [[nodiscard]] std::expected<int64_t, Error> get_int(StoreHandle h) const override;
+    [[nodiscard]] std::expected<double, Error> get_double(StoreHandle h) const override;
+    [[nodiscard]] std::expected<std::string, Error> get_string(StoreHandle h) const override;
+
+    [[nodiscard]] std::expected<void, Error> set_bool(StoreHandle h, bool v) override;
+    [[nodiscard]] std::expected<void, Error> set_int(StoreHandle h, int64_t v) override;
+    [[nodiscard]] std::expected<void, Error> set_double(StoreHandle h, double v) override;
+    [[nodiscard]] std::expected<void, Error> set_string(StoreHandle h, std::string_view v) override;
+
+    [[nodiscard]] std::expected<StoreHandle, Error> make_array(StoreHandle parent, std::string_view key) override;
+    [[nodiscard]] std::expected<StoreHandle, Error> make_object(StoreHandle parent, std::string_view key) override;
+    [[nodiscard]] std::expected<void, Error> make_bool(StoreHandle parent, std::string_view key, bool v) override;
+    [[nodiscard]] std::expected<void, Error> make_int(StoreHandle parent, std::string_view key, int64_t v) override;
+    [[nodiscard]] std::expected<void, Error> make_double(StoreHandle parent, std::string_view key, double v) override;
+    [[nodiscard]] std::expected<void, Error> make_string(StoreHandle parent, std::string_view key, std::string_view v) override;
+
+    [[nodiscard]] std::expected<void, Error> remove(StoreHandle parent, std::string_view key) override;
+    [[nodiscard]] std::expected<bool, Error> has(StoreHandle parent, std::string_view key) const override;
+    [[nodiscard]] std::expected<void, Error> erase_element(StoreHandle parent, size_t idx) override;
+    [[nodiscard]] std::expected<bool, Error> has_element(StoreHandle parent, size_t idx) const override;
+    [[nodiscard]] std::expected<StoreHandle, Error> child(StoreHandle parent, std::string_view key) const override;
+    [[nodiscard]] std::expected<StoreHandle, Error> element(StoreHandle parent, size_t idx) const override;
+
+private:
+    [[nodiscard]] std::expected<void, Error> commit_impl() override;
+    void rollback_impl() noexcept override;
+
+    // Node representation for handle mapping
+    struct Node {
+        std::vector<std::string> path;  // Path from root to reconstruct node access
+    };
+
+    nlohmann::json data_;
+    JsonStore* store_;
+    JsonStoreOptions options_;
+    mutable std::unordered_map<uint64_t, Node> handle_map_;
+    mutable uint64_t next_handle_ = 1;
+    
+    [[nodiscard]] StoreHandle make_handle(std::vector<std::string> path) const;
+    [[nodiscard]] nlohmann::json* get_node(StoreHandle h);
+    [[nodiscard]] nlohmann::json const* get_node(StoreHandle h) const;
+    [[nodiscard]] std::expected<nlohmann::json*, Error> get_node_checked(StoreHandle h);
+    [[nodiscard]] std::expected<nlohmann::json const*, Error> get_node_checked(StoreHandle h) const;
+    [[nodiscard]] nlohmann::json* navigate_to_node(std::vector<std::string> const& path);
+    [[nodiscard]] nlohmann::json const* navigate_to_node(std::vector<std::string> const& path) const;
+    [[nodiscard]] bool is_valid_key(std::string_view key) const;
+};
+
+} // namespace oxide::core::detail
