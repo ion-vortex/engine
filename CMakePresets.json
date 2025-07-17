@@ -126,11 +126,11 @@
   "buildPresets": [
     { "name": "release-linux",   "configurePreset": "release-linux"   },
     { "name": "release-macos",   "configurePreset": "release-macos"   },
-    { "name": "release-windows", "configurePreset": "release-windows" },
+    { "name": "release-windows", "configurePreset": "release-windows", "configuration": "Release" },
 
     { "name": "debug-linux",     "configurePreset": "debug-linux"     },
     { "name": "debug-macos",     "configurePreset": "debug-macos"     },
-    { "name": "debug-windows",   "configurePreset": "debug-windows"   }
+    { "name": "debug-windows",   "configurePreset": "debug-windows", "configuration": "Debug" }
   ],
   "testPresets": [
     {
@@ -170,6 +170,7 @@
       "name": "debug-windows",
       "displayName": "Test Debug Windows",
       "configurePreset": "debug-windows",
+      "configuration": "Debug",
       "inherits": "test-base",
       "condition": {
         "type": "equals",
@@ -203,6 +204,7 @@
       "name": "release-windows",
       "displayName": "Test Release Windows",
       "configurePreset": "release-windows",
+      "configuration": "Release",
       "inherits": "test-base",
       "condition": {
         "type": "equals",
