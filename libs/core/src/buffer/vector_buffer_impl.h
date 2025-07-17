@@ -1,11 +1,12 @@
 #pragma once
 
+#include <oxide/core/export.h>
 #include <oxide/core/buffer.h>
 #include <vector>
 
 namespace oxide::core::detail {
 
-class VectorBuffer final : public IBuffer {
+class OXIDE_CORE_API VectorBuffer final : public IBuffer {
     std::vector<std::byte> data_;
 public:
     [[nodiscard("Handle resize result")]]

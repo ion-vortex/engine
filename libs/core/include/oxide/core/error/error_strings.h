@@ -153,7 +153,7 @@ namespace oxide::core {
         }
     }
 
-    inline OXIDE_CORE_API std::string_view Error::what() const noexcept
+    inline std::string_view Error::what() const noexcept
     {
         if (!message.empty())
             return message;

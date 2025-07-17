@@ -5,6 +5,10 @@ function(oxide_generate_export_header TARGET)
     string(TOUPPER ${_module} _module_upper)
     
     set(_export_header "${CMAKE_CURRENT_BINARY_DIR}/include/oxide/${_module}/export.h")
+
+    # Create directory structure
+    get_filename_component(_export_header_dir ${_export_header} DIRECTORY)
+    file(MAKE_DIRECTORY ${_export_header_dir})
     
     file(WRITE ${_export_header} 
 "#pragma once
@@ -36,5 +40,11 @@ function(oxide_generate_export_header TARGET)
     target_sources(${TARGET} PRIVATE ${_export_header})
     target_include_directories(${TARGET} PUBLIC 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    )
+    
+    # Install the generated export header
+    install(FILES ${_export_header}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/oxide/${_module}
     )
 endfunction()
