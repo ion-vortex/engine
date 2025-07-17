@@ -45,6 +45,6 @@ function(oxide_generate_export_header TARGET)
     
     # Install the generated export header
     install(FILES ${_export_header}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/oxide/${_module}
+        DESTINATION include/oxide/${_module}
     )
 endfunction()
