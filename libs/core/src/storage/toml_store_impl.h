@@ -30,6 +30,10 @@ private:
     
     std::expected<void, Error> load_from_file();
     std::expected<void, Error> save_to_file(toml::table const& data);
+    void update_data(toml::table const& new_data) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        data_ = new_data;
+    }
 };
 
 }  // namespace oxide::core::detail

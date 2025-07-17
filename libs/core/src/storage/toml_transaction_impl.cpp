@@ -477,7 +477,12 @@ std::expected<void, Error> TomlTransaction::commit_impl() {
         return std::unexpected(Error{ErrorCode::InvalidState, "No store associated with transaction"});
     }
     
-    return store_->save_to_file(data_);
+    auto result = store_->save_to_file(data_);
+    if (result) {
+        // Update store's data with the new transaction data
+        store_->update_data(data_);
+    }
+    return result;
 }
 
 void TomlTransaction::rollback_impl() noexcept {

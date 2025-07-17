@@ -49,7 +49,7 @@ std::expected<void, Error> TomlStore::open(std::filesystem::path const& path) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (is_open_) {
-        return std::unexpected(Error{ErrorCode::OperationAlreadyInProgress, "Store is already open"});
+        return std::unexpected(Error{ErrorCode::AlreadyExists, "Store already open"});
     }
 
     path_ = path;
@@ -75,7 +75,7 @@ std::expected<void, Error> TomlStore::open(std::filesystem::path const& path) {
 std::expected<void, Error> TomlStore::close() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!is_open_) {
-        return std::unexpected(Error{ErrorCode::BadFileDescriptor, "Store is not open"});
+        return std::unexpected(Error{ErrorCode::InvalidState, "Store not open"});
     }
 
     is_open_ = false;
@@ -92,7 +92,7 @@ std::expected<void, Error> TomlStore::close() {
 std::expected<std::unique_ptr<ITransaction>, Error> TomlStore::begin_transaction() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!is_open_) {
-        return std::unexpected(Error{ErrorCode::BadFileDescriptor, "Store is not open"});
+        return std::unexpected(Error{ErrorCode::InvalidState, "Store not open"});
     }
 
     auto txn = std::make_unique<TomlTransaction>(data_, this, options_);
@@ -109,7 +109,7 @@ std::expected<void, Error> TomlStore::load_from_file() {
     try {
         std::ifstream file(path_, std::ios::in | std::ios::binary);
         if (!file.is_open()) {
-            return std::unexpected(Error{ErrorCode::IoFailure, "Failed to open TOML file for reading"});
+            return std::unexpected(Error{ErrorCode::IoFailure, "Failed to open file for reading"});
         }
 
         std::stringstream buffer;
@@ -145,14 +145,14 @@ std::expected<void, Error> TomlStore::save_to_file(toml::table const& data) {
         {
             std::ofstream temp_file(temp_path, std::ios::out | std::ios::trunc);
             if (!temp_file.is_open()) {
-                return std::unexpected(Error{ErrorCode::IoFailure, "Failed to open temporary TOML file for writing"});
+                return std::unexpected(Error{ErrorCode::IoFailure, "Failed to open temporary file"});
             }
             
             temp_file << data;
             temp_file.flush();
 
             if (!temp_file.good()) {
-                return std::unexpected(Error{ErrorCode::IoFailure, "Failed to write to temporary TOML file"});
+                return std::unexpected(Error{ErrorCode::IoFailure, "Failed to write to temporary file"});
             }
         }
 
