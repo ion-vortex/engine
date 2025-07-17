@@ -1,2 +1,2 @@
-add_subdirectory(basic-test)
+add_subdirectory(buffer-test)
 add_subdirectory(storage-test)

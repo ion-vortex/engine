@@ -3,7 +3,7 @@
 #include <string_view>
 #include <memory>
 
-TEST_CASE("VectorBuffer basic test", "[vector_buffer]") {
+TEST_CASE("Buffer - VectorBuffer", "[vector_buffer]") {
     using namespace std::literals::string_view_literals;
     using namespace oxide::core;
 
@@ -65,7 +65,7 @@ TEST_CASE("VectorBuffer basic test", "[vector_buffer]") {
     }    
 }
 
-TEST_CASE("StaticBuffer basic test", "[static_buffer]") {
+TEST_CASE("Buffer - StaticBuffer", "[static_buffer]") {
     using namespace std::literals::string_view_literals;
     using namespace oxide::core;
 
