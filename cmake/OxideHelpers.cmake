@@ -423,12 +423,47 @@ function(oxide_add_test)
 
     include(Catch)
     
-    # Use Catch2's test discovery instead of manual add_test
-    # This will discover all TEST_CASE entries in your test files
-    catch_discover_tests(${ARG_NAME}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        EXTRA_ARGS --reporter console --durations yes
-    )
+    # On Windows, we need to ensure DLLs can be found during test discovery
+    if(WIN32)
+        # For test discovery, we need the DLL paths in the environment
+        set(_dll_paths "")
+        foreach(_dep IN LISTS ARG_DEPENDENCIES)
+            if(_dep MATCHES "^oxide::")
+                string(REPLACE "oxide::" "oxide_" _target ${_dep})
+                if(TARGET ${_target})
+                    list(APPEND _dll_paths $<TARGET_FILE_DIR:${_target}>)
+                endif()
+            endif()
+        endforeach()
+        
+        # Use DL_PATHS to set PATH environment variable during test discovery
+        catch_discover_tests(${ARG_NAME}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            EXTRA_ARGS --reporter console --durations yes
+            DL_PATHS ${_dll_paths}
+        )
+        
+        # Also copy DLLs to test directory for running tests manually
+        foreach(_dep IN LISTS ARG_DEPENDENCIES)
+            if(_dep MATCHES "^oxide::")
+                string(REPLACE "oxide::" "oxide_" _target ${_dep})
+                if(TARGET ${_target})
+                    add_custom_command(TARGET ${ARG_NAME} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        $<TARGET_FILE:${_target}>
+                        $<TARGET_FILE_DIR:${ARG_NAME}>
+                        COMMENT "Copying ${_target} DLL to test directory"
+                    )
+                endif()
+            endif()
+        endforeach()
+    else()
+        # On Unix, just use regular test discovery
+        catch_discover_tests(${ARG_NAME}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            EXTRA_ARGS --reporter console --durations yes
+        )
+    endif()
 endfunction()
 
 # ──────────────────────────────────────────────────────────────────────────────
