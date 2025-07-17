@@ -73,7 +73,7 @@ public:
      * @param path Filesystem path to open.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on open")]]
+    [[nodiscard("Check for error on open"), gnu::warn_unused_result]]
     virtual std::expected<void, Error>
     open(std::filesystem::path const& path) = 0;
 
@@ -81,7 +81,7 @@ public:
      * @brief Closes the store.
      * @return Success or error.
      */
-    [[nodiscard("Check for error on close")]]
+    [[nodiscard("Check for error on close"), gnu::warn_unused_result]]
     virtual std::expected<void, Error>
     close() = 0;
 
@@ -89,7 +89,7 @@ public:
      * @brief Begins a new transaction on the store.
      * @return Unique pointer to ITransaction or error.
      */
-    [[nodiscard("Check for error or valid transaction")]]
+    [[nodiscard("Check for error or valid transaction"), gnu::warn_unused_result]]
     virtual std::expected<std::unique_ptr<class ITransaction>, Error>
     begin_transaction() = 0;
 };
@@ -101,7 +101,7 @@ public:
  * @param opts Options for the JSON store.
  * @return Unique pointer to IStore or error.
  */
-[[nodiscard("Check for error or valid store")]]
+[[nodiscard("Check for error or valid store"), gnu::warn_unused_result]]
 OXIDE_CORE_API std::expected<std::unique_ptr<IStore>, Error>
 make_json_file_store(std::filesystem::path const&, JsonStoreOptions);
 
@@ -111,7 +111,7 @@ make_json_file_store(std::filesystem::path const&, JsonStoreOptions);
  * @param opts Options for the TOML store.
  * @return Unique pointer to IStore or error.
  */
-[[nodiscard("Check for error or valid store")]]
+[[nodiscard("Check for error or valid store"), gnu::warn_unused_result]]
 OXIDE_CORE_API std::expected<std::unique_ptr<IStore>, Error>
 make_toml_file_store(std::filesystem::path const&, TomlStoreOptions);
 
@@ -119,7 +119,7 @@ make_toml_file_store(std::filesystem::path const&, TomlStoreOptions);
  * @brief Creates an in-memory store.
  * @return Unique pointer to IStore or error.
  */
-[[nodiscard("Check for error or valid store")]]
+[[nodiscard("Check for error or valid store"), gnu::warn_unused_result]]
 OXIDE_CORE_API std::expected<std::unique_ptr<IStore>, Error>
 make_in_memory_store();
 

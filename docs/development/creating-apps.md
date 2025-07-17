@@ -145,7 +145,7 @@ public:
     };
     
     // Factory
-    [[nodiscard("Handle creation failure")]]
+    [[nodiscard("Handle creation failure"), gnu::warn_unused_result]]
     static std::expected<std::unique_ptr<Application>, oxide::core::Error> 
     Create(const Config& config);
     
@@ -158,7 +158,8 @@ public:
 private:
     Application(const Config& config);
     
-    [[nodiscard]]
+    [[nodiscard, gnu::warn_unused_result]]
+
     std::expected<void, oxide::core::Error> initialize();
     
     void update(float delta_time);

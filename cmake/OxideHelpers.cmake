@@ -541,7 +541,7 @@ function(oxide_setup_build_interface)
         )
     else()
         target_compile_options(oxide_build INTERFACE
-            -Wall -Wextra -Werror
+            -Wall -Wextra -Wunused-result -Werror
         )
 
         target_compile_options(oxide_build INTERFACE

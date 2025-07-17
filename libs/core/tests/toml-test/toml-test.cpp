@@ -285,7 +285,8 @@ TEST_CASE("TOML Transaction - ACID Properties", "[storage][toml][acid]") {
         }
         
         // Close and reopen
-        store->close();
+        auto close_result = store->close();
+        REQUIRE(close_result.has_value());
         
         auto new_store = make_toml_file_store(temp.path(), opts);
         REQUIRE(new_store.has_value());
@@ -345,11 +346,11 @@ TEST_CASE("TOML Transaction - Complex Data Structures", "[storage][toml]") {
         auto database = (*txn)->make_object(*server, "database");
         REQUIRE(database.has_value());
         
-        auto host = (*txn)->make_string(*database, "host", "localhost");
-        REQUIRE(host.has_value());
+        auto host_result = (*txn)->make_string(*database, "host", "localhost");
+        REQUIRE(host_result.has_value());
         
-        auto port = (*txn)->make_int(*database, "port", 5432);
-        REQUIRE(port.has_value());
+        auto port_result = (*txn)->make_int(*database, "port", 5432);
+        REQUIRE(port_result.has_value());
         
         // Navigate using the helper
         auto db_host = (*txn)->get<std::string>(*root, "server.database.host");
@@ -544,10 +545,17 @@ TEST_CASE("TOML Transaction - Update Operations", "[storage][toml]") {
             auto root = (*txn)->root();
             REQUIRE(root.has_value());
             
-            (*txn)->make_int(*root, "counter", 1);
-            (*txn)->make_string(*root, "status", "initial");
-            (*txn)->make_bool(*root, "active", false);
-            (*txn)->make_double(*root, "ratio", 0.5);
+            auto counter_result = (*txn)->make_int(*root, "counter", 1);
+            REQUIRE(counter_result.has_value());
+            
+            auto status_result = (*txn)->make_string(*root, "status", "initial");
+            REQUIRE(status_result.has_value());
+            
+            auto active_result = (*txn)->make_bool(*root, "active", false);
+            REQUIRE(active_result.has_value());
+            
+            auto ratio_result = (*txn)->make_double(*root, "ratio", 0.5);
+            REQUIRE(ratio_result.has_value());
             
             auto commit = (*txn)->commit();
             REQUIRE(commit.has_value());
@@ -621,14 +629,20 @@ TEST_CASE("TOML Transaction - Update Operations", "[storage][toml]") {
             auto root = (*txn)->root();
             REQUIRE(root.has_value());
             
-            (*txn)->make_string(*root, "keep_me", "value");
-            (*txn)->make_string(*root, "remove_me", "value");
+            auto keep_result = (*txn)->make_string(*root, "keep_me", "value");
+            REQUIRE(keep_result.has_value());
+            
+            auto remove_result = (*txn)->make_string(*root, "remove_me", "value");
+            REQUIRE(remove_result.has_value());
             
             auto obj = (*txn)->make_object(*root, "nested");
             REQUIRE(obj.has_value());
             
-            (*txn)->make_string(*obj, "child1", "value1");
-            (*txn)->make_string(*obj, "child2", "value2");
+            auto child1_result = (*txn)->make_string(*obj, "child1", "value1");
+            REQUIRE(child1_result.has_value());
+            
+            auto child2_result = (*txn)->make_string(*obj, "child2", "value2");
+            REQUIRE(child2_result.has_value());
             
             auto commit = (*txn)->commit();
             REQUIRE(commit.has_value());
@@ -711,23 +725,29 @@ TEST_CASE("TOML Store - File Format", "[storage][toml]") {
             REQUIRE(root.has_value());
             
             // Create a typical config structure
-            (*txn)->make_string(*root, "title", "TOML Example");
+            auto title_result = (*txn)->make_string(*root, "title", "TOML Example");
+            REQUIRE(title_result.has_value());
             
             auto owner = (*txn)->make_object(*root, "owner");
             REQUIRE(owner.has_value());
-            (*txn)->make_string(*owner, "name", "Tom Preston-Werner");
+            auto owner_name_result = (*txn)->make_string(*owner, "name", "Tom Preston-Werner");
+            REQUIRE(owner_name_result.has_value());
             
             auto database = (*txn)->make_object(*root, "database");
             REQUIRE(database.has_value());
-            (*txn)->make_string(*database, "server", "192.168.1.1");
-            (*txn)->make_int(*database, "port", 5432);
-            (*txn)->make_bool(*database, "enabled", true);
+            auto server_result = (*txn)->make_string(*database, "server", "192.168.1.1");
+            REQUIRE(server_result.has_value());
+            auto port_result = (*txn)->make_int(*database, "port", 5432);
+            REQUIRE(port_result.has_value());
+            auto enabled_result = (*txn)->make_bool(*database, "enabled", true);
+            REQUIRE(enabled_result.has_value());
             
             auto commit = (*txn)->commit();
             REQUIRE(commit.has_value());
         }
         
-        (*store)->close();
+        auto close_result = (*store)->close();
+        REQUIRE(close_result.has_value());
         
         // Read the file and verify it's valid TOML
         std::string content = temp.read();
