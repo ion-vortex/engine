@@ -166,7 +166,7 @@ function(oxide_add_library)
     get_property(_ext_deps GLOBAL PROPERTY OXIDE_${ARG_NAME}_EXTERNAL_DEPS)
     set_property(GLOBAL PROPERTY OXIDE_${ARG_NAME}_EXTERNAL_DEPS "${_ext_deps}")
 
-    # Ignore the STL dll-interface warnings MSVC generates.
+    # Ignore the STL dll-interface warnings MSVC generates. 
     if(MSVC)
         target_compile_options(oxide_${ARG_NAME} PRIVATE
             /wd4251  # 'type' needs to have dll-interface
@@ -302,6 +302,14 @@ function(oxide_add_application)
         PDB_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     )
 
+    # Ignore the STL dll-interface warnings MSVC generates. 
+    if(MSVC)
+        target_compile_options(${ARG_NAME} PRIVATE
+            /wd4251  # 'type' needs to have dll-interface
+            /wd4275  # non dll-interface base class
+        )
+    endif()
+
     # Collect ALL transitive dependencies
     oxide_collect_all_dependencies(_all_deps ${ARG_DEPENDENCIES})
 
@@ -393,6 +401,14 @@ function(oxide_add_test)
         PDB_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
         PDB_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}
     )
+
+    # Ignore the STL dll-interface warnings MSVC generates. 
+    if(MSVC)
+        target_compile_options(${ARG_NAME} PRIVATE
+            /wd4251  # 'type' needs to have dll-interface
+            /wd4275  # non dll-interface base class
+        )
+    endif()
 
     # Collect ALL transitive dependencies
     oxide_collect_all_dependencies(_all_deps ${ARG_DEPENDENCIES})
