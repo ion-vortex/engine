@@ -29,9 +29,7 @@ public:
     /**
      * @brief Destructor. Rolls back if not committed.
      */
-    virtual ~ITransaction() noexcept {
-        if (!committed_) rollback_impl();
-    }
+    virtual ~ITransaction() noexcept = default;
 
     /**
      * @brief Rolls back the transaction if not already committed.

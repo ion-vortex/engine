@@ -116,15 +116,6 @@ OXIDE_CORE_API std::expected<std::unique_ptr<IStore>, Error>
 make_toml_file_store(std::filesystem::path const&, TomlStoreOptions);
 
 /**
- * @brief Creates a SQLite-backed store.
- * @param path Filesystem path to the SQLite database.
- * @return Unique pointer to IStore or error.
- */
-[[nodiscard("Check for error or valid store")]]
-OXIDE_CORE_API std::expected<std::unique_ptr<IStore>, Error>
-make_sqlite_store(std::filesystem::path const&);
-
-/**
  * @brief Creates an in-memory store.
  * @return Unique pointer to IStore or error.
  */
