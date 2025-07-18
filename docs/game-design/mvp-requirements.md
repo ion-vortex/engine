@@ -6,7 +6,7 @@ This document defines the complete feature set required for the Stellar Conflict
 
 - **Project Name**: Stellar Conflicts
 - **Client**: Custom C++ renderer using bgfx and ImGui (dumb terminal with simple prediction)
-- **Server**: C++23 authoritative server following Oxide C++ Manual
+- **Server**: C++23 authoritative server following Ion Vortex C++ Manual
 - **Input**: Support for both gamepad and keyboard/mouse
 
 ## Ship Systems

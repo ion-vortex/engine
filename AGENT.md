@@ -1,6 +1,6 @@
 # AGENT.md
 
-*Rules and check-list for every human **or** automated agent that touches the **Oxide** code-base.*
+*Rules and check-list for every human **or** automated agent that touches the **Ion Vortex** code-base.*
 *(This file is surfaced to both ChatGPT / Claude agents via project settings — keep it tight, explicit, and up-to-date.)*
 
 ---
@@ -33,7 +33,7 @@
 Every `*.cpp` **must** start with:
 
 ```cpp
-#include "oxide/layer_assert.h"   // static_asserts the table above
+#include "ion/layer_assert.h"   // static_asserts the table above
 ```
 
 ---
@@ -65,7 +65,7 @@ PRs that violate any of the above are closed without review.
 
 ## 5   Security checklist
 
-* All outbound HTTP(S) uses `oxide::protocol::HttpsClient` (libcurl wrapper) with CA-pinning.
+* All outbound HTTP(S) uses `ion::protocol::HttpsClient` (libcurl wrapper) with CA-pinning.
 * Crypto work goes through `libs/crypto` only — never inline libsodium calls.
 * Never log secrets or private keys.  Mask before calling `ILog`.
 

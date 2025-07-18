@@ -1,12 +1,12 @@
-#include <oxide/core/export.h>
-#include <oxide/core/store.h>
+#include <ion/core/export.h>
+#include <ion/core/store.h>
 
 #include "toml_store_impl.h"
 #include "toml_transaction_impl.h"
 #include "json_store_impl.h"
 #include "json_transaction_impl.h"
 
-namespace oxide::core {
+namespace ion::core {
 
 std::expected<std::unique_ptr<IStore>, Error>
 make_toml_file_store(std::filesystem::path const& path, TomlStoreOptions opts) {
@@ -21,4 +21,4 @@ make_json_file_store(std::filesystem::path const& path, JsonStoreOptions opts) {
 }
 
 
-}  // namespace oxide::core
+}  // namespace ion::core

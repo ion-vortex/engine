@@ -1,8 +1,8 @@
 #pragma once
 
-#include <oxide/core/store/i_transaction.h>
-#include <oxide/core/error.h>
-#include <oxide/core/store/store_handle.h>
+#include <ion/core/store/i_transaction.h>
+#include <ion/core/error.h>
+#include <ion/core/store/store_handle.h>
 #include <expected>
 #include <string>
 #include <unordered_map>
@@ -10,7 +10,7 @@
 #include <vector>
 #include <toml++/toml.h>
 
-namespace oxide::core::detail {
+namespace ion::core::detail {
 
 class TomlStore;
 
@@ -21,7 +21,7 @@ class TomlStore;
  * using an in-memory representation of TOML data. It supports ACID-compliant
  * operations on hierarchical storage data.
  */
-class OXIDE_CORE_API TomlTransaction final : public ITransaction {
+class ION_CORE_API TomlTransaction final : public ITransaction {
 public:
     TomlTransaction(toml::table const& initial_data, TomlStore* store, TomlStoreOptions const& options);
     ~TomlTransaction() noexcept override;
@@ -106,4 +106,4 @@ private:
  bool is_valid_key(std::string_view key) const;
 };
 
-} // namespace oxide::core
+} // namespace ion::core

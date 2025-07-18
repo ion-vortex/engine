@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify development environment setup for Oxide
+# Verify development environment setup for Ion Vortex - Linux/macOS
 set -euo pipefail
 
 # Colors
@@ -46,8 +46,8 @@ else
     exit 1
 fi
 
-echo "Oxide Development Environment Verification"
-echo "========================================="
+echo "Ion Vortex Development Environment Verification"
+echo "==============================================="
 echo "OS: $OS"
 echo ""
 
@@ -62,7 +62,7 @@ if command -v git &> /dev/null; then
         BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
         REMOTE=$(git config --get remote.origin.url 2>/dev/null || echo "none")
         check_pass "In git repository (branch: $BRANCH)"
-        if [[ "$REMOTE" == *"git.oat.im/oat/oxide"* ]]; then
+        if [[ "$REMOTE" == *"git.oat.im/oat/ion"* ]]; then
             check_pass "Correct remote: $REMOTE"
         else
             check_warn "Unexpected remote: $REMOTE"
@@ -133,15 +133,15 @@ fi
 
 # Test C++23 support
 if [ "$CXX_FOUND" = true ]; then
-    echo '#include <expected>' > /tmp/oxide_cpp23_test.cpp
-    echo 'int main() { std::expected<int,int> e{42}; return e.value(); }' >> /tmp/oxide_cpp23_test.cpp
+    echo '#include <expected>' > /tmp/ion_cpp23_test.cpp
+    echo 'int main() { std::expected<int,int> e{42}; return e.value(); }' >> /tmp/ion_cpp23_test.cpp
     
-    if $CXX_COMPILER -std=c++23 -c /tmp/oxide_cpp23_test.cpp -o /tmp/oxide_cpp23_test.o &> /dev/null; then
+    if $CXX_COMPILER -std=c++23 -c /tmp/ion_cpp23_test.cpp -o /tmp/ion_cpp23_test.o &> /dev/null; then
         check_pass "C++23 support verified"
     else
         check_fail "C++23 support not available"
     fi
-    rm -f /tmp/oxide_cpp23_test.cpp /tmp/oxide_cpp23_test.o
+    rm -f /tmp/ion_cpp23_test.cpp /tmp/ion_cpp23_test.o
 fi
 
 # Check vcpkg
@@ -249,12 +249,12 @@ if [ -f CMakeLists.txt ]; then
         check_fail "CMakePresets.json not found"
     fi
 else
-    check_fail "Not in Oxide project root (CMakeLists.txt not found)"
+    check_fail "Not in Ion Vortex project root (CMakeLists.txt not found)"
 fi
 
 # Summary
 echo ""
-echo "========================================="
+echo "==============================================="
 if [ $ERRORS -eq 0 ]; then
     if [ $WARNINGS -eq 0 ]; then
         echo -e "${GREEN}All checks passed!${NC}"

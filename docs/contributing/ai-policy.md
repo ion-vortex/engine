@@ -1,6 +1,6 @@
 # AI-Generated Content Policy
 
-This document outlines Oxide's policy on AI-generated content in contributions.
+This document outlines Ion Vortex's policy on AI-generated content in contributions.
 
 ## Overview
 

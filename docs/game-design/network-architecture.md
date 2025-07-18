@@ -15,7 +15,7 @@ The network architecture is built on a single, non-negotiable principle: **the s
 
 ### Design Principles
 
-Following the Oxide C++ Manual:
+Following the Ion Vortex C++ Manual:
 - **Error Handling**: All fallible operations return `std::expected<T, Error>`
 - **Object Creation**: Factory methods return `std::expected<std::unique_ptr<T>, Error>`
 - **Interface-Based**: Polymorphism via abstract interfaces (`ILogger`, `INetworkServer`, `IGameZone`)
@@ -60,7 +60,7 @@ Following the Oxide C++ Manual:
 
 ## Client Architecture (Custom C++)
 
-The client is built using the Oxide framework with:
+The client is built using the Ion Vortex engine:
 - **bgfx**: Cross-platform rendering
 - **ImGui**: Immediate mode UI
 - **GLFW**: Window management and input
@@ -68,7 +68,7 @@ The client is built using the Oxide framework with:
 
 ### Architecture Overview
 
-Following Oxide principles:
+Following Ion Vortex principles:
 - Factory-based object creation returning `std::expected<std::unique_ptr<T>, Error>`
 - Interface-driven design (`IRenderer`, `INetworkClient`, `IInputHandler`)
 - Tick-based update loop synchronized with server rate
@@ -77,7 +77,7 @@ Following Oxide principles:
 
 1. **Network Thread**
    - Dedicated thread for TCP communication
-   - Uses `oxide::protocol` for packet handling
+   - Uses `ion::protocol` for packet handling
    - Buffers incoming state updates
 
 2. **State Buffer**
@@ -164,14 +164,14 @@ Minimal, explicit, forward-compatible design.
 ## Technology Stack
 
 ### Server
-- **Language**: C++23 (Oxide standards)
+- **Language**: C++23 (Ion Vortex standards)
 - **Networking**: libuv for async I/O
 - **Serialization**: Custom bitpacked protocol
 - **Data**: TOML configuration files
 - **Build**: CMake with vcpkg
 
 ### Client
-- **Language**: C++23 (Oxide standards)
+- **Language**: C++23 (Ion vortex standards)
 - **Rendering**: bgfx (cross-platform)
 - **UI**: Dear ImGui
 - **Windowing**: GLFW
@@ -179,7 +179,7 @@ Minimal, explicit, forward-compatible design.
 - **Data**: Shared TOML format
 
 ### Shared
-- **Protocol**: `oxide::protocol` library
+- **Protocol**: `ion::protocol` library
 - **Serialization**: Bitpacked binary format
 - **Math**: GLM for deterministic calculations
 - **Compression**: zstd (future)

@@ -1,4 +1,4 @@
-# Contributing to Project Oxide
+# Contributing to Ion Vortex
 
 All contribution guidelines, coding standards, branch flow, and AI policy are now maintained in the documentation:
 

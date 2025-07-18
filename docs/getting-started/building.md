@@ -1,14 +1,14 @@
-# Building Oxide
+# Building Ion Vortex
 
-This guide covers building Oxide from source on all supported platforms.
+This guide covers building Ion Vortex from source on all supported platforms.
 
 ## Quick Build
 
 For the impatient (after [prerequisites](prerequisites.md) are installed):
 
 ```bash
-git clone https://github.com/oat-im/oxide.git
-cd oxide
+git clone https://github.com/oat-im/ion.git
+cd ion
 ./scripts/bootstrap.sh           # bootstrap.ps1 on Windows
 cmake --preset debug-linux       # or debug-windows, debug-macos
 cmake --build --preset debug-linux
@@ -19,8 +19,8 @@ cmake --build --preset debug-linux
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/oat-im/oxide.git
-cd oxide
+git clone https://github.com/oat-im/ion.git
+cd ion
 ```
 
 ### 2. Bootstrap vcpkg
@@ -45,7 +45,7 @@ This script:
 
 ### 3. Configure with CMake
 
-Oxide uses CMake presets for consistent configuration:
+Ion Vortex uses CMake presets for consistent configuration:
 
 ```bash
 # Configure for debug build (platform-specific)
@@ -72,7 +72,7 @@ Build specific targets:
 cmake --build --preset debug-linux --target client
 
 # Build a specific library
-cmake --build --preset debug-linux --target oxide_core
+cmake --build --preset debug-linux --target ion_core
 
 # Build with parallel jobs (if not automatic)
 cmake --build --preset debug-linux -j 8
@@ -80,7 +80,7 @@ cmake --build --preset debug-linux -j 8
 
 ## Understanding Presets
 
-Oxide provides these CMake presets:
+Ion Vortex provides these CMake presets:
 
 ### Configuration Presets
 
@@ -99,7 +99,7 @@ Note: Release builds use custom vcpkg triplets with LTO enabled.
 
 Build outputs are organized by configuration and platform:
 ```
-oxide/
+ion/
 ├── build/
 │   ├── debug/
 │   │   ├── Linux/
@@ -119,18 +119,18 @@ oxide/
 # Configure if not already done
 cmake --preset debug
 
-# Build just oxide::core
-cmake --build --preset debug --target oxide_core
+# Build just ion::core
+cmake --build --preset debug --target ion_core
 
-# Build just oxide::render
-cmake --build --preset debug --target oxide_render
+# Build just ion::render
+cmake --build --preset debug --target ion_render
 ```
 
 ### Build Without Applications
 
 ```bash
 # Configure without apps
-cmake --preset debug -DOXIDE_BUILD_APPS=OFF
+cmake --preset debug -DION_BUILD_APPS=OFF
 
 # Build libraries only
 cmake --build --preset debug
@@ -140,7 +140,7 @@ cmake --build --preset debug
 
 ```bash
 # Configure with tests enabled
-cmake --preset debug -DOXIDE_BUILD_TESTS=ON
+cmake --preset debug -DION_BUILD_TESTS=ON
 
 # Build everything including tests
 cmake --build --preset debug
@@ -170,14 +170,14 @@ cmake --build my-build
 cmake --preset release
 
 # Or explicitly:
-cmake --preset debug -DOXIDE_ENABLE_LTO=ON
+cmake --preset debug -DION_ENABLE_LTO=ON
 ```
 
 ### Use Native CPU Optimizations
 
 ```bash
 # Enable -march=native (Linux/macOS only)
-cmake --preset release -DOXIDE_ENABLE_MARCH_NATIVE=ON
+cmake --preset release -DION_ENABLE_MARCH_NATIVE=ON
 ```
 
 ### Unity Builds
@@ -185,7 +185,7 @@ cmake --preset release -DOXIDE_ENABLE_MARCH_NATIVE=ON
 Unity builds are enabled by default for faster compilation:
 ```bash
 # Disable if causing issues
-cmake --preset debug -DOXIDE_ENABLE_UNITY_BUILD=OFF
+cmake --preset debug -DION_ENABLE_UNITY_BUILD=OFF
 ```
 
 ## Platform-Specific Notes
@@ -223,8 +223,8 @@ build/[preset]/
 │   ├── zoned/zoned        # Zone server
 │   └── unid/unid          # Universe directory
 ├── libs/
-│   ├── liboxide_core.a    # Core library
-│   ├── liboxide_render.a  # Render library
+│   ├── libion_core.a    # Core library
+│   ├── libion_render.a  # Render library
 │   └── ...                # Other libraries
 ```
 
@@ -256,7 +256,7 @@ cmake --build --preset debug -j 2
 
 Or disable unity builds:
 ```bash
-cmake --preset debug -DOXIDE_ENABLE_UNITY_BUILD=OFF
+cmake --preset debug -DION_ENABLE_UNITY_BUILD=OFF
 ```
 
 ### Linking Errors

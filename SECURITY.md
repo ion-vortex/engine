@@ -1,6 +1,6 @@
 # Security Policy
 
-If you discover a vulnerability or security issue in Project Oxide, please report it privately.
+If you discover a vulnerability or security issue in Ion Vortex, please report it privately.
 
 - Do **not** file public issues for security problems.
 - Email: dev@oat.im

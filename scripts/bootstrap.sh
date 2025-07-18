@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bootstrap script for Oxide - Linux/macOS
+# Bootstrap script for Ion Vortex - Linux/macOS
 set -euo pipefail
 
 # Colors for output

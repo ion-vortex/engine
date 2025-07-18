@@ -2,8 +2,8 @@
 #include "json_store_impl.h"
 #include <regex>
 
-using namespace oxide::core;
-using namespace oxide::core::detail;
+using namespace ion::core;
+using namespace ion::core::detail;
 
 JsonTransaction::JsonTransaction(nlohmann::json const& initial_data, JsonStore* store, JsonStoreOptions const& options)
     : data_(initial_data), store_(store), options_(options) {

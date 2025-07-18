@@ -1,7 +1,7 @@
 #pragma once
 
-#include <oxide/core/export.h>
-#include <oxide/core/error.h>
+#include <ion/core/export.h>
+#include <ion/core/error.h>
 #include <expected>
 #include <string_view>
 #include <system_error>
@@ -22,9 +22,9 @@
  *
  * @note Path rules: Keys in path-strings must match `[A-Za-z_][A-Za-z0-9_]*`. No quoting/escaping is supported; invalid segments yield PathSyntax.
  */
-namespace oxide::core {
+namespace ion::core {
 
-class OXIDE_CORE_API ITransaction {
+class ION_CORE_API ITransaction {
 public:
     /**
      * @brief Destructor. Rolls back if not committed.

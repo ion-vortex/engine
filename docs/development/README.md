@@ -1,10 +1,10 @@
 # Development Guide
 
-This section contains everything you need for day-to-day development on the Oxide project.
+This section contains everything you need for day-to-day development on Ion Vortex.
 
 ## Overview
 
-Oxide follows strict engineering standards to ensure code quality, maintainability, and performance. This guide covers:
+Ion Vortex follows strict engineering standards to ensure code quality, maintainability, and performance. This guide covers:
 - Coding standards and conventions
 - How to work with the build system
 - Creating new components
@@ -13,7 +13,7 @@ Oxide follows strict engineering standards to ensure code quality, maintainabili
 ## Core Documents
 
 ### 📖 [C++ Manual](cpp-manual.md)
-The complete Oxide/Oat Interactive C++ engineering standard. This is **required reading** for all contributors. It covers:
+The complete Ion Vortex/Oat Interactive C++ engineering standard. This is **required reading** for all contributors. It covers:
 - Language rules (C++23, no exceptions, no RTTI)
 - Architectural principles
 - Memory management
@@ -38,9 +38,9 @@ Step-by-step guide for adding new libraries:
 - Integration with existing libraries
 
 ### 📱 [Creating Applications](creating-apps.md)
-How to create new applications using Oxide:
+How to create new applications using Ion:
 - Application structure
-- Using oxide libraries
+- Using ion libraries
 - Platform considerations
 - Packaging
 
@@ -91,7 +91,7 @@ Testing philosophy and practices:
 
 **Architecture Philosophy**: No ECS. No data-oriented crusade. Just conventional interfaces + factories and plain old objects. Apps are thin façades that compose libs.
 
-> "Engines are optional. Clean code isn't." – Oxide Team
+> "Engines are optional. Clean code isn't." – Ion Vortex Team
 
 ## Development Workflow
 
@@ -167,7 +167,7 @@ Every fallible operation returns `std::expected<T, Error>` and is marked `[[nodi
 
 ### Adding a New Feature
 
-1. **Design the interface** in `include/oxide/module/`
+1. **Design the interface** in `include/ion/module/`
 2. **Implement** in `src/`
 3. **Write tests** in `tests/`
 4. **Update documentation**
@@ -234,7 +234,7 @@ See [Build System](build-system.md#custom-configurations) for creating specializ
 
 ## Troubleshooting
 
-### "Cannot find oxide headers"
+### "Cannot find ion headers"
 - Check `CMAKE_PREFIX_PATH`
 - Ensure dependencies built
 - Verify include paths

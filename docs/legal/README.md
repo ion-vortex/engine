@@ -1,13 +1,13 @@
 # Legal Documentation
 
-This directory contains all legal documents related to the Oxide project and contributions to it.
+This directory contains all legal documents related to Ion Vortex and contributions to it.
 
 ## Overview
 
-Oxide is an open-source project licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. This means:
+Ion Vortex is an open-source project licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. This means:
 
 - ✅ You can use, modify, and distribute the source code
-- ✅ You can use Oxide for commercial projects
+- ✅ You can use Ion Vortex for commercial projects
 - ⚠️ Any modifications must be released under the same AGPL-3.0 license
 - ⚠️ If you run a modified version as a network service, you must provide the source code
 
@@ -15,7 +15,7 @@ Oxide is an open-source project licensed under the **GNU Affero General Public L
 
 ### 📄 [Contributor License Agreement (CLA)](CLA.md)
 
-Before contributing to Oxide, all contributors must sign the Contributor License Agreement. This ensures:
+Before contributing to Ion Vortex, all contributors must sign the Contributor License Agreement. This ensures:
 
 - You have the right to contribute your code
 - Oat Interactive can use and distribute your contributions
@@ -88,7 +88,7 @@ Assets have different licenses:
 
 ### For Commercial Users
 
-If you want to use Oxide in a commercial product:
+If you want to use Ion Vortex in a commercial product:
 
 1. **Source Code**: You must comply with AGPL-3.0 (share modifications)
 2. **Public Assets**: Free to use commercially (CC0)
@@ -98,7 +98,7 @@ For commercial licensing inquiries: dev@oat.im
 
 ## Third-Party Licenses
 
-Oxide uses various third-party libraries via vcpkg. Each has its own license:
+Ion Vortex uses various third-party libraries via vcpkg. Each has its own license:
 
 - **bgfx**: BSD 2-Clause
 - **Dear ImGui**: MIT
@@ -120,29 +120,29 @@ Full license texts are included with each library via vcpkg.
 
 ## Frequently Asked Questions
 
-### Q: Can I use Oxide in my commercial game?
-A: This is legally complex. AGPL has no linking exception, so any software that links against Oxide libraries may be considered a derivative work that must also be AGPL. Consult legal counsel before using Oxide commercially.
+### Q: Can I use Ion Vortex in my commercial game?
+A: This is legally complex. AGPL has no linking exception, so any software that links against Ion Vortex libraries may be considered a derivative work that must also be AGPL. Consult legal counsel before using Ion Vortex commercially.
 
-### Q: Do I need to open-source my entire game if I use Oxide?
+### Q: Do I need to open-source my entire game if I use Ion Vortex?
 A: **Probably yes.** AGPL is designed to prevent proprietary use. Unlike LGPL, it has no linking exception. Most legal interpretations suggest that linking against AGPL libraries makes your entire application subject to AGPL. This is why AGPL is rarely used for libraries intended for proprietary software.
 
 ### Q: Why use AGPL instead of LGPL or MIT?
 A: AGPL ensures that:
-- No one can create a closed-source fork of Oxide
+- No one can create a closed-source fork of Ion Vortex
 - Any improvements to the engine must be shared back
 - Commercial competitors cannot use our work without contributing back
 
-If you want to use Oxide in proprietary software, you'll need a commercial license.
+If you want to use Ion Vortex in proprietary software, you'll need a commercial license.
 
 ### Q: Can I use the public assets in my commercial project?
-A: Yes, public assets are CC0 (public domain) and free for any use, regardless of how you use Oxide itself.
+A: Yes, public assets are CC0 (public domain) and free for any use, regardless of how you use Ion Vortex itself.
 
 ### Q: What if I want to keep my modifications or game private?
 A: You have two options:
 1. **Commercial License**: Contact us at dev@oat.im for proprietary licensing
-2. **Don't use Oxide**: If you need a permissively licensed engine, Oxide isn't for you
+2. **Don't use Ion Vortex**: If you need a permissively licensed engine, Ion Vortex isn't for you
 
-### Q: Can I run a game server using Oxide without releasing my game's source?
+### Q: Can I run a game server using Ion Vortex without releasing my game's source?
 A: No. AGPL's "network use is distribution" clause means running a server counts as distribution. You must provide source code access to all users.
 
 ### Q: What about dynamic linking?
@@ -157,8 +157,8 @@ A: See [Contributing Guidelines](../contributing/ai-policy.md) for our AI policy
 ## Legal Contact
 
 For legal questions not covered here:
-- Email: dev@oat.im
-- Include "Oxide Legal Question" in subject line
+- Email: dev@ionvortex.com
+- Include "Ion Vortex Legal Question" in subject line
 
 ## Disclaimer
 

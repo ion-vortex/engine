@@ -29,7 +29,7 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "BUILD_TESTING": "ON",
-        "OXIDE_BUILD_TESTS": "ON",
+        "ION_BUILD_TESTS": "ON",
         "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets"
       },
       "hidden": true

@@ -1,6 +1,6 @@
 # Git Workflow
 
-This document describes the Git workflow and branching strategy for the Oxide project.
+This document describes the Git workflow and branching strategy for Ion Vortex.
 
 ## Branch Structure
 

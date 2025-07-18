@@ -4,7 +4,7 @@ Welcome to the Stellar Conflicts game design documentation. This section contain
 
 ## Overview
 
-Stellar Conflicts is a real-time, multiplayer space action game built on the Oxide framework. The game features:
+Stellar Conflicts is a real-time, multiplayer space action game built on Ion Vortex. The game features:
 
 - **Authoritative server architecture** - The server is the absolute source of truth
 - **Dumb client design** - The client only renders and captures input
@@ -44,7 +44,7 @@ Complete reference for all ship classes, weapons, special abilities, and equipme
 
 ## Technology Constraints
 
-- **Server**: C++23 following Oxide/Oat Interactive standards
+- **Server**: C++23 following Ion Vortex/Oat Interactive standards
 - **Client**: Custom C++23 renderer using bgfx and ImGui
 - **Networking**: Custom TCP protocol with bitpacked serialization
 - **Data**: TOML configuration files for game data

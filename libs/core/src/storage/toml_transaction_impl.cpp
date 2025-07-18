@@ -2,8 +2,8 @@
 #include "toml_store_impl.h"
 #include <regex>
 
-using namespace oxide::core;
-using namespace oxide::core::detail;
+using namespace ion::core;
+using namespace ion::core::detail;
 
 TomlTransaction::TomlTransaction(toml::table const& initial_data, TomlStore* store, TomlStoreOptions const& options)
     : data_(initial_data), store_(store), options_(options) {

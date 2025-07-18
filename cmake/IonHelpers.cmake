@@ -1,13 +1,13 @@
-# cmake/OxideHelpers.cmake
-# Shared CMake utilities for Oxide project
+# cmake/IonHelpers.cmake
+# Shared CMake utilities for Ion Vortex
 
 include_guard(GLOBAL)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# oxide_setup_build_environment
+# ion_setup_build_environment
 #   Configures the build environment for shared libraries with proper output paths
 # ──────────────────────────────────────────────────────────────────────────────
-function(oxide_setup_build_environment)
+function(ion_setup_build_environment)
     # Force single-configuration behavior on multi-config generators (MSVC)
     if(CMAKE_CONFIGURATION_TYPES)
         if(CMAKE_BUILD_TYPE)
@@ -59,19 +59,19 @@ function(oxide_setup_build_environment)
 endfunction()
 
 # ──────────────────────────────────────────────────────────────────────────────
-# oxide_add_library
-#   Creates a library target with standard Oxide settings
+# ion_add_library
+#   Creates a library target with standard Ion Vortex settings
 #   Automatically discovers sources based on standard layout:
 #     - src/**/*.cpp for sources
-#     - include/oxide/${NAME}/**/*.h for public headers
+#     - include/ion/${NAME}/**/*.h for public headers
 #   
 # Usage:
-#   oxide_add_library(
+#   ion_add_library(
 #     NAME core
-#     DEPENDENCIES oxide::build  # Other oxide:: libraries only
+#     DEPENDENCIES ion::build  # Other ion:: libraries only
 #   )
 # ──────────────────────────────────────────────────────────────────────────────
-function(oxide_add_library)
+function(ion_add_library)
     cmake_parse_arguments(ARG
         ""  # options
         "NAME"  # one-value keywords
@@ -80,7 +80,7 @@ function(oxide_add_library)
     )
 
     if(NOT ARG_NAME)
-        message(FATAL_ERROR "oxide_add_library: NAME is required")
+        message(FATAL_ERROR "ion_add_library: NAME is required")
     endif()
 
     # Automatically discover sources
@@ -89,7 +89,7 @@ function(oxide_add_library)
     )
     
     file(GLOB_RECURSE _public_headers CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/oxide/${ARG_NAME}/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/ion/${ARG_NAME}/*.h"
     )
 
     if(NOT _sources)
@@ -97,24 +97,24 @@ function(oxide_add_library)
     endif()
 
     # Create the library target
-    set(_target_name "oxide_${ARG_NAME}")
-    add_library(oxide_${ARG_NAME} SHARED ${_sources} ${_public_headers})
-    add_library(oxide::${ARG_NAME} ALIAS ${_target_name})
+    set(_target_name "ion_${ARG_NAME}")
+    add_library(ion_${ARG_NAME} SHARED ${_sources} ${_public_headers})
+    add_library(ion::${ARG_NAME} ALIAS ${_target_name})
     
     # Set shared library properties
     string(SUBSTRING ${ARG_NAME} 0 1 _first_letter)
     string(TOUPPER ${_first_letter} _first_letter)
     string(SUBSTRING ${ARG_NAME} 1 -1 _rest)
-    set(_windows_name "Oxide${_first_letter}${_rest}")
+    set(_windows_name "Ion${_first_letter}${_rest}")
     
-    set_target_properties(oxide_${ARG_NAME} PROPERTIES
+    set_target_properties(ion_${ARG_NAME} PROPERTIES
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN ON
         POSITION_INDEPENDENT_CODE ON
         # Windows-specific: Use Windows naming convention
-        OUTPUT_NAME $<IF:$<PLATFORM_ID:Windows>,${_windows_name},oxide-${ARG_NAME}>
+        OUTPUT_NAME $<IF:$<PLATFORM_ID:Windows>,${_windows_name},ion-${ARG_NAME}>
         # Remove config-specific output directories
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}
@@ -129,9 +129,9 @@ function(oxide_add_library)
     
     # Define export macro for this library
     string(TOUPPER ${ARG_NAME} _name_upper)
-    target_compile_definitions(oxide_${ARG_NAME}
-        PRIVATE "OXIDE_${_name_upper}_EXPORTS"
-        PUBLIC "OXIDE_SHARED_LIBS"
+    target_compile_definitions(ion_${ARG_NAME}
+        PRIVATE "ION_${_name_upper}_EXPORTS"
+        PUBLIC "ION_SHARED_LIBS"
     )
     
     # Set up include directories
@@ -148,9 +148,9 @@ function(oxide_add_library)
         target_link_libraries(${_target_name} PUBLIC ${ARG_DEPENDENCIES})
     endif()
 
-    # Always link oxide::build for compiler settings
-    if(NOT "oxide::build" IN_LIST ARG_DEPENDENCIES)
-        target_link_libraries(${_target_name} PRIVATE oxide::build)
+    # Always link ion::build for compiler settings
+    if(NOT "ion::build" IN_LIST ARG_DEPENDENCIES)
+        target_link_libraries(${_target_name} PRIVATE ion::build)
     endif()
 
     # Enable unity build if requested
@@ -163,12 +163,12 @@ function(oxide_add_library)
 
     # Store this library's external dependencies for later retrieval
     # This is needed because we need to collect ALL transitive deps for executables
-    get_property(_ext_deps GLOBAL PROPERTY OXIDE_${ARG_NAME}_EXTERNAL_DEPS)
-    set_property(GLOBAL PROPERTY OXIDE_${ARG_NAME}_EXTERNAL_DEPS "${_ext_deps}")
+    get_property(_ext_deps GLOBAL PROPERTY ION_${ARG_NAME}_EXTERNAL_DEPS)
+    set_property(GLOBAL PROPERTY ION_${ARG_NAME}_EXTERNAL_DEPS "${_ext_deps}")
 
     # Ignore the STL dll-interface warnings MSVC generates. 
     if(MSVC)
-        target_compile_options(oxide_${ARG_NAME} PRIVATE
+        target_compile_options(ion_${ARG_NAME} PRIVATE
             /wd4251  # 'type' needs to have dll-interface
             /wd4275  # non dll-interface base class
             /wd5030  # unrecognized attribute (gnu::...)
@@ -177,36 +177,36 @@ function(oxide_add_library)
 
     # Export for find_package support
     install(TARGETS ${_target_name}
-        EXPORT OxideTargets
+        EXPORT IonTargets
         ARCHIVE DESTINATION lib
         RUNTIME DESTINATION bin
     )
 
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/oxide/${ARG_NAME}/
-        DESTINATION include/oxide/${ARG_NAME}
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ion/${ARG_NAME}/
+        DESTINATION include/ion/${ARG_NAME}
         FILES_MATCHING PATTERN "*.h"
     )
 endfunction()
 
 # ──────────────────────────────────────────────────────────────────────────────
-# oxide_add_external_dependency
+# ion_add_external_dependency
 #   Registers an external dependency for a library
-#   This must be called BEFORE oxide_add_library
+#   This must be called BEFORE ion_add_library
 #   
 # Usage:
-#   oxide_add_external_dependency(core glm::glm nlohmann_json::nlohmann_json)
+#   ion_add_external_dependency(core glm::glm nlohmann_json::nlohmann_json)
 # ──────────────────────────────────────────────────────────────────────────────
-function(oxide_add_external_dependency lib_name)
+function(ion_add_external_dependency lib_name)
     # Store the external deps in a global property
-    set_property(GLOBAL APPEND PROPERTY OXIDE_${lib_name}_EXTERNAL_DEPS ${ARGN})
+    set_property(GLOBAL APPEND PROPERTY ION_${lib_name}_EXTERNAL_DEPS ${ARGN})
 endfunction()
 
 # ──────────────────────────────────────────────────────────────────────────────
-# oxide_collect_all_dependencies
+# ion_collect_all_dependencies
 #   Recursively collects all transitive dependencies (internal and external)
-#   Used internally by oxide_add_application and oxide_add_test
+#   Used internally by ion_add_application and ion_add_test
 # ──────────────────────────────────────────────────────────────────────────────
-function(oxide_collect_all_dependencies out_var)
+function(ion_collect_all_dependencies out_var)
     set(_all_deps)
     set(_all_external_deps)
     set(_processed_libs)
@@ -222,25 +222,25 @@ function(oxide_collect_all_dependencies out_var)
         
         list(APPEND _processed_libs ${_current_lib})
         
-        # Only process oxide:: libraries
-        if(_current_lib MATCHES "^oxide::")
+        # Only process ion:: libraries
+        if(_current_lib MATCHES "^ion::")
             list(APPEND _all_deps ${_current_lib})
             
-            # Get the library name without oxide:: prefix
-            string(REPLACE "oxide::" "" _lib_name ${_current_lib})
+            # Get the library name without ion:: prefix
+            string(REPLACE "ion::" "" _lib_name ${_current_lib})
             
             # Get this library's external dependencies
-            get_property(_ext_deps GLOBAL PROPERTY OXIDE_${_lib_name}_EXTERNAL_DEPS)
+            get_property(_ext_deps GLOBAL PROPERTY ION_${_lib_name}_EXTERNAL_DEPS)
             if(_ext_deps)
                 list(APPEND _all_external_deps ${_ext_deps})
             endif()
             
             # Get this library's dependencies
-            if(TARGET oxide_${_lib_name})
-                get_target_property(_lib_deps oxide_${_lib_name} INTERFACE_LINK_LIBRARIES)
+            if(TARGET ion_${_lib_name})
+                get_target_property(_lib_deps ion_${_lib_name} INTERFACE_LINK_LIBRARIES)
                 if(_lib_deps)
                     foreach(_dep ${_lib_deps})
-                        if(_dep MATCHES "^oxide::" AND NOT _dep IN_LIST _processed_libs)
+                        if(_dep MATCHES "^ion::" AND NOT _dep IN_LIST _processed_libs)
                             list(APPEND _libs_to_process ${_dep})
                         endif()
                     endforeach()
@@ -260,17 +260,17 @@ function(oxide_collect_all_dependencies out_var)
 endfunction()
 
 # ──────────────────────────────────────────────────────────────────────────────
-# oxide_add_application
-#   Creates an executable target with standard Oxide settings
+# ion_add_application
+#   Creates an executable target with standard Ion Vortex settings
 #   Automatically discovers sources in src/
 #   
 # Usage:
-#   oxide_add_application(
+#   ion_add_application(
 #     NAME client
-#     DEPENDENCIES oxide::core oxide::render oxide::ui
+#     DEPENDENCIES ion::core ion::render ion::ui
 #   )
 # ──────────────────────────────────────────────────────────────────────────────
-function(oxide_add_application)
+function(ion_add_application)
     cmake_parse_arguments(ARG
         ""
         "NAME"
@@ -279,7 +279,7 @@ function(oxide_add_application)
     )
 
     if(NOT ARG_NAME)
-        message(FATAL_ERROR "oxide_add_application: NAME is required")
+        message(FATAL_ERROR "ion_add_application: NAME is required")
     endif()
 
     # Automatically discover sources
@@ -314,12 +314,12 @@ function(oxide_add_application)
     endif()
 
     # Collect ALL transitive dependencies
-    oxide_collect_all_dependencies(_all_deps ${ARG_DEPENDENCIES})
+    ion_collect_all_dependencies(_all_deps ${ARG_DEPENDENCIES})
 
     # Link all dependencies
     target_link_libraries(${ARG_NAME}
         PRIVATE
-            oxide::build
+            ion::build
             ${_all_deps}
     )
 
@@ -333,15 +333,15 @@ function(oxide_add_application)
 
     # Windows: Copy DLLs to executable directory if using lib/ layout
     if(WIN32 AND CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-        set(_oxide_deps)
+        set(_ion_deps)
         foreach(_dep IN LISTS ARG_DEPENDENCIES)
-            if(_dep MATCHES "^oxide::")
-                string(REPLACE "oxide::" "oxide_" _target ${_dep})
-                list(APPEND _oxide_deps ${_target})
+            if(_dep MATCHES "^ion::")
+                string(REPLACE "ion::" "ion_" _target ${_dep})
+                list(APPEND _ion_deps ${_target})
             endif()
         endforeach()
         
-        foreach(_lib IN LISTS _oxide_deps)
+        foreach(_lib IN LISTS _ion_deps)
             add_custom_command(TARGET ${ARG_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_FILE:${_lib}>
@@ -358,17 +358,17 @@ function(oxide_add_application)
 endfunction()
 
 # ──────────────────────────────────────────────────────────────────────────────
-# oxide_add_test
+# ion_add_test
 #   Creates a test executable with Catch2 support
 #   Automatically discovers test sources
 #   
 # Usage:
-#   oxide_add_test(
+#   ion_add_test(
 #     NAME core_tests
-#     DEPENDENCIES oxide::core
+#     DEPENDENCIES ion::core
 #   )
 # ──────────────────────────────────────────────────────────────────────────────
-function(oxide_add_test)
+function(ion_add_test)
     cmake_parse_arguments(ARG
         ""
         "NAME"
@@ -377,7 +377,7 @@ function(oxide_add_test)
     )
 
     if(NOT ARG_NAME)
-        message(FATAL_ERROR "oxide_add_test: NAME is required")
+        message(FATAL_ERROR "ion_add_test: NAME is required")
     endif()
 
     # Ensure Catch2 is available
@@ -415,12 +415,12 @@ function(oxide_add_test)
     endif()
 
     # Collect ALL transitive dependencies
-    oxide_collect_all_dependencies(_all_deps ${ARG_DEPENDENCIES})
+    ion_collect_all_dependencies(_all_deps ${ARG_DEPENDENCIES})
 
     # Link test framework and all dependencies
     target_link_libraries(${ARG_NAME}
         PRIVATE
-            oxide::build
+            ion::build
             ${_all_deps}
             Catch2::Catch2WithMain
     )
@@ -432,8 +432,8 @@ function(oxide_add_test)
         # For test discovery, we need the DLL paths in the environment
         set(_dll_paths "")
         foreach(_dep IN LISTS ARG_DEPENDENCIES)
-            if(_dep MATCHES "^oxide::")
-                string(REPLACE "oxide::" "oxide_" _target ${_dep})
+            if(_dep MATCHES "^ion::")
+                string(REPLACE "ion::" "ion_" _target ${_dep})
                 if(TARGET ${_target})
                     list(APPEND _dll_paths $<TARGET_FILE_DIR:${_target}>)
                 endif()
@@ -449,8 +449,8 @@ function(oxide_add_test)
         
         # Also copy DLLs to test directory for running tests manually
         foreach(_dep IN LISTS ARG_DEPENDENCIES)
-            if(_dep MATCHES "^oxide::")
-                string(REPLACE "oxide::" "oxide_" _target ${_dep})
+            if(_dep MATCHES "^ion::")
+                string(REPLACE "ion::" "ion_" _target ${_dep})
                 if(TARGET ${_target})
                     add_custom_command(TARGET ${ARG_NAME} POST_BUILD
                         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -471,10 +471,10 @@ function(oxide_add_test)
 endfunction()
 
 # ──────────────────────────────────────────────────────────────────────────────
-# oxide_find_dependencies
+# ion_find_dependencies
 #   Wrapper to find common external dependencies with consistent error handling
 # ──────────────────────────────────────────────────────────────────────────────
-macro(oxide_find_dependencies)
+macro(ion_find_dependencies)
     foreach(_dep ${ARGN})
         if(_dep STREQUAL "assimp")
             find_package(assimp CONFIG REQUIRED)
@@ -515,54 +515,54 @@ macro(oxide_find_dependencies)
 endmacro()
 
 # ──────────────────────────────────────────────────────────────────────────────
-# oxide_setup_build_interface
-#   Creates the oxide::build interface target if not already present
+# ion_setup_build_interface
+#   Creates the ion::build interface target if not already present
 # ──────────────────────────────────────────────────────────────────────────────
-function(oxide_setup_build_interface)
-    if(TARGET oxide::build)
+function(ion_setup_build_interface)
+    if(TARGET ion::build)
         return()
     endif()
 
-    add_library(oxide_build INTERFACE)
-    add_library(oxide::build ALIAS oxide_build)
+    add_library(ion_build INTERFACE)
+    add_library(ion::build ALIAS ion_build)
 
     # C++ standard
-    target_compile_features(oxide_build INTERFACE cxx_std_23)
+    target_compile_features(ion_build INTERFACE cxx_std_23)
 
     # Compiler-specific flags
     if(MSVC)
-        target_compile_options(oxide_build INTERFACE
+        target_compile_options(ion_build INTERFACE
             /W4 /WX
             /permissive-
             /sdl
         )
-        target_compile_definitions(oxide_build INTERFACE _WIN32_WINNT=0x0601)
+        target_compile_definitions(ion_build INTERFACE _WIN32_WINNT=0x0601)
 
-        target_compile_options(oxide_build INTERFACE
+        target_compile_options(ion_build INTERFACE
             $<$<CONFIG:Debug>:/Zi /Od>
             $<$<CONFIG:Release>:/O2 /DNDEBUG>
         )
     else()
-        target_compile_options(oxide_build INTERFACE
+        target_compile_options(ion_build INTERFACE
             -Wall -Wextra -Wunused-result -Werror
         )
 
-        target_compile_options(oxide_build INTERFACE
+        target_compile_options(ion_build INTERFACE
             $<$<CONFIG:Debug>:-g3 -O0 -fsanitize=address -fsanitize=undefined>
         )
-        target_link_options(oxide_build INTERFACE
+        target_link_options(ion_build INTERFACE
             $<$<CONFIG:Debug>:-fsanitize=address -fsanitize=undefined>
         )
 
-        target_compile_options(oxide_build INTERFACE
+        target_compile_options(ion_build INTERFACE
             $<$<CONFIG:Release>:-O3 -DNDEBUG>
-            $<$<AND:$<CONFIG:Release>,$<BOOL:${OXIDE_ENABLE_MARCH_NATIVE}>>:-march=native>
+            $<$<AND:$<CONFIG:Release>,$<BOOL:${ION_ENABLE_MARCH_NATIVE}>>:-march=native>
         )
     endif()
 
     # install build-interface so that each library's public dependencies are satisfied
-    install(TARGETS oxide_build
-        EXPORT OxideTargets
+    install(TARGETS ion_build
+        EXPORT IonTargets
         INCLUDES DESTINATION include
     )
 endfunction()

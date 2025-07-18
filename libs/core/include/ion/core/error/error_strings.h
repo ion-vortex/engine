@@ -4,9 +4,9 @@
 
 #include "error_impl.h"
 
-namespace oxide::core {
+namespace ion::core {
 
-    constexpr OXIDE_CORE_API std::string_view to_string(ErrorCode c) noexcept
+    constexpr ION_CORE_API std::string_view to_string(ErrorCode c) noexcept
     {
         using E = ErrorCode;
         switch (c)
@@ -148,7 +148,7 @@ namespace oxide::core {
             case E::MemoryPageHasHardwareError:           return "Memory page has hardware error";
             case E::NotSupported:                         return "Not supported";
 
-            // Oxide-specific error codes
+            // Ion Vortex-specific error codes
             case E::InvalidHandle:                        return "Invalid handle";
             case E::PathSyntax:                           return "Path syntax error";
             case E::KeyNotFound:                          return "Key not found";

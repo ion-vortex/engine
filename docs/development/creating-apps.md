@@ -1,11 +1,11 @@
 # Creating Applications
 
-This guide covers creating applications that use the Oxide framework, from simple tools to full games.
+This guide covers creating applications that use the Ion Vortex engine, from simple tools to full games.
 
 ## Overview
 
-Oxide applications are:
-- **Standalone executables** that link Oxide libraries
+Ion Vortex applications are:
+- **Standalone executables** that link Ion Vortex libraries
 - **Platform-aware** with proper handling for Windows, Linux, macOS
 - **Resource-managed** using RAII and smart pointers
 - **Error-handling** with `std::expected` throughout
@@ -35,7 +35,7 @@ apps/your_app/
 
 Consider:
 1. **What type of app?** (Game, tool, server, etc.)
-2. **Which Oxide libraries needed?**
+2. **Which Ion Vortex libraries are needed?**
 3. **Platform requirements?**
 4. **Asset requirements?**
 
@@ -55,24 +55,24 @@ cmake_minimum_required(VERSION 3.28)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     project(YourApp VERSION 0.1.0 LANGUAGES CXX)
     
-    # Add Oxide helpers
+    # Add Ion Vortex helpers
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
-    include(OxideHelpers)
-    oxide_setup_build_interface()
+    include(IonHelpers)
+    ion_setup_build_interface()
     
     # Build all required libraries
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../libs libs)
 endif()
 
 # Create application - dependencies auto-resolved
-oxide_add_application(
+ion_add_application(
     NAME your_app
     DEPENDENCIES
-        oxide::core
-        oxide::render
-        oxide::ui
-        oxide::audio
-        oxide::protocol
+        ion::core
+        ion::render
+        ion::ui
+        ion::audio
+        ion::protocol
         # Add what you need
 )
 
@@ -119,12 +119,12 @@ endif()
 ```cpp
 #pragma once
 
-#include <oxide/core/error/error.h>
-#include <oxide/core/logging/logger.h>
-#include <oxide/render/backend/render_backend.h>
-#include <oxide/ui/ui_system.h>
-#include <oxide/audio/audio_engine.h>
-#include <oxide/platform/window.h>
+#include <ion/core/error/error.h>
+#include <ion/core/logging/logger.h>
+#include <ion/render/backend/render_backend.h>
+#include <ion/ui/ui_system.h>
+#include <ion/audio/audio_engine.h>
+#include <ion/platform/window.h>
 
 #include <memory>
 #include <expected>
@@ -141,12 +141,12 @@ public:
         int height = 720;
         bool fullscreen = false;
         bool vsync = true;
-        oxide::core::ILogger* logger = nullptr;
+        ion::core::ILogger* logger = nullptr;
     };
     
     // Factory
     [[nodiscard("Handle creation failure"), gnu::warn_unused_result]]
-    static std::expected<std::unique_ptr<Application>, oxide::core::Error> 
+    static std::expected<std::unique_ptr<Application>, ion::core::Error> 
     Create(const Config& config);
     
     // Lifecycle
@@ -160,7 +160,7 @@ private:
     
     [[nodiscard, gnu::warn_unused_result]]
 
-    std::expected<void, oxide::core::Error> initialize();
+    std::expected<void, ion::core::Error> initialize();
     
     void update(float delta_time);
     void render();
@@ -168,10 +168,10 @@ private:
     
     // Core systems (all through interfaces)
     Config config_;
-    std::unique_ptr<oxide::platform::IWindow> window_;
-    std::unique_ptr<oxide::render::IRenderBackend> renderer_;
-    std::unique_ptr<oxide::ui::IUISystem> ui_;
-    std::unique_ptr<oxide::audio::IAudioEngine> audio_;
+    std::unique_ptr<ion::platform::IWindow> window_;
+    std::unique_ptr<ion::render::IRenderBackend> renderer_;
+    std::unique_ptr<ion::ui::IUISystem> ui_;
+    std::unique_ptr<ion::audio::IAudioEngine> audio_;
     
     // State
     bool running_ = true;
@@ -192,7 +192,7 @@ private:
 
 namespace your_app {
 
-std::expected<std::unique_ptr<Application>, oxide::core::Error>
+std::expected<std::unique_ptr<Application>, ion::core::Error>
 Application::Create(const Config& config) {
     // Create instance
     auto app = std::unique_ptr<Application>(new Application(config));
@@ -213,41 +213,41 @@ Application::~Application() {
     shutdown();
 }
 
-std::expected<void, oxide::core::Error> Application::initialize() {
-    using namespace oxide::core;
+std::expected<void, ion::core::Error> Application::initialize() {
+    using namespace ion::core;
     
-    // Create window through oxide platform system
-    oxide::platform::WindowConfig window_config;
+    // Create window through ion platform system
+    ion::platform::WindowConfig window_config;
     window_config.title = config_.title;
     window_config.width = config_.width;
     window_config.height = config_.height;
     window_config.fullscreen = config_.fullscreen;
     
-    auto window_result = oxide::platform::makeWindow(window_config);
+    auto window_result = ion::platform::makeWindow(window_config);
     if (!window_result) {
         return std::unexpected(window_result.error());
     }
     window_ = std::move(window_result.value());
     
     // Initialize renderer
-    auto render_result = oxide::render::makeRenderBackend(window_.get());
+    auto render_result = ion::render::makeRenderBackend(window_.get());
     if (!render_result) {
         return std::unexpected(render_result.error());
     }
     renderer_ = std::move(render_result.value());
     
     // Initialize UI
-    auto ui_result = oxide::ui::makeUISystem(window_.get(), renderer_.get());
+    auto ui_result = ion::ui::makeUISystem(window_.get(), renderer_.get());
     if (!ui_result) {
         return std::unexpected(ui_result.error());
     }
     ui_ = std::move(ui_result.value());
     
     // Initialize audio
-    auto audio_result = oxide::audio::makeAudioEngine();
+    auto audio_result = ion::audio::makeAudioEngine();
     if (!audio_result) {
         if (config_.logger) {
-            config_.logger->log(oxide::core::LogLevel::Warn,
+            config_.logger->log(ion::core::LogLevel::Warn,
                 "Audio initialization failed: " + 
                 std::string(audio_result.error().what())
             );
@@ -332,7 +332,7 @@ void Application::render() {
 
 void Application::handleInput() {
     // Handle keyboard through window interface
-    if (window_->isKeyPressed(oxide::input::Key::Escape)) {
+    if (window_->isKeyPressed(ion::input::Key::Escape)) {
         running_ = false;
     }
     
@@ -357,14 +357,14 @@ void Application::shutdown() {
 
 ```cpp
 #include "application.h"
-#include <oxide/core/logging/logger.h>
+#include <ion/core/logging/logger.h>
 
 #include <iostream>
 #include <cstdlib>
 
 int main(int argc, char* argv[]) {
     // Create logger
-    auto logger = oxide::core::makeConsoleLogger();
+    auto logger = ion::core::makeConsoleLogger();
     
     // Parse command line arguments
     your_app::Application::Config config;
@@ -397,11 +397,11 @@ int main(int argc, char* argv[]) {
     }
     
     // Create and run application
-    logger->log(oxide::core::LogLevel::Info, "Starting application...");
+    logger->log(ion::core::LogLevel::Info, "Starting application...");
     
     auto app_result = your_app::Application::Create(config);
     if (!app_result) {
-        logger->log(oxide::core::LogLevel::Error,
+        logger->log(ion::core::LogLevel::Error,
             "Failed to create application: " + 
             std::string(app_result.error().what())
         );
@@ -411,13 +411,13 @@ int main(int argc, char* argv[]) {
     try {
         app_result.value()->run();
     } catch (const std::exception& e) {
-        logger->log(oxide::core::LogLevel::Critical,
+        logger->log(ion::core::LogLevel::Critical,
             "Unhandled exception: " + std::string(e.what())
         );
         return 2;
     }
     
-    logger->log(oxide::core::LogLevel::Info, "Application terminated normally");
+    logger->log(ion::core::LogLevel::Info, "Application terminated normally");
     return 0;
 }
 ```

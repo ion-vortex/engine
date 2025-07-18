@@ -1,6 +1,6 @@
 # API Reference Overview
 
-This directory contains the auto-generated C++ API reference for each Oxide library. When built, you’ll find:
+This directory contains the auto-generated C++ API reference for each Ion Vortex library. When built, you’ll find:
 
 - A section for each library under `docs/api/<library>/`
 - Detailed class, function, enum, and struct documentation

@@ -3,11 +3,11 @@
 #include <string_view>
 #include <cstdint>
 #include <exception>
-#include <oxide/core/export.h>
+#include <ion/core/export.h>
 
-namespace oxide::core {
+namespace ion::core {
 
-enum class OXIDE_CORE_API ErrorCode : std::uint32_t
+enum class ION_CORE_API ErrorCode : std::uint32_t
 {
     // ── Oat-generic sentinel ────────────────────────────────────────────────
     Ok      = 0x00000000, // success, no error
@@ -147,8 +147,8 @@ enum class OXIDE_CORE_API ErrorCode : std::uint32_t
     MemoryPageHasHardwareError                  = 133,  // EHWPOISON
     NotSupported                                = 134,   // ENOTSUP
 
-    // ── Oxide-specific error codes ──────────────────────────────────────────
-    // ── 140 - 199 reserved: oxide core lib
+    // ── Ion Vortex-specific error codes ─────────────────────────────────────
+    // ── 140 - 199 reserved: ion core lib
     InvalidHandle   = 140, // raw==0 or generation mismatch
     PathSyntax      = 141, // malformed "[", non-digit index, etc.
     KeyNotFound     = 142, // child key missing
@@ -174,9 +174,9 @@ enum class OXIDE_CORE_API ErrorCode : std::uint32_t
 };
 
 // Forward declaration of to_string for ErrorCode
-constexpr OXIDE_CORE_API std::string_view to_string(ErrorCode) noexcept;
+constexpr ION_CORE_API std::string_view to_string(ErrorCode) noexcept;
 
-struct OXIDE_CORE_API Error
+struct ION_CORE_API Error
 {
     ErrorCode   code { ErrorCode::Unknown };
     std::string message;
@@ -202,4 +202,4 @@ private:
     }
 };
 
-} // namespace oxide::core
+} // namespace ion::core

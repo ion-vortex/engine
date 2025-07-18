@@ -2,9 +2,9 @@
 #include "i_buffer.h"
 #include <array>
 #include <cstring>
-#include <oxide/core/export.h>
+#include <ion/core/export.h>
 
-namespace oxide::core::detail {
+namespace ion::core::detail {
 
 template <std::size_t N>
 class StaticBuffer final : public IBuffer {
@@ -62,4 +62,4 @@ public:
     }
 };
 
-} // namespace oxide::core::detail
+} // namespace ion::core::detail

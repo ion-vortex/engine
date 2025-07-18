@@ -1,6 +1,6 @@
 # Prerequisites
 
-Before building Oxide, you'll need to install and configure several tools. This guide covers all platforms.
+Before building Ion Vortex, you'll need to install and configure several tools. This guide covers all platforms.
 
 ## Required Tools
 
@@ -28,7 +28,7 @@ cmake --version
 
 ### vcpkg
 
-Oxide uses vcpkg for dependency management. It will be automatically cloned by our bootstrap script, but you can also install it globally.
+Ion Vortex uses vcpkg for dependency management. It will be automatically cloned by our bootstrap script, but you can also install it globally.
 
 **Option 1: Let bootstrap handle it** (Recommended)
 ```bash
@@ -114,7 +114,7 @@ Run our verification script to ensure everything is properly installed:
 
 ```bash
 # After cloning the repository
-cd oxide
+cd ion
 ./scripts/verify-setup.sh  # or verify-setup.ps1 on Windows
 ```
 
@@ -137,16 +137,16 @@ Ensure you have sufficient disk space:
 ### Visual Studio Code
 1. Install C++ extension pack
 2. Install CMake Tools extension
-3. Open the oxide folder
+3. Open the ion folder
 4. Select a CMake kit when prompted
 
 ### Visual Studio 2022
-1. Open Folder → Select oxide directory
+1. Open Folder → Select ion directory
 2. VS will detect CMakePresets.json automatically
 3. Select your desired preset from the toolbar
 
 ### CLion
-1. Open oxide as a CMake project
+1. Open ion as a CMake project
 2. Set CMake options to use vcpkg toolchain
 3. Select desired build preset
 
@@ -183,6 +183,6 @@ sudo snap install cmake --classic
 ## Next Steps
 
 Once prerequisites are installed:
-1. Continue to [Building Oxide](building.md)
+1. Continue to [Building Ion](building.md)
 2. Learn about [CMake Presets](building.md#understanding-presets)
 3. Understand the [Build System](../development/build-system.md)

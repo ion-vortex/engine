@@ -1,12 +1,12 @@
 #pragma once
 
-#include <oxide/core/export.h>
-#include <oxide/core/buffer.h>
+#include <ion/core/export.h>
+#include <ion/core/buffer.h>
 #include <vector>
 
-namespace oxide::core::detail {
+namespace ion::core::detail {
 
-class OXIDE_CORE_API VectorBuffer final : public IBuffer {
+class ION_CORE_API VectorBuffer final : public IBuffer {
     std::vector<std::byte> data_;
 public:
     [[nodiscard("Handle resize result"), gnu::warn_unused_result]]
@@ -33,4 +33,4 @@ public:
     std::size_t capacity() const noexcept override;
 };
 
-} // namespace oxide::core::detail
+} // namespace ion::core::detail

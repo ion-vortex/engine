@@ -1,10 +1,10 @@
 #pragma once
 
-#include <oxide/core/export.h>
+#include <ion/core/export.h>
 
-namespace oxide::core {
+namespace ion::core {
 
-class OXIDE_CORE_API IService {
+class ION_CORE_API IService {
 public:
     virtual ~IService() = default;
     
@@ -13,4 +13,4 @@ public:
     virtual void shutdown() = 0;
 };
 
-} // namespace oxide::core
+} // namespace ion::core

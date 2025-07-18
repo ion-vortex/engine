@@ -1,12 +1,12 @@
-# Your First Oxide Application
+# Your First Ion Vortex Application
 
-This tutorial will guide you through creating a simple application using the Oxide framework. We'll build a basic viewer that displays a spinning cube.
+This tutorial will guide you through creating a simple application using the Ion Vortex framework. We'll build a basic viewer that displays a spinning cube.
 
 ## Prerequisites
 
 Before starting, ensure you have:
 - ✅ Completed [Prerequisites](prerequisites.md) installation
-- ✅ Successfully [built Oxide](building.md)
+- ✅ Successfully [built Ion Vortex](building.md)
 - ✅ Can run the example client: `./build/debug/apps/client/client`
 
 ## Overview
@@ -42,22 +42,22 @@ cmake_minimum_required(VERSION 3.28)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     project(CubeViewer VERSION 0.1.0 LANGUAGES CXX)
     
-    # Add path to Oxide helpers
+    # Add path to Ion Vortex helpers
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
-    include(OxideHelpers)
-    oxide_setup_build_interface()
+    include(IonHelpers)
+    ion_setup_build_interface()
     
     # Build required libraries
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../libs libs)
 endif()
 
 # Create the application
-oxide_add_application(
+ion_add_application(
     NAME cube_viewer
     DEPENDENCIES
-        oxide::core
-        oxide::render
-        oxide::ui
+        ion::core
+        ion::render
+        ion::ui
 )
 
 # Platform-specific settings
@@ -77,11 +77,11 @@ endif()
 Create `apps/cube_viewer/src/main.cpp`:
 
 ```cpp
-#include <oxide/core/error/error.h>
-#include <oxide/core/logging/logger.h>
-#include <oxide/render/backend/render_backend.h>
-#include <oxide/render/view/render_view.h>
-#include <oxide/ui/imgui_context.h>
+#include <ion/core/error/error.h>
+#include <ion/core/logging/logger.h>
+#include <ion/render/backend/render_backend.h>
+#include <ion/render/view/render_view.h>
+#include <ion/ui/imgui_context.h>
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -91,7 +91,7 @@ Create `apps/cube_viewer/src/main.cpp`:
 #include <memory>
 #include <iostream>
 
-using namespace oxide;
+using namespace ion;
 
 class CubeViewerApp {
 public:
@@ -110,7 +110,7 @@ public:
         
         // Create window
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        app->window_ = glfwCreateWindow(1280, 720, "Oxide Cube Viewer", nullptr, nullptr);
+        app->window_ = glfwCreateWindow(1280, 720, "Ion Vortex Cube Viewer", nullptr, nullptr);
         if (!app->window_) {
             glfwTerminate();
             return std::unexpected(core::Error(
@@ -315,7 +315,7 @@ add_subdirectory(zoned)
 ## Step 4: Build and Run
 
 ```bash
-# From the oxide root directory
+# From the ion root directory
 cmake --preset debug-linux    # or debug-windows, debug-macos
 cmake --build --preset debug-linux --target cube_viewer
 
@@ -326,13 +326,13 @@ cmake --build --preset debug-linux --target cube_viewer
 ## Understanding the Code
 
 ### Factory Pattern
-Following Oxide conventions, we use a static `Create()` factory method that returns `std::expected<std::unique_ptr<T>, Error>`.
+Following Ion Vortex conventions, we use a static `Create()` factory method that returns `std::expected<std::unique_ptr<T>, Error>`.
 
 ### Error Handling
 All fallible operations return `std::expected`. We check results and propagate errors up the call stack.
 
 ### Interface Usage
-We use Oxide's interface types (`IRenderBackend`, `IImGuiContext`) rather than concrete implementations.
+We use Ion Vortex's interface types (`IRenderBackend`, `IImGuiContext`) rather than concrete implementations.
 
 ### Resource Management
 All resources are managed via `std::unique_ptr`. No manual memory management.
@@ -342,14 +342,14 @@ All resources are managed via `std::unique_ptr`. No manual memory management.
 Now that you have a working application, try:
 
 1. **Add More Geometry**: Create different shapes
-2. **Load Models**: Use `oxide::asset` to load 3D models
-3. **Add Physics**: Integrate `oxide::physics` for collision
-4. **Network It**: Use `oxide::protocol` for multiplayer
+2. **Load Models**: Use `ion::asset` to load 3D models
+3. **Add Physics**: Integrate `ion::physics` for collision
+4. **Network It**: Use `ion::protocol` for multiplayer
 
 ## Common Issues
 
-### "Cannot find oxide headers"
-Ensure you're building from the oxide root or have properly set up the standalone build.
+### "Cannot find ion headers"
+Ensure you're building from the ion root or have properly set up the standalone build.
 
 ### "Undefined reference to..."
 Make sure all required libraries are listed in `DEPENDENCIES`.
@@ -361,7 +361,7 @@ Check that your graphics drivers are up to date and support OpenGL/Vulkan.
 
 ### Adding Audio
 ```cpp
-#include <oxide/audio/audio_engine.h>
+#include <ion/audio/audio_engine.h>
 
 auto audio_result = audio::IAudioEngine::Create();
 if (audio_result) {
@@ -372,7 +372,7 @@ if (audio_result) {
 
 ### Loading Assets
 ```cpp
-#include <oxide/asset/asset_loader.h>
+#include <ion/asset/asset_loader.h>
 
 auto loader_result = asset::IAssetLoader::Create();
 if (loader_result) {
@@ -382,7 +382,7 @@ if (loader_result) {
 
 ### Adding Networking
 ```cpp
-#include <oxide/protocol/tcp_client.h>
+#include <ion/protocol/tcp_client.h>
 
 auto client_result = protocol::ITcpClient::Create("localhost", 7777);
 if (client_result) {
@@ -393,12 +393,12 @@ if (client_result) {
 
 ## Conclusion
 
-Congratulations! You've created your first Oxide application. You've learned:
-- How to structure an Oxide application
+Congratulations! You've created your first Ion Vortex application. You've learned:
+- How to structure an Ion Vortex application
 - How to use the factory pattern for object creation
 - How to handle errors with `std::expected`
 - How to integrate rendering and UI
-- How to follow Oxide coding standards
+- How to follow Ion Vortex coding standards
 
 Continue exploring the framework by:
 - Reading the [Architecture](../architecture/) documentation

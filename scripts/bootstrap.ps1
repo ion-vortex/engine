@@ -1,4 +1,4 @@
-# Bootstrap script for Oxide - Windows
+# Bootstrap script for Ion Vortex - Windows
 param(
     [switch]$Help
 )
@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 # Show help if requested
 if ($Help) {
     Write-Host @"
-Oxide Bootstrap Script for Windows
+Ion Vortex Bootstrap Script for Windows
 
 Usage: .\bootstrap.ps1 [options]
 
@@ -21,7 +21,7 @@ This script will:
 1. Check for required tools (CMake, Git, Visual Studio)
 2. Set up vcpkg if needed
 3. Install all dependencies via vcpkg
-4. Prepare your environment for building Oxide
+4. Prepare your environment for building Ion Vortex
 
 "@
     exit 0
@@ -54,7 +54,7 @@ if (-not $isAdmin) {
     Write-Warning "Not running as administrator. This is usually fine."
 }
 
-Write-Info "Starting Oxide bootstrap for Windows..."
+Write-Info "Starting Ion Vortex bootstrap for Windows..."
 
 # Check for Git
 Write-Info "Checking for Git..."

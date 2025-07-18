@@ -1,9 +1,9 @@
-# Project Oxide
+# Ion Vortex
 
 ---
 
 <p align="center">
-  <img src="docs/assets/oxide-banner.svg?v=2" alt="oxide banner" />
+  <img src="docs/assets/ion-vortex-banner.svg" alt="Ion Vortex Banner" />
 </p>
 
 ---

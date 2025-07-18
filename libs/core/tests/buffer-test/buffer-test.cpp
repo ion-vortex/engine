@@ -1,11 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
-#include <oxide/core/buffer.h>
+#include <ion/core/buffer.h>
 #include <string_view>
 #include <memory>
 
 TEST_CASE("Buffer - VectorBuffer", "[vector_buffer]") {
     using namespace std::literals::string_view_literals;
-    using namespace oxide::core;
+    using namespace ion::core;
 
     SECTION("Create buffer") {
         auto buffer = create_buffer(1024);
@@ -67,7 +67,7 @@ TEST_CASE("Buffer - VectorBuffer", "[vector_buffer]") {
 
 TEST_CASE("Buffer - StaticBuffer", "[static_buffer]") {
     using namespace std::literals::string_view_literals;
-    using namespace oxide::core;
+    using namespace ion::core;
 
     SECTION("Create static buffer") {
         auto buffer = create_static_buffer<256>();

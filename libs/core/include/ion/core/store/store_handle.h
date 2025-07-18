@@ -1,9 +1,9 @@
 #pragma once
 
-#include <oxide/core/export.h>
+#include <ion/core/export.h>
 #include <cstdint>
 
-namespace oxide::core {
+namespace ion::core {
 
 /**
  * @brief Opaque handle to a node in a storage tree.
@@ -11,7 +11,7 @@ namespace oxide::core {
  * StoreHandle is used to reference objects, arrays, or values within a storage backend.
  * A value of 0 is always invalid.
  */
-struct OXIDE_CORE_API StoreHandle {
+struct ION_CORE_API StoreHandle {
     /**
      * @brief Raw handle value. 0 is always invalid.
      */
@@ -32,4 +32,4 @@ struct OXIDE_CORE_API StoreHandle {
     bool operator==(StoreHandle o) const noexcept { return raw == o.raw; }
 };
 
-}  // namespace oxide::core
+}  // namespace ion::core

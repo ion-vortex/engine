@@ -1,6 +1,6 @@
-# Contributing to Oxide
+# Contributing to Ion Vortex
 
-Thank you for your interest in contributing to Oxide! This guide will help you get started with contributing code, documentation, or other improvements to the project.
+Thank you for your interest in contributing to Ion Vortex! This guide will help you get started with contributing code, documentation, or other improvements to the project.
 
 ## Before You Start
 
@@ -24,7 +24,7 @@ We expect all contributors to:
 ## Ways to Contribute
 
 ### 🐛 Bug Reports
-Found a bug? [Open an issue](https://github.com/oat-im/oxide/issues) with:
+Found a bug? [Open an issue](https://github.com/oat-im/ion/issues) with:
 - Clear description of the problem
 - Steps to reproduce
 - Expected vs actual behavior
@@ -55,9 +55,9 @@ Ready to code? Check out:
 ### 1. Fork and Clone
 ```bash
 # Fork on GitHub, then:
-git clone https://github.com/YOUR_USERNAME/oxide.git
-cd oxide
-git remote add upstream https://github.com/oat-im/oxide.git
+git clone https://github.com/YOUR_USERNAME/ion.git
+cd ion
+git remote add upstream https://github.com/oat-im/ion.git
 ```
 
 ### 2. Create a Branch
@@ -76,7 +76,7 @@ git checkout -b fix/issue-description
 ### 4. Test Your Changes
 ```bash
 # Build and run tests
-cmake --preset debug -DOXIDE_BUILD_TESTS=ON
+cmake --preset debug -DION_BUILD_TESTS=ON
 cmake --build --preset debug
 ctest --preset debug
 ```
@@ -149,7 +149,7 @@ clang-format -i src/**/*.cpp include/**/*.h
 clang-tidy src/**/*.cpp
 
 # Build specific target
-cmake --build --preset debug --target oxide_core
+cmake --build --preset debug --target ion_core
 
 # Run specific test
 ./build/debug/tests/core_tests --gtest_filter=ErrorTest.*
@@ -187,8 +187,8 @@ Active contributors may be invited to become maintainers based on:
 
 - Read the [Getting Started Guide](../getting-started/)
 - Check the [Development Documentation](../development/)
-- Search existing [Issues](https://github.com/oat-im/oxide/issues)
-- Ask in [Discussions](https://github.com/oat-im/oxide/discussions)
+- Search existing [Issues](https://github.com/oat-im/ion/issues)
+- Ask in [Discussions](https://github.com/oat-im/ion/discussions)
 
 Remember: There are no stupid questions, but there are poorly researched ones. Do your homework, and we're happy to help!
 

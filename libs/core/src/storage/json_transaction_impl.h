@@ -1,9 +1,9 @@
 #pragma once
 
-#include <oxide/core/store/i_store.h>
-#include <oxide/core/store/i_transaction.h>
-#include <oxide/core/error.h>
-#include <oxide/core/store/store_handle.h>
+#include <ion/core/store/i_store.h>
+#include <ion/core/store/i_transaction.h>
+#include <ion/core/error.h>
+#include <ion/core/store/store_handle.h>
 #include <expected>
 #include <string>
 #include <unordered_map>
@@ -11,7 +11,7 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-namespace oxide::core::detail {
+namespace ion::core::detail {
 
 class JsonStore;
 
@@ -22,7 +22,7 @@ class JsonStore;
  * using an in-memory representation of JSON data. It supports ACID-compliant
  * operations on hierarchical storage data.
  */
-class OXIDE_CORE_API JsonTransaction final : public ITransaction {
+class ION_CORE_API JsonTransaction final : public ITransaction {
 public:
     JsonTransaction(nlohmann::json const& initial_data, JsonStore* store, JsonStoreOptions const& options);
     ~JsonTransaction() noexcept override;
@@ -107,4 +107,4 @@ private:
  bool is_valid_key(std::string_view key) const;
 };
 
-} // namespace oxide::core::detail
+} // namespace ion::core::detail

@@ -13,8 +13,8 @@
 #include <fstream>
 #include <sstream>
 
-using namespace oxide::core;
-using namespace oxide::core::detail;
+using namespace ion::core;
+using namespace ion::core::detail;
 
 /**
  * @brief Constructs a JsonStore instance.

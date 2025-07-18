@@ -1,11 +1,11 @@
-# Project Oxide Documentation
+# Ion Vortex Documentation
 
-Welcome to the Oxide documentation hub! Use the sections below to navigate all design, developer, and contribution guides.
+Welcome to the Ion Vortex documentation hub! Use the sections below to navigate all design, developer, and contribution guides.
 
 ## 🚀 Getting Started
 
 - [Prerequisites & Quick Start](getting-started/README.md)
-- [Building Oxide](getting-started/building.md)
+- [Building Ion Vortex](getting-started/building.md)
 - [Your First App Tutorial](getting-started/first-app.md)
 
 ## 📖 Design & Architecture

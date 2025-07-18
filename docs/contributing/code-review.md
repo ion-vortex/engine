@@ -1,6 +1,6 @@
 # Code Review Process
 
-This document outlines the code review process for Oxide contributions. Our goal is to maintain high code quality while being respectful of contributors' time and effort.
+This document outlines the code review process for Ion Vortex contributions. Our goal is to maintain high code quality while being respectful of contributors' time and effort.
 
 ## Overview
 
@@ -321,4 +321,4 @@ Good code review is about:
 - **Respect**: Being constructive
 - **Efficiency**: Not blocking progress
 
-Remember: Code review is a conversation, not a judgment. We're all working toward the same goal of making Oxide better.
+Remember: Code review is a conversation, not a judgment. We're all working toward the same goal of making Ion Vortex better.

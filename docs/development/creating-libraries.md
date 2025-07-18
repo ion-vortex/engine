@@ -1,10 +1,10 @@
 # Creating Libraries
 
-This guide walks through creating a new library in the Oxide framework, following all architectural and coding standards.
+This guide walks through creating a new library in the Ion Vortex engine, following all architectural and coding standards.
 
 ## Overview
 
-Oxide libraries are:
+Ion Vortex libraries are:
 - **Modular**: Can be built independently or as part of the whole
 - **Interface-driven**: Public API through abstract interfaces
 - **Dependency-aware**: Clear layering with no circular dependencies
@@ -16,7 +16,7 @@ Every library follows this structure:
 ```
 libs/your_library/
 ├── include/
-│   └── oxide/
+│   └── ion/
 │       └── your_library/
 │           ├── your_interface.h      # Public interface
 │           ├── error_codes.h         # Library-specific errors
@@ -46,22 +46,22 @@ Before writing code, answer these questions:
 ### Step 2: Create Directory Structure
 
 ```bash
-# From oxide root
-mkdir -p libs/your_library/{include/oxide/your_library,src,tests}
+# From ion root
+mkdir -p libs/your_library/{include/ion/your_library,src,tests}
 ```
 
 ### Step 3: Define the Public Interface
 
-Create `include/oxide/your_library/your_interface.h`:
+Create `include/ion/your_library/your_interface.h`:
 
 ```cpp
 #pragma once
 
-#include <oxide/core/error/error.h>
+#include <ion/core/error/error.h>
 #include <memory>
 #include <expected>
 
-namespace oxide::your_library {
+namespace ion::your_library {
 
 // Forward declarations
 class IYourInterface;
@@ -85,14 +85,14 @@ public:
     // No implementation details in interface!
 };
 
-} // namespace oxide::your_library
+} // namespace ion::your_library
 ```
 
 ### Step 4: Define Error Codes
 
-Create `include/oxide/your_library/error_codes.h`:
+Create `include/ion/your_library/error_codes.h`:
 
-**Important**: Check `oxide/core/error/error.h` for reserved error code ranges. Each library has an assigned range:
+**Important**: Check `ion/core/error/error.h` for reserved error code ranges. Each library has an assigned range:
 - 1000-1999: render
 - 2000-2999: net
 - 3000-3999: asset
@@ -107,9 +107,9 @@ Create `include/oxide/your_library/error_codes.h`:
 ```cpp
 #pragma once
 
-#include <oxide/core/error/error.h>
+#include <ion/core/error/error.h>
 
-namespace oxide::your_library {
+namespace ion::your_library {
 
 enum class ErrorCode : std::uint32_t {
     // Mirror core sentinels
@@ -138,11 +138,11 @@ constexpr std::string_view to_string(ErrorCode code) noexcept {
         case ErrorCode::InvalidState:        return "Invalid state";
         default:
             // Try core error codes
-            return oxide::core::to_string(static_cast<oxide::core::ErrorCode>(code));
+            return ion::core::to_string(static_cast<ion::core::ErrorCode>(code));
     }
 }
 
-} // namespace oxide::your_library
+} // namespace ion::your_library
 ```
 
 ### Step 5: Create Implementation
@@ -152,9 +152,9 @@ Create `src/your_implementation.h`:
 ```cpp
 #pragma once
 
-#include <oxide/your_library/your_interface.h>
+#include <ion/your_library/your_interface.h>
 
-namespace oxide::your_library::detail {
+namespace ion::your_library::detail {
 
 class YourImplementation final : public IYourInterface {
 public:
@@ -175,16 +175,16 @@ private:
     int state_ = 0;
 };
 
-} // namespace oxide::your_library::detail
+} // namespace ion::your_library::detail
 ```
 
 Create `src/your_implementation.cpp`:
 
 ```cpp
 #include "your_implementation.h"
-#include <oxide/your_library/error_codes.h>
+#include <ion/your_library/error_codes.h>
 
-namespace oxide::your_library::detail {
+namespace ion::your_library::detail {
 
 std::expected<std::unique_ptr<YourImplementation>, core::Error> 
 YourImplementation::Create(/* parameters */) {
@@ -232,10 +232,10 @@ YourImplementation::YourImplementation(/* params */) {
     // Constructor logic
 }
 
-} // namespace oxide::your_library::detail
+} // namespace ion::your_library::detail
 
 // Factory function implementation
-namespace oxide::your_library {
+namespace ion::your_library {
 
 std::expected<std::unique_ptr<IYourInterface>, core::Error> 
 makeYourInterface(/* parameters */) {
@@ -248,7 +248,7 @@ makeYourInterface(/* parameters */) {
     return std::unique_ptr<IYourInterface>(std::move(result.value()));
 }
 
-} // namespace oxide::your_library
+} // namespace ion::your_library
 ```
 
 ### Step 6: Create CMakeLists.txt
@@ -258,21 +258,21 @@ cmake_minimum_required(VERSION 3.28)
 
 # Support standalone build
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    project(OxideYourLibrary VERSION 0.1.0 LANGUAGES CXX)
+    project(IonYourLibrary VERSION 0.1.0 LANGUAGES CXX)
     
-    # Add Oxide helpers
+    # Add Ion Vortex helpers
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
-    include(OxideHelpers)
-    oxide_setup_build_interface()
+    include(IonHelpers)
+    ion_setup_build_interface()
     
     # Find dependencies
-    oxide_find_dependencies(json)  # Add what you need
+    ion_find_dependencies(json)  # Add what you need
     
     # Build dependencies if standalone
-    if(NOT TARGET oxide::core)
+    if(NOT TARGET ion::core)
         add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../core core)
     endif()
-    # Add other oxide:: dependencies as needed
+    # Add other ion:: dependencies as needed
     
     # Enable testing
     option(BUILD_TESTING "Build tests" ON)
@@ -283,25 +283,25 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 endif()
 
 # Register external dependencies FIRST
-oxide_add_external_dependency(your_library
+ion_add_external_dependency(your_library
     # List external deps like nlohmann_json::nlohmann_json
 )
 
 # Create library (sources auto-discovered)
-oxide_add_library(
+ion_add_library(
     NAME your_library
     DEPENDENCIES 
-        oxide::build
-        oxide::core      # Add oxide:: dependencies
+        ion::build
+        ion::core      # Add ion:: dependencies
 )
 
 # Link external dependencies
-target_link_libraries(oxide_your_library PUBLIC
+target_link_libraries(ion_your_library PUBLIC
     # External deps here
 )
 
 # Tests
-if(BUILD_TESTING OR OXIDE_BUILD_TESTS)
+if(BUILD_TESTING OR ION_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 ```
@@ -312,9 +312,9 @@ Create `tests/integration_tests.cpp`:
 
 ```cpp
 #include <catch2/catch_test_macros.hpp>
-#include <oxide/your_library/your_interface.h>
+#include <ion/your_library/your_interface.h>
 
-using namespace oxide::your_library;
+using namespace ion::your_library;
 
 TEST_CASE("YourInterface basic operations", "[your_library]") {
     SECTION("Creation succeeds with valid parameters") {
@@ -348,9 +348,9 @@ TEST_CASE("YourInterface basic operations", "[your_library]") {
 Create `tests/CMakeLists.txt`:
 
 ```cmake
-oxide_add_test(
+ion_add_test(
     NAME your_library_tests
-    DEPENDENCIES oxide::your_library
+    DEPENDENCIES ion::your_library
 )
 ```
 
@@ -376,9 +376,9 @@ Brief description of what this library does.
 ## Usage
 
 ```cpp
-#include <oxide/your_library/your_interface.h>
+#include <ion/your_library/your_interface.h>
 
-auto result = oxide::your_library::makeYourInterface();
+auto result = ion::your_library::makeYourInterface();
 if (!result) {
     // Handle error
     return result.error();
@@ -406,7 +406,7 @@ Main interface for...
 
 ## Dependencies
 
-- `oxide::core` - For error handling
+- `ion::core` - For error handling
 - External: none
 
 ## Implementation Notes
@@ -534,7 +534,7 @@ TEST_CASE("Handles errors gracefully") {
 After creating your library:
 1. Run tests: `ctest --preset debug-linux`
 2. Build standalone: `cd libs/your_library && cmake -B build`
-3. Use in apps: Link with `oxide::your_library`
+3. Use in apps: Link with `ion::your_library`
 4. Document in API reference
 5. Add examples if complex
 

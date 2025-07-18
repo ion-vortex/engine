@@ -1,7 +1,7 @@
-#include <oxide/core/buffer.h>
+#include <ion/core/buffer.h>
 #include "vector_buffer_impl.h"
 
-namespace oxide::core
+namespace ion::core
 {
 
 std::expected<std::unique_ptr<IBuffer>, Error>
@@ -16,4 +16,4 @@ create_buffer(std::size_t initial_capacity)
     return buf;
 }
 
-} // namespace oxide::core
+} // namespace ion::core

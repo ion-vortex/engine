@@ -2,12 +2,12 @@
 #include <span>
 #include <memory>
 #include <expected>
-#include <oxide/core/error.h>
-#include <oxide/core/export.h>
+#include <ion/core/error.h>
+#include <ion/core/export.h>
 
-namespace oxide::core {
+namespace ion::core {
 
-class OXIDE_CORE_API IBuffer {
+class ION_CORE_API IBuffer {
 public:
     virtual ~IBuffer() = default;
 
@@ -39,4 +39,4 @@ public:
     virtual std::size_t capacity() const noexcept = 0;
 };
 
-} // namespace oxide::core
+} // namespace ion::core

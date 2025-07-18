@@ -1,21 +1,21 @@
 #pragma once
 
-#include <oxide/core/export.h>
-#include <oxide/core/error.h>
-#include <oxide/core/store/store_handle.h>
+#include <ion/core/export.h>
+#include <ion/core/error.h>
+#include <ion/core/store/store_handle.h>
 #include <expected>
 #include <filesystem>
 #include <memory>
 
 
-namespace oxide::core {
+namespace ion::core {
 
 /**
  * @brief Options for file-backed stores (generic).
  *
  * Controls memory-mapping and journaling for file-based storage backends.
  */
-struct OXIDE_CORE_API FileStoreOptions {
+struct ION_CORE_API FileStoreOptions {
     /**
      * @brief Use memory-mapped writes if true.
      */
@@ -32,7 +32,7 @@ struct OXIDE_CORE_API FileStoreOptions {
  *
  * Controls memory-mapping, journaling, and comment support for JSON backends.
  */
-struct OXIDE_CORE_API JsonStoreOptions {
+struct ION_CORE_API JsonStoreOptions {
     bool write_mmap     = false;   ///< Use memory-mapped writes if true.
     bool use_journal    = true;    ///< Enable journaling for crash safety.
     bool allow_comments = false;   ///< Allow comments in JSON files.
@@ -44,7 +44,7 @@ struct OXIDE_CORE_API JsonStoreOptions {
  *
  * Controls memory-mapping, journaling, key order, and type strictness for TOML backends.
  */
-struct OXIDE_CORE_API TomlStoreOptions {
+struct ION_CORE_API TomlStoreOptions {
     bool write_mmap     = false;   ///< Use memory-mapped writes if true.
     bool use_journal    = true;    ///< Enable journaling for crash safety.
     bool preserve_order = false;   ///< Preserve key order in TOML files.
@@ -61,7 +61,7 @@ struct OXIDE_CORE_API TomlStoreOptions {
  *
  * Provides methods to open/close the store and begin transactions.
  */
-class OXIDE_CORE_API IStore {
+class ION_CORE_API IStore {
 public:
     /**
      * @brief Virtual destructor.
@@ -102,7 +102,7 @@ public:
  * @return Unique pointer to IStore or error.
  */
 [[nodiscard("Check for error or valid store"), gnu::warn_unused_result]]
-OXIDE_CORE_API std::expected<std::unique_ptr<IStore>, Error>
+ION_CORE_API std::expected<std::unique_ptr<IStore>, Error>
 make_json_file_store(std::filesystem::path const&, JsonStoreOptions);
 
 /**
@@ -112,7 +112,7 @@ make_json_file_store(std::filesystem::path const&, JsonStoreOptions);
  * @return Unique pointer to IStore or error.
  */
 [[nodiscard("Check for error or valid store"), gnu::warn_unused_result]]
-OXIDE_CORE_API std::expected<std::unique_ptr<IStore>, Error>
+ION_CORE_API std::expected<std::unique_ptr<IStore>, Error>
 make_toml_file_store(std::filesystem::path const&, TomlStoreOptions);
 
 /**
@@ -120,7 +120,7 @@ make_toml_file_store(std::filesystem::path const&, TomlStoreOptions);
  * @return Unique pointer to IStore or error.
  */
 [[nodiscard("Check for error or valid store"), gnu::warn_unused_result]]
-OXIDE_CORE_API std::expected<std::unique_ptr<IStore>, Error>
+ION_CORE_API std::expected<std::unique_ptr<IStore>, Error>
 make_in_memory_store();
 
-}  // namespace oxide::core
+}  // namespace ion::core

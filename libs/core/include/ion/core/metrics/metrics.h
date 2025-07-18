@@ -3,11 +3,11 @@
 #include <string_view>
 #include <cstdint>
 
-#include <oxide/core/export.h>
+#include <ion/core/export.h>
 
-namespace oxide::core {
+namespace ion::core {
 
-class OXIDE_CORE_API IMetrics {
+class ION_CORE_API IMetrics {
 public:
     virtual ~IMetrics() = default;
     
@@ -16,4 +16,4 @@ public:
     virtual void timing(std::string_view name, uint64_t nanoseconds) = 0;
 };
 
-} // namespace oxide::core
+} // namespace ion::core

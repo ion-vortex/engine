@@ -1,13 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_string.hpp>
 #include <catch2/catch_approx.hpp>
-#include <oxide/core/store.h>
+#include <ion/core/store.h>
 #include <filesystem>
 #include <fstream>
 #include <thread>
 #include <chrono>
 
-using namespace oxide::core;
+using namespace ion::core;
 using namespace Catch::Matchers;
 namespace fs = std::filesystem;
 

@@ -1,7 +1,7 @@
 #include "vector_buffer_impl.h"
 
-using namespace oxide::core::detail;
-using namespace oxide::core;
+using namespace ion::core::detail;
+using namespace ion::core;
 
 std::expected<void, Error>
 VectorBuffer::resize(std::size_t bytes) {

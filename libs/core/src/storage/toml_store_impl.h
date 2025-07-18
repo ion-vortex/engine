@@ -1,16 +1,16 @@
 #pragma once
 
-#include <oxide/core/export.h>
-#include <oxide/core/store.h>
+#include <ion/core/export.h>
+#include <ion/core/store.h>
 #include <toml++/toml.hpp>
 #include <mutex>
 #include <fstream>
 
-namespace oxide::core::detail {
+namespace ion::core::detail {
 
 class TomlTransaction;
 
-class OXIDE_CORE_API TomlStore final : public IStore {
+class ION_CORE_API TomlStore final : public IStore {
 public:
     TomlStore(std::filesystem::path const& path, TomlStoreOptions const& options);
     ~TomlStore();
@@ -36,4 +36,4 @@ private:
     }
 };
 
-}  // namespace oxide::core::detail
+}  // namespace ion::core::detail

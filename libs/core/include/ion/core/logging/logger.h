@@ -3,11 +3,11 @@
 #include <string_view>
 #include <format>
 
-#include <oxide/core/export.h>
+#include <ion/core/export.h>
 
-namespace oxide::core {
+namespace ion::core {
 
-enum class OXIDE_CORE_API LogLevel {
+enum class ION_CORE_API LogLevel {
     Trace,   // super-verbose
     Debug,   // developer diagnostics
     Info,    // normal ops
@@ -16,7 +16,7 @@ enum class OXIDE_CORE_API LogLevel {
     Critical // about to crash / abort
 };
 
-class OXIDE_CORE_API ILogger {
+class ION_CORE_API ILogger {
 public:
     virtual ~ILogger() = default;
     
@@ -33,4 +33,4 @@ public:
     virtual bool isEnabled(LogLevel level) const = 0;
 };
 
-} // namespace oxide::core
+} // namespace ion::core

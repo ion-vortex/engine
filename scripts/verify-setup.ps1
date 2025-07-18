@@ -1,4 +1,4 @@
-# Verify development environment setup for Oxide - Windows
+# Verify development environment setup for Ion Vortex - Windows
 param(
     [switch]$Detailed
 )
@@ -38,8 +38,8 @@ function Write-Header {
 }
 
 # Main verification
-Write-Host "Oxide Development Environment Verification" -ForegroundColor Cyan
-Write-Host "=========================================" -ForegroundColor Cyan
+Write-Host "Ion Vortex Development Environment Verification" -ForegroundColor Cyan
+Write-Host "===============================================" -ForegroundColor Cyan
 Write-Host "OS: Windows $([System.Environment]::OSVersion.Version)"
 Write-Host ""
 
@@ -57,7 +57,7 @@ try {
             Check-Pass "In git repository (branch: $branch)"
             
             $remote = git config --get remote.origin.url 2>$null
-            if ($remote -like "*git.oat.im/oat/oxide*") {
+            if ($remote -like "*git.oat.im/oat/ion*") {
                 Check-Pass "Correct remote: $remote"
             } elseif ($remote) {
                 Check-Warn "Unexpected remote: $remote"
@@ -148,7 +148,7 @@ int main() {
 }
 "@
     
-    $testFile = "$env:TEMP\oxide_cpp23_test.cpp"
+    $testFile = "$env:TEMP\ion_cpp23_test.cpp"
     Set-Content -Path $testFile -Value $testCode
     
     # This is complex on Windows without being in VS environment
@@ -230,7 +230,7 @@ if (Test-Path "CMakeLists.txt") {
         Check-Fail "CMakePresets.json not found"
     }
 } else {
-    Check-Fail "Not in Oxide project root (CMakeLists.txt not found)"
+    Check-Fail "Not in Ion Vortex project root (CMakeLists.txt not found)"
 }
 
 # Check for common issues
@@ -252,7 +252,7 @@ if ($currentPath -like "*\OneDrive\*" -or $currentPath -like "*\Dropbox\*") {
 
 # Summary
 Write-Host ""
-Write-Host "=========================================" -ForegroundColor Cyan
+Write-Host "===============================================" -ForegroundColor Cyan
 
 if ($script:Errors -eq 0) {
     if ($script:Warnings -eq 0) {

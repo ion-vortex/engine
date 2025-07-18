@@ -1,10 +1,10 @@
 # Testing Guide
 
-This document covers testing practices for the Oxide framework, emphasizing integration testing while explaining when and how to use unit tests.
+This document covers testing practices for Ion Vortex, emphasizing integration testing while explaining when and how to use unit tests.
 
 ## Testing Philosophy
 
-Oxide follows these testing principles:
+Ion Vortex follows these testing principles:
 
 1. **Integration tests are primary** - Test through public interfaces
 2. **No friend classes** - Tests use the same API as users
@@ -30,9 +30,9 @@ libs/your_library/tests/
 
 ```cpp
 #include <catch2/catch_test_macros.hpp>
-#include <oxide/your_library/your_interface.h>
+#include <ion/your_library/your_interface.h>
 
-using namespace oxide::your_library;
+using namespace ion::your_library;
 
 TEST_CASE("Feature description", "[your_library]") {
     SECTION("Success case") {
@@ -115,15 +115,15 @@ TEST_CASE("State machine transitions", "[state]") {
 // mock_dependencies.h
 #pragma once
 
-#include <oxide/core/logging/logger.h>
+#include <ion/core/logging/logger.h>
 #include <vector>
 #include <string>
 
 namespace test {
 
-class MockLogger : public oxide::core::ILogger {
+class MockLogger : public ion::core::ILogger {
 public:
-    void log(oxide::core::LogLevel level, 
+    void log(ion::core::LogLevel level, 
              const std::string& message) override {
         entries_.push_back({level, message});
     }
@@ -140,7 +140,7 @@ public:
     
 private:
     struct LogEntry {
-        oxide::core::LogLevel level;
+        ion::core::LogLevel level;
         std::string message;
     };
     std::vector<LogEntry> entries_;
@@ -489,10 +489,10 @@ bool waitFor(Pred predicate, std::chrono::milliseconds timeout) {
 
 ```cmake
 # tests/CMakeLists.txt
-oxide_add_test(
+ion_add_test(
     NAME your_library_tests
     DEPENDENCIES 
-        oxide::your_library
+        ion::your_library
         test_utilities
 )
 

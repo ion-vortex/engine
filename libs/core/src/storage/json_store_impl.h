@@ -1,16 +1,16 @@
 #pragma once
 
-#include <oxide/core/export.h>
-#include <oxide/core/store.h>
+#include <ion/core/export.h>
+#include <ion/core/store.h>
 #include <nlohmann/json.hpp>
 #include <mutex>
 #include <fstream>
 
-namespace oxide::core::detail {
+namespace ion::core::detail {
 
 class JsonTransaction;
 
-class OXIDE_CORE_API JsonStore final : public IStore {
+class ION_CORE_API JsonStore final : public IStore {
 public:
     JsonStore(std::filesystem::path const& path, JsonStoreOptions const& options);
     ~JsonStore();
@@ -36,4 +36,4 @@ private:
     }
 };
 
-}  // namespace oxide::core::detail
+}  // namespace ion::core::detail
