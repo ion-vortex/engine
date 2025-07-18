@@ -76,21 +76,21 @@ install(EXPORT IonTargets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ion
 )
 
-# Create package config file
+# ── Create package config file ────────────────────────────────
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/IonConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/IonConfig.cmake"
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ion
 )
 
-# Create version file
+# ── Create version file ───────────────────────────────────────
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/IonConfigVersion.cmake"
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
-# Install config files
+# ── Install config files ──────────────────────────────────────
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/IonConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/IonConfigVersion.cmake"

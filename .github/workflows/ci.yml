@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CMAKE_BUILD_PARALLEL_LEVEL: 4
+  CTEST_OUTPUT_ON_FAILURE: 1
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: "Ubuntu Latest (GCC)"
+            os: ubuntu-latest
+            preset: "release-linux"
+            cc: "gcc"
+            cxx: "g++"
+            
+          - name: "macOS Apple Silicon"
+            os: macos-latest
+            preset: "release-macos"
+            cc: "clang"
+            cxx: "clang++"
+            
+          - name: "Windows Latest (MSVC)"
+            os: windows-latest
+            preset: "release-windows"
+            cc: "cl"
+            cxx: "cl"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    # Platform-specific dependency installation
+    - name: Install dependencies (Ubuntu)
+      if: matrix.config.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          ninja-build \
+          pkg-config \
+          autoconf \
+          automake \
+          libtool \
+          curl \
+          zip \
+          unzip \
+          tar \
+          libx11-dev \
+          libxrandr-dev \
+          libxinerama-dev \
+          libxcursor-dev \
+          libxi-dev \
+          libgl1-mesa-dev
+
+    - name: Install dependencies (macOS)
+      if: matrix.config.os == 'macos-latest'
+      run: |
+        brew install ninja pkg-config autoconf automake libtool
+
+    - name: Setup MSVC (Windows)
+      if: matrix.config.os == 'windows-latest'
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    # Cache vcpkg downloads and builds
+    - name: Cache vcpkg
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/vcpkg-instance/downloads
+          ${{ github.workspace }}/vcpkg-instance/buildtrees
+          ${{ github.workspace }}/vcpkg-instance/packages
+          ${{ github.workspace }}/vcpkg-instance/installed
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}-${{ hashFiles('vcpkg/triplets/**') }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}-
+          vcpkg-${{ runner.os }}-
+
+    # Set up vcpkg
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgGitCommitId: '96fd599859beaed2ae891a2b2982746f28611b07'
+        vcpkgDirectory: '${{ github.workspace }}/vcpkg-instance'
+
+    # Configure CMake environment
+    - name: Set environment variables
+      shell: bash
+      run: |
+        echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
+        echo "VCPKG_ROOT=${{ github.workspace }}/vcpkg-instance" >> $GITHUB_ENV
+
+    # Cache build directory to speed up builds
+    - name: Cache build directory
+      uses: actions/cache@v4
+      with:
+        path: |
+          build
+          !build/**/vcpkg_installed
+        key: ${{ runner.os }}-${{ matrix.config.preset }}-${{ hashFiles('**/CMakeLists.txt', 'vcpkg.json', 'CMakePresets.json') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.config.preset }}-
+
+    # Configure project
+    - name: Configure CMake
+      run: cmake --preset ${{ matrix.config.preset }}
+
+    # Build project
+    - name: Build
+      run: cmake --build --preset ${{ matrix.config.preset }}
+
+    # Run tests
+    - name: Run tests
+      run: ctest --preset ${{ matrix.config.preset }} --verbose
+
+    # Install and create artifacts
+    - name: Install
+      shell: bash
+      run: |
+        # Extract build type from preset name (debug-linux -> debug)
+        BUILD_TYPE=$(echo "${{ matrix.config.preset }}" | cut -d'-' -f1)
+        
+        # Find the actual build directory based on platform
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          BUILD_DIR="build/${BUILD_TYPE}/Linux"
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          BUILD_DIR="build/${BUILD_TYPE}/Darwin"
+        elif [[ "${{ runner.os }}" == "Windows" ]]; then
+          BUILD_DIR="build/${BUILD_TYPE}/Windows"
+        fi
+        
+        cmake --install "$BUILD_DIR" --prefix install-output
+
+    - name: Create artifact archive
+      shell: bash
+      run: |
+        cd install-output
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          7z a ../ion-vortex-${{ runner.os }}-${{ runner.arch }}.zip .
+        else
+          tar -czf ../ion-vortex-${{ runner.os }}-${{ runner.arch }}.tar.gz .
+        fi
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ion-vortex-${{ runner.os }}-${{ runner.arch }}
+        path: |
+          *.zip
+          *.tar.gz
+        retention-days: 7

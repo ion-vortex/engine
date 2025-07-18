@@ -15,6 +15,8 @@
         "CMAKE_CXX_STANDARD": "23",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "BUILD_TESTING": "ON",
+        "ION_BUILD_TESTS": "ON",
         "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets"
       },
       "hidden": true
@@ -37,7 +39,7 @@
 
     {
       "name": "release-linux",
-      "displayName": "🟢  Release • Linux (lto)",
+      "displayName": "🟢  Release • Linux",
       "inherits": "release-base",
       "generator": "Ninja",
       "cacheVariables": {
@@ -52,7 +54,7 @@
 
     {
       "name": "release-macos",
-      "displayName": "🟢  Release • macOS-arm64 (lto)",
+      "displayName": "🟢  Release • macOS-arm64",
       "inherits": "release-base",
       "generator": "Ninja",
       "cacheVariables": {
@@ -67,7 +69,7 @@
 
     {
       "name": "release-windows",
-      "displayName": "🟢  Release • Windows-x64 (lto)",
+      "displayName": "🟢  Release • Windows-x64",
       "inherits": "release-base",
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
