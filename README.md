@@ -1,5 +1,7 @@
 # Ion Vortex
 
+[![CI](https://github.com/ion-vortex/engine/actions/workflows/ci.yml/badge.svg)](https://github.com/ion-vortex/engine/actions/workflows/ci.yml)
+
 ---
 
 <p align="center">
