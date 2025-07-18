@@ -18,6 +18,8 @@ See the full [Roadmap](docs/development/README.md#roadmap) for what's next!
 
 ---
 
+# 📖 [Documentation](docs/README.md)
+
 ## 🚀 Getting Started
 - **Prerequisites & Bootstrap** → [docs/getting-started/prerequisites.md](docs/getting-started/prerequisites.md)
 - **Build & Run** → [docs/getting-started/building.md](docs/getting-started/building.md)
