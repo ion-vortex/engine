@@ -8,14 +8,9 @@ This document describes the Git workflow and branching strategy for Ion Vortex.
 
 #### `main`
 - **Purpose**: Stable, production-ready code
-- **Protection**: Requires PR, 2 approvals, passing CI
-- **Direct commits**: Forbidden
-- **Force push**: Forbidden
-
-#### `develop` (if used)
-- **Purpose**: Integration branch for next release
 - **Protection**: Requires PR, 1 approval, passing CI
 - **Direct commits**: Forbidden
+- **Force push**: Forbidden
 
 ### Feature Branches
 
