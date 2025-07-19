@@ -94,9 +94,9 @@ Write like it.
 
 You are building distributed systems, games, tools, and backends that run in real-time, at scale. **There is no room for confusion, compromise, or convention soup.**
 
-If someone tells you "C++ can't do that," they're wrong. If someone tells you "everyone does it this way," we're not "everyone."
+If someone tells you "C++ can't do that," they're likely mistaken. If someone tells you "everyone does it this way," we strive to do better than "everyone."
 
-You write tight, minimal, debug-friendly, cross-platform code. Or you don't ship at all.
+You write tight, minimal, debug-friendly, cross-platform code. That's our standard.
 
 ---
 
@@ -105,7 +105,7 @@ You write tight, minimal, debug-friendly, cross-platform code. Or you don't ship
 
 This is not Unreal. This is not Godot. This is **not** a retrofitted game engine from 1999 duct-taped to a modern renderer.
 
-**We use C++23 the way it was meant to be used:**
+**We use C++23 the way it was designed to be used:**
 
 * No exceptions.
 * No RTTI.
@@ -113,11 +113,11 @@ This is not Unreal. This is not Godot. This is **not** a retrofitted game engine
 * No boost.
 * No macros-as-APIs.
 * No "magic" constructors that throw.
-* No crying.
+* No compromises on quality.
 
 You write systems. You write libraries. You build fast, deterministic code that's easy to debug and easy to reason about.
 
-> Welcome to Oat Interactive. If you're offended, good. You're probably the problem.
+> Welcome to Oat Interactive. We maintain high standards and expect excellence.
 
 ---
 
@@ -127,10 +127,10 @@ You write systems. You write libraries. You build fast, deterministic code that'
 ### L.1. **Use C++23. No compromise.**
 <a name="l1-c23-standard"></a>
 
-If your compiler doesn't support `std::expected`, `consteval`, or `[[nodiscard("...")]]` — upgrade or get lost.
+If your compiler doesn't support `std::expected`, `consteval`, or `[[nodiscard("...")]]` -- please upgrade your toolchain.
 
 **Minimum standard: C++23.**
-Anything older is a maintenance bomb waiting to detonate.
+Anything older is a maintenance burden we choose not to accept.
 
 ---
 
@@ -167,7 +167,7 @@ std::expected<std::unique_ptr<MyObject>, Error> result = MyObject::Create("bad d
 if (!result) return result.error(); // Propagate Error
 ```
 
-Don't like it? Go back to Java.
+This approach ensures predictable error handling throughout our codebase.
 
 ---
 
@@ -197,7 +197,7 @@ protected:
 🚫 Bad:
 
 ```cpp
-Session s(...);         // You're begging for problems if Session has complex state.
+Session s(...);         // This approach can lead to problems if Session has complex state.
 ```
 
 If you expose a public constructor, it SHALL be for pure POD/struct-only utility objects with no invariants and trivial construction (e.g., `BufferView`, `Addr`). These typically do not require a `std::unique_ptr` or `std::expected` for creation.
@@ -213,7 +213,7 @@ If you pass ownership: use `std::unique_ptr<T>`.
 If you return a result that might fail (including object creation): use `std::expected<T, Error>`.
 If you create an object that might fail: use `std::expected<std::unique_ptr<T>, Error>`.
 
-If you're writing `T* foo = new T(...)` and returning it or storing it in a raw pointer member, you're doing it wrong.
+If you're writing `T* foo = new T(...)` and returning it or storing it in a raw pointer member, please reconsider your approach.
 
 ---
 
@@ -222,7 +222,7 @@ If you're writing `T* foo = new T(...)` and returning it or storing it in a raw 
 
 No `dynamic_cast`. No `typeid`. No checking runtime types.
 
-If your design needs polymorphism, use abstract interfaces (see A.2) with zero RTTI assumptions. You want dynamic behavior? Use a function pointer or a vtable (via abstract classes) like a grownup.
+If your design needs polymorphism, use abstract interfaces (see A.2) with zero RTTI assumptions. For dynamic behavior, use a function pointer or a vtable (via abstract classes) as appropriate.
 
 ---
 
@@ -234,7 +234,7 @@ If you're building real systems, separate your headers and your implementations.
 *   Basic struct/enum definitions.
 *   No complex logic, significant state management, or heavy template metaprogramming that should be compiled into a library.
 
-Headers define contracts. Source files implement them. If you're stuffing significant logic into a header file, you're exposing internals, bloating compile times, and spreading chaos.
+Headers define contracts. Source files implement them. If you're stuffing significant logic into a header file, you're exposing internals, bloating compile times, and spreading complexity.
 
 **Keep headers clean and tight. All private implementation details belong in `src/`.**
 
@@ -290,7 +290,7 @@ These layers establish strict boundaries crucial for maintainability, testabilit
     ```
 
 2.  **Interfaces are Contracts, Not Base Classes with Logic:**
-    If your "interface" (base class) has any non-trivial logic or member variables, it's no longer a pure interface—it's a base class for inheritance, which we discourage for complex hierarchies (see DOA). Interfaces define *what* a component does, not *how* it does parts of it.
+    If your "interface" (base class) has any non-trivial logic or member variables, it's no longer a pure interface--it's a base class for inheritance, which we discourage for complex hierarchies (see DOA). Interfaces define *what* a component does, not *how* it does parts of it.
 
 3.  **Mockability is Paramount:**
     All interfaces SHALL be mockable for testing without resorting to reflection, complex macro magic, or overriding behavior in the *actual* implementation. Tests should be able to provide a completely separate, fake implementation of an interface to isolate the system under test.
@@ -359,7 +359,7 @@ We don't design APIs to "feel modern" or to be overly concise at the expense of 
 *   Be **safe-by-default**: Minimize footguns. Make correct usage easy and incorrect usage hard (or impossible).
 *   Be **predictable**: Given the same inputs and state, an operation should produce the same results (or errors). Avoid non-determinism hidden within API calls.
 
-If a newcomer to the codebase cannot read a public header file and form a strong, accurate understanding of how to use the component and what its core behaviors and guarantees are, the API is not done. Ambiguity is a bug.
+If a newcomer to the codebase cannot read a public header file and form a strong, accurate understanding of how to use the component and what its core behaviors and guarantees are, the API needs improvement. Ambiguity is a defect.
 
 ---
 
@@ -471,7 +471,7 @@ All header files (`.h`, `_impl.h`) SHALL use `#pragma once` as the include guard
 
 *   Yes, it's portable enough for our supported compilers (C++23 capable compilers all support it).
 *   Yes, it's generally safer and less error-prone than traditional `#ifndef` guards.
-*   No, we are not debating this. Use `#pragma once`.
+*   This is our standard. Please use `#pragma once`.
 
 ---
 
@@ -483,7 +483,7 @@ While this document is an engineering standard, not a granular style guide, cert
 ### CSH.1: **Naming Conventions: Types, Variables, Functions, Interfaces.**
 <a name="csh1-naming-conventions-types-variables"></a>
 
-Consistent naming is not optional. It is mandatory for code clarity and long-term maintainability. If you don't like it, enjoy working somewhere else.
+Consistent naming is mandatory for code clarity and long-term maintainability. Please follow these conventions:
 
 ---
 
@@ -515,7 +515,7 @@ using UserId = uint64_t;
       void log(Level level, std::string_view msg) override;
   };
   ```
-* If you omit the `I` prefix, you're wrong. Fix it immediately.
+* Please ensure all interfaces use the `I` prefix for clarity.
 * See API.2 for more information on interfaces and object construction.
 
 ---
@@ -534,7 +534,7 @@ void process_data(BufferView incoming_payload) {
 
 #### 4. **Class Member Variables: `snake_case_` (Trailing Underscore Required)**
 
-* This disambiguates members from parameters or locals and prevents "this->" nonsense.
+* This disambiguates members from parameters or locals and prevents "this->" confusion.
 
 ```cpp
 class UserSession {
@@ -604,11 +604,11 @@ namespace oat::net {
 }
 ```
 
-* If you're still writing macros instead of using `constexpr`, you're doing it wrong.
+* If you're still writing macros instead of using `constexpr`, please consider using modern C++ features instead.
 
 ---
 
-#### 8. **Macros: `ALL_CAPS_SNAKE_CASE` (Avoid These Like the Plague)**
+#### 8. **Macros: `ALL_CAPS_SNAKE_CASE` (Use Sparingly)**
 
 * Macros are a last resort. If you must define one, follow this style:
 
@@ -616,7 +616,7 @@ namespace oat::net {
 #define OAT_ENABLE_DEBUG_LOGGING 1
 ```
 
-* If you have more than 3 macros in your code, you've likely screwed up your design.
+* Please minimize macro usage in favor of modern C++ features.
 
 ---
 
@@ -918,11 +918,11 @@ void reset_logger_factory() {
 ```cpp
 class ILogger {
 public:
-    static std::unique_ptr<ILogger> Create(); // ❌ ABSOLUTELY NOT
+    static std::unique_ptr<ILogger> Create(); // ❌ Please avoid this pattern
 };
 ```
 
-This is a garbage design because:
+This design is problematic because:
 
 * Interfaces have no business knowing their own implementations.
 * You can't mock it.
@@ -934,7 +934,7 @@ This is a garbage design because:
 ```cpp
 class BadThing {
 public:
-    BadThing(int val); // ❌ Not allowed unless it's a trivial POD-style value object
+    BadThing(int val); // ❌ Not recommended unless it's a trivial POD-style value object
 };
 ```
 
@@ -950,7 +950,7 @@ public:
 
 ---
 
-Alright, here's the final addition:
+Here's the final addition:
 
 ---
 
@@ -978,7 +978,7 @@ struct Point {
 #### ❌ Incorrect Example:
 
 ```cpp
-class Point { // ❌ Don't do this.
+class Point { // ❌ Please use struct for POD types
 public:
     Point(int x, int y) : x_(x), y_(y) {}
 private:
@@ -997,8 +997,7 @@ This keeps the API surface clean and makes it immediately obvious what's a value
 
 ---
 
-### API.4: **Error Handling: Use Tagged `Error` Wrappers with `ErrorCode` and `[[nodiscard, gnu::warn_unused_result]]
-`**
+### API.4: **Error Handling: Use Tagged `Error` Wrappers with `ErrorCode` and `[[nodiscard, gnu::warn_unused_result]]`**
 
 <a name="api4-error-codes"></a>
 
@@ -1008,7 +1007,7 @@ All public API functions that may fail SHALL:
 * Use `[[nodiscard("Handle this result! Failure to do so is a bug.")]]` on the function signature to enforce compile-time checking.
 * NEVER signal errors via `bool`, `nullptr`, magic integers, or `std::optional`.
 
-This is a modern C++ codebase. If you're trying to sneak in failure signaling via weak types, you're writing legacy garbage.
+This is a modern C++ codebase. We use strong typing for error handling to ensure clarity and safety.
 
 ---
 
@@ -1143,8 +1142,7 @@ std::expected<void, oat::foo::Error> always_fails() {
 
 ---
 
-#### 3. Always Use `[[nodiscard, gnu::warn_unused_result]]
-` on Functions Returning `std::expected`
+#### 3. Always Use `[[nodiscard, gnu::warn_unused_result]]` on Functions Returning `std::expected`
 
 ```cpp
 [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
@@ -1154,7 +1152,7 @@ std::expected<Widget, Error> CreateWidget(std::string_view name);
 std::expected<void, Error> SendMessage(const Widget& w, std::string_view msg);
 ```
 
-Failing to check these results MUST trigger compiler warnings or errors. If your compiler isn't respecting it, fix your damn toolchain.
+Failing to check these results MUST trigger compiler warnings or errors. If your compiler isn't respecting it, please check your toolchain configuration.
 
 ---
 
@@ -1198,24 +1196,23 @@ if (auto res = Shutdown(); !res) {
 
 ---
 
-#### 7. Ban These Outright
+#### 7. Please Avoid These Patterns
 
 * ❌ `std::error_code`
 * ❌ `std::system_error`
 * ❌ Exceptions in public API paths
 * ❌ Error signaling via `bool`, `nullptr`, or `std::optional`
 
-This is a modern, explicitly-typed, contract-driven system. You will not hide errors. You will handle them. Or the compiler will remind you that you're incompetent.
+This is a modern, explicitly-typed, contract-driven system. Errors must be handled explicitly. The compiler will help you remember.
 
 ---
 
 | Rule                                                 | Enforcement                                  |
 | ---------------------------------------------------- | -------------------------------------------- |
-| All `std::expected` returns SHALL be `[[nodiscard, gnu::warn_unused_result]]
-` | Compiler will warn or error                  |
+| All `std::expected` returns SHALL be `[[nodiscard, gnu::warn_unused_result]]` | Compiler will warn or error                  |
 | All failures use `std::unexpected<Error>`            | No bare `std::unexpected` without an `Error` |
 | Errors MUST support equality with `ErrorCode`        | Required by `Error` wrapper                  |
-| Ignoring failures is a compile-time defect           | Not just discouraged—prohibited              |
+| Ignoring failures is a compile-time defect           | Not just discouraged--prohibited              |
 
 ---
 
@@ -1558,19 +1555,19 @@ Oat Interactive aims for a streamlined and reproducible build process.
     While developers *consuming* your Oat Interactive library might use system-wide package managers like Conan or vcpkg to satisfy dependencies (including your library itself, if packaged), your library's *own* `CMakeLists.txt` should primarily rely on `FetchContent` for its direct C++ dependencies. This makes the library self-contained and easier to integrate into diverse build environments.
     *   Your library should not *require* the user to have Conan or vcpkg installed just to build it from source using `FetchContent`.
 
-**Zero exceptions for critical, non-trivial dependencies not being available via `FetchContent` or as a trivial header-only library. We have spent enough collective person-decades in DLL/ABI hell to earn the right to enforce this.**
+**We have extensive experience with dependency management challenges. Please use `FetchContent` or `vcpkg` for critical, non-trivial dependencies to ensure a smooth build experience for everyone.**
 
 ---
 
 ## 🧱 CMake Is The Law (CM)
 <a name="-cmake-is-the-law"></a>
 
-CMake is the build system for all Oat Interactive C++ projects. No excuses, no alternatives for library or system development. Adherence to these CMake practices is mandatory for interoperability, maintainability, and sanity.
+CMake is the build system for all Oat Interactive C++ projects. Adherence to these CMake practices is mandatory for interoperability, maintainability, and sanity.
 
 ### CM.1: **You SHALL use CMake ≥ 3.15 (Preferably Latest Stable).**
 <a name="cm1-cmake-version"></a>
 
-If you're using a CMake version older than 3.15, upgrade. We rely on modern CMake features for robust build logic, dependency management (`FetchContent`), and target-based property management. Aim to use a recent version (e.g., 3.20+ if possible) for access to the latest improvements.
+If you're using a CMake version older than 3.15, please upgrade. We rely on modern CMake features for robust build logic, dependency management (`FetchContent`), and target-based property management. Aim to use a recent version (e.g., 3.20+ if possible) for access to the latest improvements.
 
 **Check your CMake version: `cmake --version`.**
 
@@ -1668,7 +1665,7 @@ The public headers of your library must reside in a namespaced subdirectory with
     ```
     The key is that `${CMAKE_CURRENT_SOURCE_DIR}/include` (for build tree) or `include` (for install tree, relative to `CMAKE_INSTALL_PREFIX`) is the path added to the include search paths, allowing the subsequent `oat/your_lib/header.h` to be resolved.
 
-**If you can't explain the boundary between "installed headers" and "internal headers," and how consumers include them, your CMake setup is broken.**
+**Clear boundary between installed headers and internal headers is essential for proper CMake setup.**
 
 ---
 
@@ -1693,7 +1690,7 @@ When including headers from *other* Oat Interactive libraries (or well-behaved t
 
 This requires that libraries correctly set up their `target_include_directories` (see CM.2, CM.3) to export the path *above* their namespaced directory.
 
-**This isn't a toy repo. You will include through the full, unambiguous namespace path, or you will eventually suffer build errors in downstream consumers or CI.**
+**Please include through the full, unambiguous namespace path to ensure build consistency across projects.**
 
 ---
 
@@ -1768,8 +1765,8 @@ This is essential for robust `find_package(YourLibName CONFIG)` support, allowin
     else()
         set(PACKAGE_VERSION_COMPATIBLE TRUE)
         if(PACKAGE_FIND_VERSION_EXACT)
-            if(PACKAGE_VERSION VERSION_NE PACKAGE_FIND_VERSION)
-                set(PACKAGE_VERSION_COMPATIBLE FALSE)
+            if(PACKAGE_VERSION VERSION_EQUAL PACKAGE_FIND_VERSION)
+                set(PACKAGE_VERSION_EXACT TRUE)
             endif()
         endif()
     endif()
@@ -1820,14 +1817,14 @@ This is essential for robust `find_package(YourLibName CONFIG)` support, allowin
     # )
     ```
 
-**If you skip writing proper CMake config files, you haven't shipped a usable library for standalone integration; you've only shipped something that works with `FetchContent` directly from your source tree.**
+**Please ensure proper CMake config files are written for your library to enable standalone integration.**
 
 ---
 
 ## 🧪 Testing, Stability & CI (TSC)
 <a name="-testing-stability--ci"></a>
 
-Software that isn't tested isn't shippable. Software that only works on your machine is broken. At Oat Interactive, testing is not an afterthought; it's integral to the engineering process, ensuring stability, correctness, and reliability across all supported platforms.
+Software that isn't tested isn't shippable. Software that only works on your machine needs improvement. At Oat Interactive, testing is not an afterthought; it's integral to the engineering process, ensuring stability, correctness, and reliability across all supported platforms.
 
 ### TSC.1: **Integration Tests are the Default for Systems and Libraries.**
 <a name="tsc1-integration-tests-as-default"></a>
@@ -1845,7 +1842,7 @@ While unit tests have their place for small, isolated utility functions or class
     *   Utility classes with minimal state and no external dependencies (e.g., a custom string formatter, a bit manipulation helper).
     *   Testing specific edge cases of a well-encapsulated piece of logic that is hard to trigger through the public API of a larger system.
 
-**If you only wrote unit tests for your "manager" class's individual methods by mocking all its collaborators, you didn't test your system—you tested your ability to write mocks.** True confidence comes from testing the integrated whole through its defined contract.
+**If you only wrote unit tests for your "manager" class's individual methods by mocking all its collaborators, you haven't fully tested your system--you've tested your mocking skills.** True confidence comes from testing the integrated whole through its defined contract.
 
 ---
 
@@ -1858,14 +1855,14 @@ Test environments must be controlled and reproducible.
 2.  **Offline:** Tests MUST pass without requiring internet access. Any external resources (e.g., test data files, configurations) should be part of the test suite or generated locally. If testing network components, use loopback interfaces or mock network layers; do not rely on external servers.
 3.  **Deterministic:** Given the same input and test environment, a test SHALL produce the same result every time. Avoid randomness in tests unless the randomness itself is part of the test (e.g., testing a PRNG) and is carefully controlled (e.g., by seeding with a fixed value). Time-dependent tests must mock or control the passage of time.
 
-**If your test needs a specific port to be open on the network, a window to render, or an internet connection to "phone home," it's not a robust automated test—it's a manual check masquerading as one, or it's an end-to-end system test (which is different and has its own place, but is not the primary type of test for libraries).**
+**Tests should be robust, automated, and reliable. They should not depend on external factors beyond your control.**
 
 ---
 
 ### TSC.3: **All Test Failures SHALL Be Actionable and Diagnosable.**
 <a name="tsc3-actionable-test-failures"></a>
 
-A failing test that provides no useful information is a waste of time.
+A failing test that provides no useful information wastes valuable debugging time.
 
 1.  **Clear Assertions:** Use your testing framework's assertion macros to check conditions. Assertion messages should be clear about what was expected and what was received.
     ```cpp
@@ -1877,9 +1874,9 @@ A failing test that provides no useful information is a waste of time.
     *   The specific input data that caused the failure.
     *   Key internal state variables (accessed via public getters if appropriate, or logged by the component itself under test).
     *   Relevant log messages from the component under test (ensure your `Logger` interface can be directed to a test-specific buffer).
-3.  **No "Segfault at line 999" as the Only Output:** While crashes are bugs to be fixed, the test itself should aim to catch error conditions *before* a crash, or the environment should provide a clear stack trace. Relying on a segfault as the sole indicator of failure is lazy.
+3.  **No "Segfault at line 999" as the Only Output:** While crashes are bugs to be fixed, the test itself should aim to catch error conditions *before* a crash, or the environment should provide a clear stack trace. Relying on a segfault as the sole indicator of failure is insufficient.
 
-**Don't be lazy. Make your tests help you (and others) find and fix bugs quickly.**
+**Make your tests help you (and others) find and fix bugs quickly.**
 
 ---
 
@@ -1901,32 +1898,33 @@ Your tests MUST cover:
     *   Connection drops.
 *   **Boundary Conditions:** Zero items, one item, max items, etc.
 
-**Your "reliable" system isn't reliable if it only works when the sun is shining and the network is perfect. Prove its resilience.**
+**Your system's reliability is proven through comprehensive testing of both success and failure scenarios.**
 
 ---
 
 ### TSC.5: **Continuous Integration (CI) SHALL Build and Run Tests on All Supported Platforms.**
+
 <a name="tsc5-cross-platform-ci"></a>
 
-Oat Interactive software is cross-platform. "Works on my machine" is not an acceptable standard.
+Oat Interactive software is cross‑platform. “Works on my machine” is not an acceptable standard.
 
-1.  **Supported Platforms:** CI pipelines MUST compile and run all tests on, at a minimum:
-    *   Linux (a common distribution, e.g., Ubuntu LTS)
-    *   macOS (latest or N-1 version)
-    *   Windows (typically MSVC compiler)
+1. **Supported Platforms:** CI pipelines MUST compile and run all tests on, at a minimum:
+   * Linux (a common distribution, e.g., Ubuntu LTS)
+   * macOS (latest or N‑1 version)
+   * Windows (typically MSVC compiler)
 
-2.  **Automated Execution:** Tests must be automatically executed by the CI system on every proposed change (e.g., pull/merge request) and on merges to main branches.
-3.  **CI Configuration as Code:** The CI pipeline configuration (e.g., `.gitlab-ci.yml`, GitHub Actions workflow files) is part of the repository and treated as code.
-4.  **Failing Build Breaks the Change:** A CI build that fails (either compilation or tests) MUST prevent the change from being merged until fixed.
+2. **Automated Execution:** Tests MUST be automatically executed by the CI system on every proposed change (e.g., pull/merge request) and on merges to main branches.
+3. **CI Configuration as Code:** The CI pipeline configuration (e.g., `.gitlab-ci.yml`, GitHub Actions workflow files) is part of the repository and treated as code.
+4. **Failing Build Blocks the Change:** A CI build that fails (either compilation or tests) MUST prevent the change from being merged until fixed.
 
-**If your library doesn't have a CI configuration that successfully builds and tests on all target platforms, your library effectively doesn't exist in a shippable state.**
+**A library without a CI configuration that successfully builds and tests on all target platforms SHALL not be considered ready for release.**
 
 ---
 
 ## 📢 Logging & Diagnostics (LOG)
 <a name="-logging--diagnostics"></a>
 
-Effective logging is indispensable for debugging, monitoring, and understanding the runtime behavior of systems, especially distributed and real-time ones. At Oat Interactive, logging is a first-class concern, not an afterthought.
+Effective logging is indispensable for debugging, monitoring, and understanding the runtime behavior of systems--especially distributed and real‑time ones. At Oat Interactive, logging is a first‑class concern.
 
 ### LOG.1: **All Logs SHALL Go Through a `Logger` Interface.**
 <a name="log1-logger-interface"></a>
@@ -1998,7 +1996,7 @@ Direct use of `std::cout`, `printf`, `spdlog::log()`, or any other concrete logg
     } // namespace oat::core
     ```
 
-2.  **Injection:**
+2. **Injection:**
     Systems receive a `Logger*` (typically non-owning) via their factory function / configuration struct.
     ```cpp
     // struct MySystemConfig {
@@ -2006,24 +2004,24 @@ Direct use of `std::cout`, `printf`, `spdlog::log()`, or any other concrete logg
     //     // ...
     // };
     ```
-    If `logger` is `nullptr`, the system should either use a static `NoopLogger` instance or perform `nullptr` checks before every log call. A better approach is for the factory to instantiate a `NoopLogger` if none is provided.
+   If `logger` is `nullptr`, the system SHOULD either use a static `NoopLogger` instance or perform `nullptr` checks before every log call. A preferred approach is for the factory to instantiate a `NoopLogger` if none is provided.
 
-3.  **Rationale:**
-    *   **Decoupling:** Libraries are not tied to a specific logging implementation.
-    *   **Controllability:** The application controls log output, formatting, and destinations.
-    *   **Testability:** Easy to inject a mock/test logger to verify logging behavior.
+3. **Rationale:**
+   * **Decoupling:** Libraries are not tied to a specific logging implementation.
+   * **Controllability:** The application controls log output, formatting, and destinations.
+   * **Testability:** Easy to inject a mock/test logger to verify logging behavior.
 
-**If you didn't define your own `LogLevel` enum and instead wrote `"something went wrong"` to `stdout`, congrats: you now maintain unparseable, unfilterable, and unprofessional garbage.**
+**Directly writing plain text such as `"something went wrong"` to standard output without using an appropriate `LogLevel` enum results in logs that are difficult to parse, filter, or maintain.**
 
 ---
 
 ### LOG.2: **Logs SHALL Be Structured and Contextual.**
 <a name="log2-structured--prefixed-logs"></a>
 
-Log messages must be informative and easy to parse, both for humans and machines.
+Log messages MUST be informative and easy to parse, both for humans and machines.
 
-1.  **Prefix with Component/Subsystem:**
-    Every log message originating from a specific component should clearly indicate its source. This can be achieved by the component itself prefixing its messages, or by the `Logger` implementation if it supports contextual logging.
+1. **Prefix with Component/Subsystem:**
+   Every log message originating from a specific component SHOULD clearly indicate its source. This can be achieved by the component itself prefixing its messages, or by the `Logger` implementation if it supports contextual logging.
 
     ✅ Good (Component adds context):
     ```cpp
@@ -2032,9 +2030,8 @@ Log messages must be informative and easy to parse, both for humans and machines
     //    logger_->warn("[SessionManager] Session " + session_id_ + " timed out.");
     // }
     ```
-
-2.  **Include Relevant Contextual Data:**
-    Log messages should include key data points that help understand the event. Don't just say "Error occurred"; say *what* error, in *what context*.
+2. **Include Relevant Contextual Data:**
+   Log messages SHOULD include key data points that help understand the event. Don’t just say “Error occurred”; specify *what* error, in *what* context.
 
     ✅ Good:
     ```cpp
@@ -2050,19 +2047,19 @@ Log messages must be informative and easy to parse, both for humans and machines
     // logger_->warn("Something bad in packet processing");
     ```
 
-3.  **Structured Logging (If Supported by Implementation):**
-    While the basic interface uses strings, concrete `Logger` implementations might support structured logging (key-value pairs). If so, prefer it for easier machine parsing. The interface itself remains simple.
+3. **Structured Logging (If Supported by Implementation):**
+   While the basic interface uses strings, concrete `Logger` implementations might support structured logging (key‑value pairs). If so, prefer it for easier machine parsing. The interface itself remains simple.
 
-**You're not writing a personal diary. You're instrumenting a system for operations, debugging, and automated analysis. Make your logs count.**
+**Logs are critical instrumentation for operations, troubleshooting, and automated analysis; ensure every entry provides meaningful information.**
 
 ---
 
 ### LOG.3: **No Uncontrolled Logging in Hot Paths: Use Sampling or Throttling.**
 <a name="log3-logging-in-hot-paths"></a>
 
-Excessive logging in performance-critical code sections (e.g., per-packet, per-tick in a high-frequency loop) can severely degrade performance and produce overwhelming, useless log volume.
+Excessive logging in performance‑critical code sections (e.g., per packet, per tick in a high‑frequency loop) can severely degrade performance and produce overwhelming log volume.
 
-1.  **Check Log Level Before Formatting:**
+1. **Check Log Level Before Formatting:**
     If formatting a log message is expensive, check if the current log level is enabled before doing the work.
     ```cpp
     // if (logger_ && logger_->isEnabled(LogLevel::Debug)) {
@@ -2071,7 +2068,7 @@ Excessive logging in performance-critical code sections (e.g., per-packet, per-t
     // }
     ```
 
-2.  **Sample or Throttle Frequent Events:**
+2. **Sample or Throttle Frequent Events:**
     For events that occur very frequently:
     *   **Log once per N events:** E.g., "Processed 1000 packets."
     *   **Throttle by time:** E.g., Log a summary or a specific instance of an event no more than once every X seconds.
@@ -2094,25 +2091,25 @@ Excessive logging in performance-critical code sections (e.g., per-packet, per-t
     // }
     ```
 
-3.  **`Trace` and `Debug` Levels for Verbosity:**
-    Use `LogLevel::Trace` and `LogLevel::Debug` for very verbose output that is typically disabled in production builds but can be turned on for detailed diagnostics.
+3. **`Trace` and `Debug` Levels for Verbosity:**
+   Use `LogLevel::Trace` and `LogLevel::Debug` for highly verbose output. These levels are typically disabled in production but can be enabled for detailed diagnostics.
 
-**Logging is a diagnostic tool, not a denial-of-service vector against your own application or logging infrastructure.**
+**Logging is a diagnostic tool, not a denial‑of‑service vector against your own application or logging infrastructure.**
 
 ---
 
 ## 📈 Telemetry / Metrics (MET)
 <a name="-telemetry--metrics"></a>
 
-While logs provide detailed, event-specific information, metrics offer a higher-level, aggregated view of a system's health and performance over time. Oat Interactive systems should expose key operational metrics.
+While logs provide detailed, event‑specific information, metrics offer a higher‑level, aggregated view of a system’s health and performance over time. Oat Interactive systems SHOULD expose key operational metrics.
 
 ### MET.1: **Every System SHALL Support `Metrics*` Injection for Key Indicators.**
 <a name="met1-metrics-injection"></a>
 
-Similar to logging, components should not be hard-coded to a specific metrics backend. Instead, they should accept a `Metrics` interface.
+Similar to logging, components SHOULD NOT be hard‑coded to a specific metrics backend. Instead, they SHOULD accept a `Metrics` interface.
 
-1.  **The `Metrics` Interface:**
-    Define a standard `Metrics` interface.
+1. **The `Metrics` Interface:**
+   Define a standard `Metrics` interface.
     ```cpp
     // include/oat/core/metrics.h (or similar central location)
     #pragma once
@@ -2162,18 +2159,19 @@ Similar to logging, components should not be hard-coded to a specific metrics ba
     } // namespace oat::core
     ```
 
-2.  **Injection:**
-    Systems receive a `Metrics*` (typically non-owning) via their factory function / configuration struct.
+2. **Injection:**
+   Systems receive a `Metrics*` (typically non‑owning) via their factory function / configuration struct.
     ```cpp
     // struct MySystemConfig {
     //     oat::core::Metrics* metrics = nullptr; // Default to no metrics if not provided
     //     // ...
     // };
     ```
-    If `metrics` is `nullptr`, the system should use a static `NoopMetrics` instance or perform `nullptr` checks.
 
-3.  **What to Instrument:**
-    You are not Google, so don't instrument every single line of code. Focus on key performance indicators (KPIs) and operational health:
+   If `metrics` is `nullptr`, the system SHOULD use a static `NoopMetrics` instance or perform `nullptr` checks.
+
+3. **What to Instrument:**
+   Focus on key performance indicators (KPIs) and operational health:
     *   **Counts:**
         *   Packets sent/received (per type, per channel)
         *   Messages processed
@@ -2190,16 +2188,16 @@ Similar to logging, components should not be hard-coded to a specific metrics ba
         *   Processing time for significant operations
         *   Time spent waiting for I/O
 
-**Use metrics judiciously. They should tell a story about the system's operational state, not drown you in data.**
+**Use metrics judiciously. They should convey the system’s operational state, not overwhelm dashboards with unnecessary data.**
 
 ---
 
-### MET.2: **Metric Names SHALL Be Stable, ASCII-Only, snake_case, and Hierarchical.**
+### MET.2: **Metric Names SHALL Be Stable, ASCII‑Only, `snake_case`, and Hierarchical.**
 <a name="met2-metric-naming"></a>
 
-Consistency in metric naming is crucial for dashboards, alerting, and long-term analysis. Adhere to conventions often found in systems like Prometheus.
+Consistency in metric naming is crucial for dashboards, alerting, and long‑term analysis. Adhere to conventions often found in systems like Prometheus.
 
-1.  **Naming Convention:**
+1. **Naming Convention:**
     *   **`snake_case`:** Use lowercase letters with underscores to separate words.
     *   **Application/Library Prefix:** Start with a prefix indicating the application or library (e.g., `oat_myapp_` or `pulse_net_`).
     *   **Logical Hierarchy:** Follow with components and the specific thing being measured.
@@ -2215,14 +2213,14 @@ Consistency in metric naming is crucial for dashboards, alerting, and long-term 
     oat_core_task_queue_depth             // Gauge: current depth of a task queue
     ```
 
-2.  **Stability:**
-    Once a metric name (and its type: counter, gauge, histogram) is established and used in dashboards or alerts, it should be considered part of the system's "API" and not changed lightly. If a metric needs to be fundamentally altered, prefer adding a new one and deprecating the old one.
+2. **Stability:**
+   Once a metric name (and its type) is established and used in dashboards or alerts, treat it as part of the system’s API. If a metric must change fundamentally, add a new one and deprecate the old.
 
-3.  **ASCII-Only:**
-    Metric names and tag keys/values should stick to ASCII characters for maximum compatibility with various metrics backends.
+3. **ASCII‑Only:**
+   Metric names and tag keys/values SHALL use ASCII characters for maximum compatibility.
 
-4.  **Tags/Labels for Dimensionality (If Supported by `Metrics` Interface):**
-    Instead of creating many metric names for slight variations (e.g., `packets_sent_reliable_total`, `packets_sent_unreliable_total`), use tags/labels if your `Metrics` interface and backend support them.
+4. **Tags/Labels for Dimensionality (If Supported):**
+   Use tags/labels instead of creating many similar metric names.
 
     ✅ Good (with tags):
     `increment("packets_sent_total", {{"channel_type", "reliable"}, {"message_type", "foo"}});`
@@ -2230,16 +2228,17 @@ Consistency in metric naming is crucial for dashboards, alerting, and long-term 
 
     This allows flexible querying and aggregation (e.g., total packets sent regardless of channel, or total for a specific channel).
 
-**Your ops team (which might be you) will thank you for clear, consistent, and useful metrics when things inevitably go sideways at 3 AM.** Slapping random strings into a metrics system is just creating noise.
+**Clear, consistent, and meaningful metrics greatly simplify troubleshooting and capacity planning; avoid introducing metrics that do not provide actionable insight.**
 
 ---
 
 ## 🧬 Versioning & Compatibility (VC)
 <a name="-versioning--compatibility"></a>
 
-In a world of distributed systems and evolving software, managing versions and ensuring compatibility (or clear incompatibility) is not optional; it's a fundamental requirement for robust, maintainable software.
+Managing versions and ensuring compatibility (or clear incompatibility) is essential for robust, maintainable software.
 
 ### VC.1: **Use an Explicit Version Constant for Protocols and File Formats.**
+
 <a name="vc1-version-constant"></a>
 
 Any data format that is serialized to disk, transmitted over a network, or otherwise persisted or exchanged externally SHALL include an explicit version marker.
@@ -2268,7 +2267,7 @@ Any data format that is serialized to disk, transmitted over a network, or other
     };
     ```
 
-2.  **Include in Handshakes/Headers:**
+2. **Include in Handshakes/Headers:**
     *   For network protocols, the version number MUST be part of the initial handshake sequence.
     *   For file formats, it MUST be in the file header.
 
@@ -2278,14 +2277,14 @@ Any data format that is serialized to disk, transmitted over a network, or other
     *   Decide if your current code can understand/support this version.
     *   Reject, adapt, or warn based on the version mismatch.
 
-**If you forgot to include `PROTOCOL_VERSION` in your initial release, you are now locked into supporting a potentially broken or ambiguous V1 contract indefinitely, or you're forced to make a hard, breaking change.** This simple constant is your first line of defense against compatibility chaos.
+**Omitting `PROTOCOL_VERSION` in the initial release can lead to ambiguous or incompatible Version 1 behavior and could require disruptive changes later.**
 
 ---
 
 ### VC.2: **New Features Affecting Wire Format or Behavior SHALL Negotiate Backward/Forward Compatibility via Handshake or Explicit Versioning.**
 <a name="vc2-backward-compatibility-handshake"></a>
 
-When introducing changes that alter the wire format, add new capabilities, or change fundamental behaviors, these changes must be managed gracefully.
+When introducing changes that alter the wire format, add capabilities, or change fundamental behaviors, these changes MUST be managed gracefully.
 
 1.  **Handshake for Feature Negotiation (Preferred for Network Protocols):**
     During the initial connection handshake, peers can exchange their versions and a set of supported feature flags.
@@ -2303,7 +2302,7 @@ When introducing changes that alter the wire format, add new capabilities, or ch
     *   If adding new *optional* fields to existing messages in a TLV (Type-Length-Value) or similar extensible format, older clients/servers can often ignore the unknown fields.
     *   If adding entirely new message types, ensure older peers can safely ignore or report an "unknown message type" error without crashing. This often requires a message header with `message_type` and `message_length`.
 
-**If you break the protocol or file format mid-stream without a version check or handshake negotiation, YOU SHALL write a detailed migration guide, communicate the breaking change clearly, and be prepared to handle the fallout (e.g., bugs in production, user complaints).** Aim for non-breaking changes where possible.
+**If a protocol or file format must change without backward‑compatible negotiation, YOU SHALL provide a detailed migration guide, communicate the change clearly, and be prepared to address any resulting issues. Wherever feasible, prefer non‑breaking changes.**
 
 ---
 
@@ -2336,14 +2335,14 @@ API versioning for C++ libraries should be explicit and manageable, not hidden b
 3.  **Avoid Template Metaprogramming / SFINAE for API Versioning:**
     While powerful, using complex template techniques (like SFINAE) to subtly change API behavior or signatures based on template parameters or type traits for versioning purposes makes the API opaque and difficult to reason about for users. Keep API contracts clear and explicit.
 
-**Versioning is a runtime-negotiated contract (for protocols/formats) or an explicit code-level contract (for C++ APIs). Don't try to be "clever" with compile-time magic to hide version differences in a single API surface; it rarely ends well.** Be explicit. If it's a V2 API, call it a V2 API.
+**Versioning is best handled explicitly at runtime (for protocols/formats) or through clearly versioned APIs (for C++ interfaces). Compile‑time techniques that obscure version differences increase maintenance risk. If it is a Version 2 API, name it accordingly.**
 
 ---
 
-## 💀 Dead-On-Arrival Patterns (DOA)
+## 💀 Dead‑On‑Arrival Patterns (DOA)
 <a name="-dead-on-arrival-patterns"></a>
 
-These design patterns or practices are considered fundamentally misaligned with Oat Interactive's engineering philosophy. If you find yourself implementing or relying heavily on these, you've likely made a wrong turn. Re-evaluate your design immediately.
+These patterns are fundamentally misaligned with Oat Interactive’s engineering philosophy. If you rely heavily on any of them, reassess your design.
 
 1.  **`std::shared_ptr` as the Default Choice for Ownership.**
     *   **Problem:** `std::shared_ptr` introduces overhead (atomic reference counting), obscures ownership, and can easily lead to reference cycles if not managed carefully. It makes reasoning about object lifetimes complex.
@@ -2425,26 +2424,26 @@ This is a quick checklist. If you find yourself doing any of these, pause, take 
 ## 📦 Final Word
 <a name="-final-word"></a>
 
-This is not a style guide. This is survival gear.
+This document goes beyond style guidance; it is intended to ensure reliability and maintainability for systems such as multiplayer networking stacks, real‑time engines, and simulation backends.
 
-You're building multiplayer networking stacks, real-time game engines, simulation backends, and systems that cannot afford runtime surprises, memory leaks, ABI mismatches, or vague contracts.
+**The following common justifications are insufficient in this context:**
 
-**There is no room for "but it worked on my machine."**
-**There is no room for "but Unreal does it this way."**
-**There is no room for "but I like exceptions."**
+* “It worked on my machine.”
+* “Another engine does it this way.”
+* “I prefer exceptions.”
 
-Read the rules again if you're confused. They're not optional. This manual is your contract. Violate it, and you're writing tech debt the team has to pay off later.
+Please review these rules carefully; they are mandatory. Non‑compliance introduces technical debt that the team will later need to resolve.
 
 To recap:
 
-* If your code throws exceptions across a boundary, it's wrong.
-* If your header pulls in half the STL for no reason, it's wrong.
-* If your object construction isn't wrapped in a factory returning `std::expected`, it's wrong.
-* If your test isn't integration-first and deterministic, it's wrong.
-* If your API doesn't make side effects explicit, it's wrong.
-* If your memory ownership model isn't obvious from the signature, it's wrong.
-* If your CMake setup can't build, install, and be consumed via `FetchContent`, it's wrong.
+* If your code throws exceptions across a boundary, it’s wrong.
+* If your header pulls in half the STL for no reason, it’s wrong.
+* If your object construction isn’t wrapped in a factory returning `std::expected`, it’s wrong.
+* If your test isn’t integration‑first and deterministic, it’s wrong.
+* If your API doesn’t make side effects explicit, it’s wrong.
+* If your memory ownership model isn’t obvious from the signature, it’s wrong.
+* If your CMake setup can’t build, install, and be consumed via `FetchContent`, it’s wrong.
 
-Don't get clever. Get correct.
+Prioritize correctness and clarity over unnecessary complexity.
 
-**You are now an Oat Interactive C++ engineer. Write like it. Ship like it. Or get out of the way.**
+**As Oat Interactive C++ engineers, we are expected to uphold these standards and deliver accordingly.**
