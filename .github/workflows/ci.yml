@@ -64,7 +64,8 @@ jobs:
           libxinerama-dev \
           libxcursor-dev \
           libxi-dev \
-          libgl1-mesa-dev
+          libgl1-mesa-dev \
+          libltdl-dev
 
     - name: Install dependencies (macOS)
       if: matrix.config.os == 'macos-latest'
