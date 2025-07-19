@@ -13,7 +13,7 @@ public:
     virtual ~IThreadPool() = default;
     
     virtual void submit(Task&& task) = 0;
-    virtual void waitIdle() = 0;
+    virtual void wait_idle() = 0;
 };
 
 class ION_CORE_API IExecutor {
