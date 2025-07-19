@@ -683,7 +683,7 @@ TEST_CASE("UI interactions", "[app][ui]") {
     
     // Simulate input
     app->injectMouseClick(100, 200);
-    app->injectKeyPress(GLFW_KEY_SPACE);
+    app->injectKeyPress(SDL_KEY_SPACE);
     
     // Check state
     REQUIRE(app->isMenuOpen());

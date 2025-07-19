@@ -7,7 +7,7 @@ The network architecture is built on a single, non-negotiable principle: **the s
 ### Core Components
 
 1. **Authoritative C++ Server**: A from-scratch C++23 application that is the single source of truth
-2. **Custom C++ Client**: Uses bgfx for rendering, ImGui for UI, with simple prediction for responsiveness
+2. **Custom C++ Client**: Uses SDL3 for rendering, ImGui for UI, with simple prediction for responsiveness
 3. **TOML Data Files**: Store immutable game data configuration
 4. **Custom TCP Protocol**: Single TCP stream per client with bitpacked serialization
 
@@ -61,9 +61,8 @@ Following the Ion Vortex C++ Manual:
 ## Client Architecture (Custom C++)
 
 The client is built using the Ion Vortex engine:
-- **bgfx**: Cross-platform rendering
+- **SDL3**: Cross-platform rendering
 - **ImGui**: Immediate mode UI
-- **GLFW**: Window management and input
 - **Custom networking**: TCP client implementation
 
 ### Architecture Overview
@@ -86,7 +85,7 @@ Following Ion Vortex principles:
    - Maintains history for interpolation
 
 3. **Game Thread**
-   - Main render loop via bgfx
+   - Main render loop
    - Polls state buffer each frame
    - Applies prediction and interpolation
 
@@ -110,7 +109,7 @@ Simple prediction to reduce input latency:
    - Visual-only, no gameplay impact
    - Reset on server update
 
-3. **bgfx Rendering**
+3. **Rendering**
    - Submit draw calls for all visible entities
    - Instanced rendering for projectiles
    - Efficient sprite batching
@@ -172,9 +171,8 @@ Minimal, explicit, forward-compatible design.
 
 ### Client
 - **Language**: C++23 (Ion vortex standards)
-- **Rendering**: bgfx (cross-platform)
+- **Rendering**: SDL3 (cross-platform)
 - **UI**: Dear ImGui
-- **Windowing**: GLFW
 - **Networking**: Custom TCP client
 - **Data**: Shared TOML format
 

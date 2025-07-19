@@ -66,7 +66,7 @@ Assets have different licenses:
 - Location: `assets/private/` (not in repository)
 - License: Commercial, proprietary
 - Usage: Oat Interactive employees only
-- Includes: Synty Polygon packs and internal art
+- Includes: Internal art
 
 **Important**: Never commit private assets to the public repository!
 
@@ -100,20 +100,15 @@ For commercial licensing inquiries: dev@oat.im
 
 Ion Vortex uses various third-party libraries via vcpkg. Each has its own license:
 
-- **bgfx**: BSD 2-Clause
+- **SDL3**: Zlib
 - **Dear ImGui**: MIT
 - **GLM**: MIT
 - **GLFW**: Zlib
 - **libuv**: MIT
-- **Bullet Physics**: zlib
 - **nlohmann-json**: MIT
 - **tomlplusplus**: MIT
-- **zstd**: BSD-3-Clause
-- **miniaudio**: MIT-0
-- **libsodium**: ISC
 - **curl**: curl license
-- **meshoptimizer**: MIT
-- **cgltf**: MIT
+- **libsodium**: ISC
 - **stb**: MIT/Public Domain
 
 Full license texts are included with each library via vcpkg.
