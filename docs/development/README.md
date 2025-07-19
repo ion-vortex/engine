@@ -75,17 +75,17 @@ Testing philosophy and practices:
 
 ```text
 /apps
-   client/    ← Desktop GUI launcher (bgfx + ImGui)
+   client/    ← Desktop GUI launcher (SDL3 + ImGui)
    zoned/     ← Headless zone-simulation server  
    unid/      ← Universe-directory + matchmaking service
 /libs
-   asset/     ← glTF loader, meshoptimizer, IBL bake cache
-   audio/     ← miniaudio device, 3D voice emitter wrapper
+   asset/     ← 2d atlas loader
+   audio/     ← SDL3 audio device, 2D voice emitter wrapper
    core/      ← Error wrapper, logger, fixed allocators, timing helpers
    crypto/    ← Cryptographic utilities
-   physics/   ← Bullet-backed hull cache & collision queries
+   physics/   ← SAT collision queries
    protocol/  ← Network protocol definitions
-   render/    ← bgfx init, view & frame orchestration, PBR shader registry
+   render/    ← SDL3 init, view & frame orchestration
    ui/        ← ImGui context per-view, dockspace, debug widgets
 ```
 

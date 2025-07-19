@@ -47,8 +47,8 @@ ion_setup_build_interface()
 
 # ── Find all external dependencies upfront ────────────────────
 ion_find_dependencies(
-    stb assimp bgfx bullet cgltf curl glfw glm imgui 
-    sodium libuv meshoptimizer miniaudio json toml zstd
+    stb SDL3 curl glm imgui lunasvg
+    sodium libuv curl json toml
 )
 
 # ── Enable testing if requested ───────────────────────────────

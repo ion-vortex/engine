@@ -13,9 +13,6 @@ Filesystem & Assets	ion::core::IVFS  (fs/vfs.h)	Abstract file reads, directory i
 	ion::core::IAssetCache  (asset/cache.h)	Async load → future, fingerprinting, eviction.	RamAssetCache, NullCache
 Networking Primitives	ion::core::ISocket  (net/socket.h)	Datagram/stream read-write, non-blocking.	UvSocket (libuv), WebSocketAdaptor
 	ion::core::ITransport  (net/transport.h)	Packet/fragment framing, channelised send/recv.	UdpTransport, TcpTransport, InProcLoopback
-Math & Physics Wrappers	ion::core::ICollisionShapeFactory  (physics/collider.h)	Build convex hull / BVH from mesh for Bullet.	BtShapeFactory
-Platform / Window (client-only)	ion::core::IWindow  (platform/window.h)	Create GL/Vulkan surface, dispatch input events.	GlfwWindow, NullWindow (headless tests)
-	ion::core::IInput  (platform/input.h)	Query key/button state, text input callback.	GlfwInput
 
 How they plug together
 
@@ -31,8 +28,8 @@ apps/
          ↳ owns Transport + AssetCache + PhysicsWorld
          ...
 
-	•	ion::core never knows about bgfx, Bullet, or Ultralight. Those libs live in modules that implement the interfaces.
-	•	Unit tests and server builds link only to ion::core + mock implementations; the desktop client links to GL/Window/Bullet implementations.
+	•	ion::core never knows about SDL3, or ImGui. Those libs live in modules that implement the interfaces.
+	•	Unit tests and server builds link only to ion::core + mock implementations; the desktop client links to GL/Window implementations.
 	•	If you swap libuv for another socket backend (say, asio), you touch only the adapter, not zone logic.
 
 ---
@@ -49,16 +46,16 @@ Think of ion::core as only the contracts that every executable (zone server, uni
 
 Keep in ion::core	Push into feature libs
 Logging / metrics (ILogger, IMetrics)	Rendering (IRenderBackend, etc.)
-Clock / basic scheduler	Physics & collision (Bullet wrapper)
+Clock / basic scheduler	Physics & collision
 Service lifecycle (IService)	Platform window, input, audio
 Settings / basic VFS	High-level asset cache, scene graph, animation
 Low-level net socket / transport	Any client-only UI layer (ImGui)
 
 Why split?
-	•	Server binaries have no reason to pull in GLFW, bgfx, Bullet, or platform input.
+	•	Server binaries have no reason to pull in SDL.
 If those headers sit in core, they leak into everything and complicate CI for minimal-footprint headless builds.
 	•	Compile-time isolation – a change to IWindow shouldn’t force every microservice to rebuild.
-	•	Clear ownership – if physics is an optional plugin, house it under ion::physics (or ion::bullet) so teams can swap it (e.g., mock collider for unit tests).
+	•	Clear ownership – if physics is an optional plugin, house it under ion::physics so teams can swap it (e.g., mock collider for unit tests).
 
 Suggested directory / namespace map
 
@@ -69,10 +66,10 @@ ion/
 │   ├─ net/
 │   ├─ fs/
 │   └─ lifecycle/
-├─ platform/          # window + input (GLFW, SDL, etc.)
+├─ platform/          # window + input (SDL, etc.)
 │   └─ include/ion/platform/...
 ├─ render/            # bgfx wrapper + material system
-├─ physics/           # Bullet adapters, collider factory
+├─ physics/           # SAT collider factory
 ├─ audio/             # miniaudio backend
 └─ game/              # ECS / gameplay logic, depends on render+physics when building the client
 

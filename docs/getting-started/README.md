@@ -38,7 +38,7 @@ Step-by-step build instructions:
 Create a simple application using Ion:
 - Project structure
 - Using ion libraries
-- Basic rendering with bgfx
+- Basic rendering with SDL3
 - Adding ImGui interface
 
 ## Choose Your Path

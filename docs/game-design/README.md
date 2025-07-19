@@ -45,7 +45,7 @@ Complete reference for all ship classes, weapons, special abilities, and equipme
 ## Technology Constraints
 
 - **Server**: C++23 following Ion Vortex/Oat Interactive standards
-- **Client**: Custom C++23 renderer using bgfx and ImGui
+- **Client**: Custom C++23 renderer using SDL3 and ImGui
 - **Networking**: Custom TCP protocol with bitpacked serialization
 - **Data**: TOML configuration files for game data
 
