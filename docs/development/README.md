@@ -20,9 +20,6 @@ The complete Ion Vortex/Oat Interactive C++ engineering standard. This is **requ
 - API design patterns
 - What NOT to do
 
-### 📋 [C++ Manual - Quick Reference](cpp-manual-short.md)
-A condensed version of the manual for quick lookups. Keep this handy while coding.
-
 ### 🔧 [Build System](build-system.md)
 Comprehensive guide to the CMake-based build system:
 - How the modular build works
