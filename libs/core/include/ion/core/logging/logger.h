@@ -29,8 +29,7 @@ public:
     }
     
     [[nodiscard, gnu::warn_unused_result]]
-
-    virtual bool isEnabled(LogLevel level) const = 0;
+    virtual bool is_enabled(LogLevel level) const = 0;
 };
 
 } // namespace ion::core

@@ -997,222 +997,188 @@ This keeps the API surface clean and makes it immediately obvious what's a value
 
 ---
 
-### API.4: **Error Handling: Use Tagged `Error` Wrappers with `ErrorCode` and `[[nodiscard, gnu::warn_unused_result]]`**
+### API .4 **Error handling – standard-compliant, type-safe, and compiler-enforced**
+<a id="api4-error-codes"/>  
 
-<a name="api4-error-codes"></a>
+All public functions that can fail **shall**
 
-All public API functions that may fail SHALL:
+| Requirement                                                                                                                             | Rationale                                                                                                                         |
+| --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Return** `std::expected<T, std::error_code>` (or `std::expected<void, std::error_code>`).                                             | The value half (`T`) remains unconstrained; the error half is the *portable* C++11 struct whose layout is ABI-stable across DLLs. |
+| **Tag** every error code with a *module-local* strongly-typed `enum class`, then convert it to `std::error_code` via `make_error_code`. | Preserves type-safety at call sites while keeping one on-the-wire format.                                                         |
+| **Mark** every fallible API with `OAT_NODISCARD("…descriptive message…")`.                                                              | Forces callers to handle the result.                                                                                              |
 
-* Return a `std::expected<T, Error>` where `Error` wraps a strongly-typed `enum class ErrorCode`.
-* Use `[[nodiscard("Handle this result! Failure to do so is a bug.")]]` on the function signature to enforce compile-time checking.
-* NEVER signal errors via `bool`, `nullptr`, magic integers, or `std::optional`.
-
-This is a modern C++ codebase. We use strong typing for error handling to ensure clarity and safety.
+`bool`, sentinels, `nullptr`, raw integers, or `std::optional` **shall not** be used for error signalling. Exceptions remain an internal implementation detail; they do **not** cross public ABI boundaries.
 
 ---
 
-#### 1. Define `ErrorCode` Centrally Per Module
+#### 1.  Per-module error enum and category (*one page of boiler-plate*)
 
 ```cpp
-// include/oat/foo/error_code.h
+// include/oat/net/net_error.h
 #pragma once
+#include <system_error>
 
-namespace oat::foo {
+namespace oat::net {
 
-enum class ErrorCode {
-    Ok = 0,
-    // General
-    Unknown,
-    InvalidArgument,
-    NotInitialized,
-    AlreadyInitialized,
+// 1. Strongly-typed enum (values start at 1 – zero means “success”)
+enum class NetErr {
+    ConnectionFailed = 1,
     Timeout,
-
-    // Module-specific
-    ConnectionFailed,
-    Disconnected,
     PacketTooLarge,
-    InvalidChannel,
-    ResourceUnavailable,
-    InvalidAddress,
+    Unknown,
 };
 
-} // namespace oat::foo
+// 2. Category object – immortal, one per dynamic image
+class NetCategory : public std::error_category {
+public:
+    const char*     name()    const noexcept override { return "oat.net"; }
+    std::string     message(int ev) const override;
+};
+inline const NetCategory kNetCategory;
+
+// 3. make_error_code + trait – enables implicit conversion
+inline std::error_code make_error_code(NetErr e) noexcept {
+    return {static_cast<int>(e), kNetCategory};
+}
+} // namespace oat::net
+
+template<> struct std::is_error_code_enum<oat::net::NetErr> : std::true_type {};
+```
+
+```cpp
+// net_error.cpp
+#include "net_error.h"
+namespace oat::net {
+std::string NetCategory::message(int ev) const
+{
+    using E = NetErr;
+    switch (static_cast<E>(ev)) {
+        case E::ConnectionFailed: return "connection failed";
+        case E::Timeout:          return "timeout";
+        case E::PacketTooLarge:   return "packet too large";
+        default:                  return "unknown network error";
+    }
+}
+} // namespace oat::net
+```
+
+*Call-site safety remains intact:*
+
+```cpp
+if (auto r = connect(...); !r && r.error() == oat::net::NetErr::Timeout) { … }
 ```
 
 ---
 
-#### 2. Use a Tagged `Error` Wrapper
+#### 2.  Adapting platform errors (POSIX/Win32) to module enums
 
 ```cpp
+// low-level socket wrapper (Windows & POSIX variants)
+static std::error_code last_os_error() noexcept {
+#ifdef _WIN32
+    return {static_cast<int>(::GetLastError()), std::system_category()};
+#else
+    return {errno, std::generic_category()};
+#endif
+}
+
+static std::error_code to_net_error(std::error_code ec) noexcept {
+    using E = oat::net::NetErr;
+
+    if (ec.category() == std::generic_category()) {
+        switch (ec.value()) {
+            case ETIMEDOUT: return E::Timeout;
+            case EMSGSIZE:  return E::PacketTooLarge;
+            default:        return E::Unknown;
+        }
+    }
+    if (ec.category() == std::system_category()) {
+        switch (ec.value()) {
+            case WSAETIMEDOUT:      return E::Timeout;
+            case WSAEMSGSIZE:       return E::PacketTooLarge;
+            default:                return E::Unknown;
+        }
+    }
+    return ec;          // already oat-internal or unrecognised
+}
+```
+
+*Exported API*:
+
+```cpp
+[[OAT_NODISCARD("check connect result")]]
+std::expected<void, std::error_code> connect(Socket s, Address a)
+{
+    if (::connect(s.fd(), …) == 0)  return {};
+    return std::unexpected(to_net_error(last_os_error()));
+}
+```
+
+No caller ever sees `errno` or `DWORD`, only `oat::net::NetErr`.
+
+---
+
+#### 3.  Defining a descriptive, portable `nodiscard`
+
+```cpp
+// oat/attributes.h
 #pragma once
-
-namespace oat::foo {
-
-    enum class ErrorCode {
-        InvalidAddress = 1,
-        BindFailed,
-        ConnectFailed,
-        RecvFailed,
-        SendFailed,
-        Timeout,
-        Closed,
-        WouldBlock,
-        InvalidSocket,
-        ConnectionReset,
-        PartialSend,
-        UnsupportedAddressFamily,
-        SocketCreateFailed,
-        SocketConfigFailed,
-        WSAStartupFailed,
-        Unknown = 9999
-    };
-    
-    // Error is trivially constructible and moveable; used for tagged error returns.
-    // All its constructors are constexpr and therefore are publicly accessible.
-    struct Error {
-    public:
-        ErrorCode code;
-        std::string message;
-    
-        constexpr Error(ErrorCode c) noexcept : code(c) {}
-        Error(ErrorCode c, const std::exception& e) noexcept : code(c), message(concat(c, e.what())) {}
-        Error(ErrorCode c, std::string msg) noexcept : code(c), message(concat(c, std::move(msg))) {}
-    
-        [[nodiscard("You're ignoring an error message. Don't do that."), gnu::warn_unused_result]]
-        std::string_view what() const noexcept {
-            if (!message.empty()) {
-                return message;
-            } else {
-                return error_to_string(code);
-            }
-        }
-    
-        [[nodiscard("If you're going to use this, you should probably do something with it."), gnu::warn_unused_result]]
-        ErrorCode code_value() const noexcept { return code; }
-    
-        bool operator==(ErrorCode other) const noexcept { return code == other; }
-        bool operator!=(ErrorCode other) const noexcept { return code != other; }
-
-    private:
-        static std::string concat(ErrorCode code, const std::string& msg) noexcept {
-            try {
-                return std::string(error_to_string(code)) + ": " + msg;
-            } catch (...) {
-                return std::string(error_to_string(code)); // fallback if even std::string throws (rare but technically possible)
-            }
-        }
-    };
-
-    inline std::string to_string(const Error& error) noexcept {
-        return std::string(error.what()); // Always return a copy to be safe
-    }
-
-    inline constexpr const char* error_to_string(ErrorCode code) noexcept {
-        switch (code) {
-            case ErrorCode::InvalidAddress: return "Invalid address";
-            case ErrorCode::BindFailed: return "Bind failed";
-            case ErrorCode::ConnectFailed: return "Connect failed";
-            case ErrorCode::RecvFailed: return "Receive failed";
-            case ErrorCode::SendFailed: return "Send failed";
-            case ErrorCode::Timeout: return "Timeout";
-            case ErrorCode::Closed: return "Socket closed";
-            case ErrorCode::WouldBlock: return "Operation would block";
-            case ErrorCode::InvalidSocket: return "Invalid socket";
-            case ErrorCode::ConnectionReset: return "Connection reset";
-            case ErrorCode::PartialSend: return "Partial send";
-            case ErrorCode::UnsupportedAddressFamily: return "Unsupported address family";
-            case ErrorCode::SocketCreateFailed: return "Socket creation failed";
-            case ErrorCode::SocketConfigFailed: return "Socket configuration failed";
-            case ErrorCode::WSAStartupFailed: return "WSAStartup failed";
-            default: return "Unknown error";
-        }
-    }
-
-} // namespace oat::foo
+#if defined(__GNUC__) || defined(__clang__)
+#  define OAT_NODISCARD(msg) [[nodiscard(msg), gnu::warn_unused_result]]
+#elif defined(_MSC_VER)
+#  define OAT_NODISCARD(msg) [[nodiscard(msg)]]
+#else
+#  define OAT_NODISCARD(msg) [[nodiscard]]
+#endif
 ```
 
-Example for usage:
-```cpp
-[[nodiscard("Ignoring this means you don't care about the result. Fix it."), gnu::warn_unused_result]]
-std::expected<void, oat::foo::Error> always_fails() {
-    return std::unexpected(oat::foo::ErrorCode::InvalidAddress);
-}
-```
-
----
-
-#### 3. Always Use `[[nodiscard, gnu::warn_unused_result]]` on Functions Returning `std::expected`
+*Usage examples*:
 
 ```cpp
-[[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-std::expected<Widget, Error> CreateWidget(std::string_view name);
+OAT_NODISCARD("handle the possible timeout")
+std::expected<void, std::error_code> wait_for_ready(...);
 
-[[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-std::expected<void, Error> SendMessage(const Widget& w, std::string_view msg);
+OAT_NODISCARD("did the asset actually load?")
+std::expected<Asset, std::error_code> load_asset(std::string_view path);
 ```
 
-Failing to check these results MUST trigger compiler warnings or errors. If your compiler isn't respecting it, please check your toolchain configuration.
+Each message explains *why* the caller shouldn’t ignore the value.
 
 ---
 
-#### 4. Void Results Use `std::expected<void, Error>`
+#### 4.  Standard patterns
 
-```cpp
-[[nodiscard("You must handle this shutdown result."), gnu::warn_unused_result]]
-std::expected<void, Error> Shutdown();
-```
-
----
-
-#### 5. Catch and Wrap Errors Properly
-
-```cpp
-[[nodiscard("Handle this CreateAddr result!"), gnu::warn_unused_result]]
-std::expected<Addr, Error> CreateAddr(const std::string& ip, uint16_t port) {
-    try {
-        return Addr(ip, port);
-    } catch (const std::invalid_argument& e) {
-        return std::unexpected(Error(ErrorCode::InvalidAddress, e));
-    } catch (...) {
-        return std::unexpected(Error(ErrorCode::Unknown, "Unknown failure in CreateAddr"));
-    }
-}
-```
+| Pattern                            | Example                                                                                         |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Value-bearing result**           | `std::expected<Image, std::error_code> load_png(Path p);`                                       |
+| **Void success**                   | `std::expected<void, std::error_code> flush();`                                                 |
+| **Wrapping exceptions internally** | `cpp try { … } catch (const std::bad_alloc&) { return std::unexpected(MemErr::OutOfMemory); } ` |
+| **Comparing errors**               | `if (ec == FileErr::NotFound) { … }` (typed, no magic numbers)                                  |
+| **Logging**                        | `log.error("flush failed: {}", ec);` (both `fmt` and `spdlog` format `error_code` natively).    |
 
 ---
 
-#### 6. Never Compare `ErrorCode` with Magic Numbers
+#### 5.  Practices to avoid
 
-```cpp
-if (auto res = Shutdown(); !res) {
-    if (res.error() == ErrorCode::NotInitialized) {
-        logger->warn("Shutdown() skipped: not initialized.");
-    } else {
-        logger->error("Shutdown() failed: {}", res.error().what());
-    }
-}
-```
+* Returning `bool`, `nullptr`, sentinel integers, or `std::optional` as error indicators.
+* Exposing platform categories (`std::generic_category`, `std::system_category`) beyond the platform layer.
+* Throwing exceptions across module boundaries.
+* Re-using one enum for multiple domains—create a fresh enum + category per sub-system.
 
 ---
 
-#### 7. Please Avoid These Patterns
+### Why this approach is preferred
 
-* ❌ `std::error_code`
-* ❌ `std::system_error`
-* ❌ Exceptions in public API paths
-* ❌ Error signaling via `bool`, `nullptr`, or `std::optional`
+* **ABI-safe:** `std::error_code` is a trivial two-word POD; identical across compilers and DLLs.
+* **Zero allocations:** no embedded `std::string` in the transport.
+* **Interoperable:** STL, Boost, gRPC and many third-party libraries already consume/produce `std::error_code`.
+* **Extensible:** each module owns its enum; no global registry or range reservation is required.
+* **Descriptive:** `message()` delivers human-readable text on demand; not stored unless logged.
+* **Enforced handling:** `OAT_NODISCARD` ensures the compiler reminds users to check every result.
 
-This is a modern, explicitly-typed, contract-driven system. Errors must be handled explicitly. The compiler will help you remember.
+Adhering to these rules yields clear, efficient, and portable error handling across all OAT C++ components.
 
----
-
-| Rule                                                 | Enforcement                                  |
-| ---------------------------------------------------- | -------------------------------------------- |
-| All `std::expected` returns SHALL be `[[nodiscard, gnu::warn_unused_result]]` | Compiler will warn or error                  |
-| All failures use `std::unexpected<Error>`            | No bare `std::unexpected` without an `Error` |
-| Errors MUST support equality with `ErrorCode`        | Required by `Error` wrapper                  |
-| Ignoring failures is a compile-time defect           | Not just discouraged--prohibited              |
 
 ---
 
