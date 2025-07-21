@@ -7,29 +7,29 @@
 
 namespace ion::core {
 
-enum class ION_CORE_API LogLevel {
-    Trace,   // super-verbose
-    Debug,   // developer diagnostics
-    Info,    // normal ops
-    Warning, // something looks off
-    Error,   // recoverable failure
-    Critical // about to crash / abort
+enum class ION_CORE_API log_level {
+    trace,   // super-verbose
+    debug,   // developer diagnostics
+    info,    // normal ops
+    warning, // something looks off
+    error,   // recoverable failure
+    critical // about to crash / abort
 };
 
-class ION_CORE_API ILogger {
+class ION_CORE_API logger_base {
 public:
-    virtual ~ILogger() = default;
+    virtual ~logger_base() = default;
     
-    virtual void log(LogLevel level, std::string_view msg) = 0;
+    virtual void log(log_level level, std::string_view msg) = 0;
 
     template <typename... Args>
-    inline void log(LogLevel level, std::string_view fmt, Args&&... args) {
+    inline void log(log_level level, std::string_view fmt, Args&&... args) {
         log(level,
             std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...)));
     }
     
-    [[nodiscard, gnu::warn_unused_result]]
-    virtual bool is_enabled(LogLevel level) const = 0;
+    [[OAT_NODISCARD("You should be actually checking this if you're bothering to call it.")]]
+    virtual bool is_enabled(log_level level) const = 0;
 };
 
 } // namespace ion::core

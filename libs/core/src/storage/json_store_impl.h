@@ -8,28 +8,28 @@
 
 namespace ion::core::detail {
 
-class JsonTransaction;
+class json_transaction;
 
-class ION_CORE_API JsonStore final : public IStore {
+class ION_CORE_API json_store final : public store_base {
 public:
-    JsonStore(std::filesystem::path const& path, JsonStoreOptions const& options);
-    ~JsonStore();
+    json_store(std::filesystem::path const& path, json_store_options const& options);
+    ~json_store();
 
-    std::expected<void, Error> open(std::filesystem::path const& path) override;
-    std::expected<void, Error> close() override;
-    std::expected<std::unique_ptr<ITransaction>, Error> begin_transaction() override;
+    std::expected<void, std::error_code> open(std::filesystem::path const& path) override;
+    std::expected<void, std::error_code> close() override;
+    std::expected<std::unique_ptr<transaction_base>, std::error_code> begin_transaction() override;
 
 private:
-    friend class JsonTransaction;
+    friend class json_transaction;
 
     std::filesystem::path path_;
-    JsonStoreOptions options_;
+    json_store_options options_;
     nlohmann::json data_;
     bool is_open_ = false;
     mutable std::mutex mutex_;
     
-    std::expected<void, Error> load_from_file();
-    std::expected<void, Error> save_to_file(nlohmann::json const& data);
+    std::expected<void, std::error_code> load_from_file();
+    std::expected<void, std::error_code> save_to_file(nlohmann::json const& data);
     void update_data(nlohmann::json const& new_data) {
         std::lock_guard<std::mutex> lock(mutex_);
         data_ = new_data;

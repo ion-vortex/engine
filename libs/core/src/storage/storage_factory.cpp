@@ -8,15 +8,15 @@
 
 namespace ion::core {
 
-std::expected<std::unique_ptr<IStore>, Error>
-make_toml_file_store(std::filesystem::path const& path, TomlStoreOptions opts) {
-    auto store = std::make_unique<detail::TomlStore>(path, opts);
+std::expected<std::unique_ptr<store_base>, std::error_code>
+make_toml_file_store(std::filesystem::path const& path, toml_store_options opts) {
+    auto store = std::make_unique<detail::toml_store>(path, opts);
     return store;
 }
 
-std::expected<std::unique_ptr<IStore>, Error>
-make_json_file_store(std::filesystem::path const& path, JsonStoreOptions opts) {
-    auto store = std::make_unique<detail::JsonStore>(path, opts);
+std::expected<std::unique_ptr<store_base>, std::error_code>
+make_json_file_store(std::filesystem::path const& path, json_store_options opts) {
+    auto store = std::make_unique<detail::json_store>(path, opts);
     return store;
 }
 

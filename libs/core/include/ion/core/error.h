@@ -1,4 +1,5 @@
 #pragma once
 
-#include "error/error_impl.h"
-#include "error/error_strings.h"
+#include <system_error>
+#include <ion/core/types.h>
+#include <ion/core/error/core_errc.h>

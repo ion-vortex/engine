@@ -152,7 +152,7 @@ clang-tidy src/**/*.cpp
 cmake --build --preset debug --target ion_core
 
 # Run specific test
-./build/debug/tests/core_tests --gtest_filter=ErrorTest.*
+./build/debug/tests/core_tests --gtest_filter=error_test.*
 ```
 
 ## Communication Channels

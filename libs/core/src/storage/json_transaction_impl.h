@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ion/core/store/i_store.h>
-#include <ion/core/store/i_transaction.h>
+#include <ion/core/store/store_base.h>
+#include <ion/core/store/transaction_base.h>
 #include <ion/core/error.h>
 #include <ion/core/store/store_handle.h>
 #include <expected>
@@ -13,98 +13,65 @@
 
 namespace ion::core::detail {
 
-class JsonStore;
+class json_store;
 
 /**
- * @brief Implementation of ITransaction for JSON-based storage.
+ * @brief Implementation of transaction_base for JSON-based storage.
  *
- * This class provides a concrete implementation of the ITransaction interface,
+ * This class provides a concrete implementation of the transaction_base interface,
  * using an in-memory representation of JSON data. It supports ACID-compliant
  * operations on hierarchical storage data.
  */
-class ION_CORE_API JsonTransaction final : public ITransaction {
+class ION_CORE_API json_transaction final : public transaction_base {
 public:
-    JsonTransaction(nlohmann::json const& initial_data, JsonStore* store, JsonStoreOptions const& options);
-    ~JsonTransaction() noexcept override;
+    json_transaction(nlohmann::json const& initial_data, json_store* store, json_store_options const& options);
+    ~json_transaction() noexcept override;
 
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<StoreHandle, Error> root() const override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<bool, Error> get_bool(StoreHandle h) const override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<int64_t, Error> get_int(StoreHandle h) const override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<double, Error> get_double(StoreHandle h) const override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<std::string, Error> get_string(StoreHandle h) const override;
-
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> set_bool(StoreHandle h, bool v) override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> set_int(StoreHandle h, int64_t v) override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> set_double(StoreHandle h, double v) override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> set_string(StoreHandle h, std::string_view v) override;
-
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<StoreHandle, Error> make_array(StoreHandle parent, std::string_view key) override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<StoreHandle, Error> make_object(StoreHandle parent, std::string_view key) override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> make_bool(StoreHandle parent, std::string_view key, bool v) override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> make_int(StoreHandle parent, std::string_view key, int64_t v) override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> make_double(StoreHandle parent, std::string_view key, double v) override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> make_string(StoreHandle parent, std::string_view key, std::string_view v) override;
-
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> remove(StoreHandle parent, std::string_view key) override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<bool, Error> has(StoreHandle parent, std::string_view key) const override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> erase_element(StoreHandle parent, size_t idx) override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<bool, Error> has_element(StoreHandle parent, size_t idx) const override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<StoreHandle, Error> child(StoreHandle parent, std::string_view key) const override;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<StoreHandle, Error> element(StoreHandle parent, size_t idx) const override;
+    std::expected<store_handle, std::error_code> root() const override;
+    std::expected<bool, std::error_code> get_bool(store_handle h) const override;
+    std::expected<int64_t, std::error_code> get_int(store_handle h) const override;
+    std::expected<double, std::error_code> get_double(store_handle h) const override;
+    std::expected<std::string, std::error_code> get_string(store_handle h) const override;
+    std::expected<void, std::error_code> set_bool(store_handle h, bool v) override;
+    std::expected<void, std::error_code> set_int(store_handle h, int64_t v) override;
+    std::expected<void, std::error_code> set_double(store_handle h, double v) override;
+    std::expected<void, std::error_code> set_string(store_handle h, std::string_view v) override;
+    std::expected<store_handle, std::error_code> make_array(store_handle parent, std::string_view key) override;
+    std::expected<store_handle, std::error_code> make_object(store_handle parent, std::string_view key) override;
+    std::expected<void, std::error_code> make_bool(store_handle parent, std::string_view key, bool v) override;
+    std::expected<void, std::error_code> make_int(store_handle parent, std::string_view key, int64_t v) override;
+    std::expected<void, std::error_code> make_double(store_handle parent, std::string_view key, double v) override;
+    std::expected<void, std::error_code> make_string(store_handle parent, std::string_view key, std::string_view v) override;
+    std::expected<void, std::error_code> remove(store_handle parent, std::string_view key) override;
+    std::expected<bool, std::error_code> has(store_handle parent, std::string_view key) const override;
+    std::expected<void, std::error_code> erase_element(store_handle parent, size_t idx) override;
+    std::expected<bool, std::error_code> has_element(store_handle parent, size_t idx) const override;
+    std::expected<store_handle, std::error_code> child(store_handle parent, std::string_view key) const override;
+    std::expected<store_handle, std::error_code> element(store_handle parent, size_t idx) const override;
 
 private:
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<void, Error> commit_impl() override;
+    std::expected<void, std::error_code> commit_impl() override;
     void rollback_impl() noexcept override;
 
-    // Node representation for handle mapping
-    struct Node {
+    // node representation for handle mapping
+    struct node {
         std::vector<std::string> path;  // Path from root to reconstruct node access
     };
 
     nlohmann::json data_;
-    JsonStore* store_;
-    JsonStoreOptions options_;
-    mutable std::unordered_map<uint64_t, Node> handle_map_;
+    json_store* store_;
+    json_store_options options_;
+    mutable std::unordered_map<uint64_t, node> handle_map_;
     mutable uint64_t next_handle_ = 1;
-    
-    [[nodiscard, gnu::warn_unused_result]]
- StoreHandle make_handle(std::vector<std::string> path) const;
-    [[nodiscard, gnu::warn_unused_result]]
- nlohmann::json* get_node(StoreHandle h);
-    [[nodiscard, gnu::warn_unused_result]]
- nlohmann::json const* get_node(StoreHandle h) const;
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<nlohmann::json*, Error> get_node_checked(StoreHandle h);
-    [[nodiscard, gnu::warn_unused_result]]
- std::expected<nlohmann::json const*, Error> get_node_checked(StoreHandle h) const;
-    [[nodiscard, gnu::warn_unused_result]]
- nlohmann::json* navigate_to_node(std::vector<std::string> const& path);
-    [[nodiscard, gnu::warn_unused_result]]
- nlohmann::json const* navigate_to_node(std::vector<std::string> const& path) const;
-    [[nodiscard, gnu::warn_unused_result]]
- bool is_valid_key(std::string_view key) const;
+
+    store_handle make_handle(std::vector<std::string> path) const;
+    nlohmann::json* get_node(store_handle h);
+    nlohmann::json const* get_node(store_handle h) const;
+    std::expected<nlohmann::json*, std::error_code> get_node_checked(store_handle h);
+    std::expected<nlohmann::json const*, std::error_code> get_node_checked(store_handle h) const;
+    nlohmann::json* navigate_to_node(std::vector<std::string> const& path);
+    nlohmann::json const* navigate_to_node(std::vector<std::string> const& path) const;
+    bool is_valid_key(std::string_view key) const;
 };
 
 } // namespace ion::core::detail

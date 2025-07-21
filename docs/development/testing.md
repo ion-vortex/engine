@@ -80,7 +80,7 @@ TEST_CASE("Async operations complete correctly", "[async]") {
     REQUIRE(completed);
     
     // Check result
-    auto result = system.value()->getResult();
+    auto result = system.value()->get_result();
     REQUIRE(result.has_value());
 }
 ```
@@ -121,29 +121,29 @@ TEST_CASE("State machine transitions", "[state]") {
 
 namespace test {
 
-class MockLogger : public ion::core::ILogger {
+class mock_logger : public ion::core::logger_base {
 public:
-    void log(ion::core::LogLevel level, 
+    void log(ion::core::log_level level, 
              const std::string& message) override {
         entries_.push_back({level, message});
     }
     
     // Test helpers
-    bool hasMessage(const std::string& msg) const {
+    bool has_message(const std::string& msg) const {
         return std::any_of(entries_.begin(), entries_.end(),
             [&](const auto& e) { return e.message == msg; });
     }
     
-    size_t messageCount() const { return entries_.size(); }
+    size_t message_count() const { return entries_.size(); }
     
     void clear() { entries_.clear(); }
     
 private:
-    struct LogEntry {
-        ion::core::LogLevel level;
+    struct log_entry {
+        ion::core::log_level level;
         std::string message;
     };
-    std::vector<LogEntry> entries_;
+    std::vector<log_entry> entries_;
 };
 
 } // namespace test
@@ -152,12 +152,12 @@ private:
 ### Mock Network
 
 ```cpp
-class MockNetworkClient : public INetworkClient {
+class mock_network_client : public network_client_base {
 public:
-    std::expected<void, Error> connect(const std::string& host, 
+    std::expected<void, std::error_code> connect(const std::string& host, 
                                       uint16_t port) override {
         if (should_fail_connect_) {
-            return std::unexpected(Error(ErrorCode::ConnectionFailed));
+            return std::unexpected(make_net_error(net_errc::connection_failed));
         }
         
         connected_ = true;
@@ -165,9 +165,9 @@ public:
         return {};
     }
     
-    std::expected<void, Error> send(BufferView data) override {
+    std::expected<void, std::error_code> send(buffer_view data) override {
         if (!connected_) {
-            return std::unexpected(Error(ErrorCode::NotConnected));
+            return std::unexpected(make_net_error(net_errc::not_connected));
         }
         
         sent_data_.emplace_back(data.begin(), data.end());
@@ -175,14 +175,14 @@ public:
     }
     
     // Test controls
-    void setConnectFailure(bool fail) { should_fail_connect_ = fail; }
-    void injectReceiveData(std::vector<uint8_t> data) {
+    void set_connection_failure(bool fail) { should_fail_connect_ = fail; }
+    void inject_receive_data(std::vector<uint8_t> data) {
         receive_queue_.push_back(std::move(data));
     }
     
     // Test queries
-    const auto& getSentData() const { return sent_data_; }
-    bool isConnected() const { return connected_; }
+    const auto& get_sent_data() const { return sent_data_; }
+    bool is_connected() const { return connected_; }
     
 private:
     bool connected_ = false;
@@ -212,19 +212,19 @@ TEST_CASE("BitPacker packs values correctly", "[unit][bitpacker]") {
     BitPacker packer;
     
     SECTION("Pack single bit") {
-        packer.writeBit(true);
-        auto data = packer.getData();
+        packer.write_bit(true);
+        auto data = packer.get_data();
         
         REQUIRE(data.size() == 1);
         REQUIRE(data[0] == 0x80);  // 10000000
     }
     
     SECTION("Pack multiple values") {
-        packer.writeBits(0x5, 3);   // 101
-        packer.writeBits(0xA, 4);   // 1010
-        packer.writeBit(true);      // 1
+        packer.write_bits(0x5, 3);   // 101
+        packer.write_bits(0xA, 4);   // 1010
+        packer.write_bit(true);      // 1
         
-        auto data = packer.getData();
+        auto data = packer.get_data();
         REQUIRE(data.size() == 1);
         REQUIRE(data[0] == 0xAB);    // 10101011
     }
@@ -268,20 +268,20 @@ Use consistent tags for filtering:
 
 ```cpp
 TEST_CASE("Error code to string conversion", "[core]") {
-    struct TestCase {
-        ErrorCode code;
+    struct test_case {
+        std::error_code code;
         std::string_view expected;
     };
     
-    const TestCase cases[] = {
-        {ErrorCode::Success, "Success"},
-        {ErrorCode::InvalidParameter, "Invalid parameter"},
-        {ErrorCode::NotFound, "Not found"},
-        {ErrorCode::Timeout, "Operation timed out"},
+    const test_case cases[] = {
+        {ion::core::core_errc::success, "Success"},
+        {ion::core::core_errc::invalid_parameter, "Invalid parameter"},
+        {ion::core::core_errc::not_found, "Not found"},
+        {ion::core::core_errc::timeout, "Operation timed out"},
     };
     
     for (const auto& tc : cases) {
-        REQUIRE(errorToString(tc.code) == tc.expected);
+        REQUIRE(core_errc_to_string(tc.code) == tc.expected);
     }
 }
 ```
@@ -323,10 +323,10 @@ TEST_CASE("Parser handles malformed input", "[parser][fuzz]") {
     };
     
     for (const auto& input : fuzz_inputs) {
-        auto result = parsePacket(input);
+        auto result = parse_packet(input);
         // Should not crash, should return error
         if (!result.has_value()) {
-            REQUIRE(result.error().code() != ErrorCode::Success);
+            REQUIRE(result.error() != 0);
         }
     }
 }
@@ -338,10 +338,10 @@ TEST_CASE("Parser handles malformed input", "[parser][fuzz]") {
 
 ```cpp
 TEST_CASE("Handles resource exhaustion", "[resources]") {
-    auto pool = makeResourcePool(3);  // Max 3 resources
+    auto pool = make_resource_pool(3);  // Max 3 resources
     
     // Allocate all
-    std::vector<std::unique_ptr<Resource>> resources;
+    std::vector<std::unique_ptr<resource>> resources;
     for (int i = 0; i < 3; ++i) {
         auto r = pool->acquire();
         REQUIRE(r.has_value());
@@ -351,7 +351,7 @@ TEST_CASE("Handles resource exhaustion", "[resources]") {
     // Next allocation should fail
     auto extra = pool->acquire();
     REQUIRE(!extra.has_value());
-    REQUIRE(extra.error().code() == ErrorCode::ResourceExhausted);
+    REQUIRE(extra.error().code() == my_lib::lib_errc::resource_exhausted);
     
     // Release one
     resources.pop_back();
@@ -366,16 +366,16 @@ TEST_CASE("Handles resource exhaustion", "[resources]") {
 
 ```cpp
 TEST_CASE("Operation times out", "[timeout]") {
-    auto client = makeClient();
-    client->setTimeout(100ms);
+    auto client = make_client();
+    client->set_timeout(100ms);
     
     // Mock slow server
     MockServer server;
-    server.setResponseDelay(200ms);
+    server.set_response_delay(200ms);
     
     auto result = client->request(server);
     REQUIRE(!result.has_value());
-    REQUIRE(result.error().code() == ErrorCode::Timeout);
+    REQUIRE(result.error() == net_errc::timed_out);
 }
 ```
 
@@ -387,12 +387,12 @@ TEST_CASE("Operation times out", "[timeout]") {
 TEST_CASE("Benchmark serialization", "[.benchmark]") {
     // Tag with . to skip in normal runs
     const size_t iterations = 10000;
-    TestData data = generateTestData();
+    TestData data = generate_test_data();
     
     BENCHMARK("Serialize") {
         for (size_t i = 0; i < iterations; ++i) {
             auto result = serialize(data);
-            DoNotOptimize(result);
+            do_not_optimize(result);
         }
     };
     
@@ -400,7 +400,7 @@ TEST_CASE("Benchmark serialization", "[.benchmark]") {
         auto serialized = serialize(data).value();
         for (size_t i = 0; i < iterations; ++i) {
             auto result = deserialize(serialized);
-            DoNotOptimize(result);
+            do_not_optimize(result);
         }
     };
 }
@@ -409,7 +409,7 @@ TEST_CASE("Benchmark serialization", "[.benchmark]") {
 ### Memory Testing
 
 ```cpp
-class MemoryTracker {
+class memory_tracker {
     size_t allocations_ = 0;
     size_t deallocations_ = 0;
     size_t current_usage_ = 0;
@@ -427,21 +427,21 @@ public:
         std::free(ptr);
     }
     
-    bool hasLeaks() const {
+    bool has_leaks() const {
         return allocations_ != deallocations_;
     }
 };
 
 TEST_CASE("No memory leaks", "[memory]") {
-    MemoryTracker tracker;
+    memory_tracker tracker;
     
     {
-        auto system = makeSystemWithAllocator(&tracker);
-        system->doWork();
+        auto system = make_system_with_allocator(&tracker);
+        system->do_work();
         // System destroyed here
     }
     
-    REQUIRE(!tracker.hasLeaks());
+    REQUIRE(!tracker.has_leaks());
     REQUIRE(tracker.current_usage_ == 0);
 }
 ```
@@ -455,7 +455,7 @@ TEST_CASE("No memory leaks", "[memory]") {
 namespace test {
 
 // Generate test data
-std::vector<uint8_t> generateRandomBytes(size_t count) {
+std::vector<uint8_t> generate_random_bytes(size_t count) {
     std::vector<uint8_t> data(count);
     std::generate(data.begin(), data.end(), 
                   []() { return rand() % 256; });
@@ -463,13 +463,13 @@ std::vector<uint8_t> generateRandomBytes(size_t count) {
 }
 
 // Compare floating point
-bool approximatelyEqual(float a, float b, float epsilon = 0.0001f) {
+bool approx_equal(float a, float b, float epsilon = 0.0001f) {
     return std::abs(a - b) < epsilon;
 }
 
 // Wait for condition with timeout
 template<typename Pred>
-bool waitFor(Pred predicate, std::chrono::milliseconds timeout) {
+bool wait_for(Pred predicate, std::chrono::milliseconds timeout) {
     auto start = std::chrono::steady_clock::now();
     while (!predicate()) {
         if (std::chrono::steady_clock::now() - start > timeout) {

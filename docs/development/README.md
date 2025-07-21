@@ -127,16 +127,16 @@ Testing philosophy and practices:
 throw std::runtime_error("Failed");
 
 // ✅ Correct
-return std::unexpected(Error(ErrorCode::Failed, "Operation failed"));
+return std::unexpected(std::make_error_code(std::errc::not_enough_memory));
 ```
 
 ### 2. **Factory Pattern for Objects**
 ```cpp
 // ❌ Wrong
-auto obj = new MyClass(params);
+auto obj = new my_class(params);
 
 // ✅ Correct
-auto result = MyClass::Create(params);
+auto result = my_class::create(params);
 if (!result) return result.error();
 auto obj = std::move(result.value());
 ```
@@ -144,21 +144,20 @@ auto obj = std::move(result.value());
 ### 3. **Interface-Based Design**
 ```cpp
 // Public interface
-class IRenderer {
+class renderer_base {
 public:
-    virtual ~IRenderer() = default;
+    virtual ~renderer_base() = default;
     virtual void render() = 0;
 };
 
 // Hidden implementation
-class RendererImpl : public IRenderer {
+class renderer_impl : public renderer_base {
     void render() override { /* ... */ }
 };
 ```
 
 ### 4. **Explicit Error Handling**
-Every fallible operation returns `std::expected<T, Error>` and is marked `[[nodiscard, gnu::warn_unused_result]]
-`.
+Every fallible operation returns `std::expected<T, std::error_code>` and is marked `[[OAT_NODISCARD("...")]]`.
 
 ## Common Tasks
 

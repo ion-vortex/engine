@@ -90,13 +90,13 @@ Describe any performance implications
 ```cpp
 // Rough API design or interface outline
 namespace ion::module {
-    class INewFeature {
+    class new_feature_base {
     public:
-        virtual ~INewFeature() = default;
-        virtual std::expected<Result, Error> do_something() = 0;
+        virtual ~new_feature_base() = default;
+        virtual std::expected<Result, std::error_code> do_something() = 0;
     };
     
-    std::expected<std::unique_ptr<INewFeature>, Error> make_new_feature();
+    std::expected<std::unique_ptr<new_feature_base>, std::error_code> make_new_feature();
 }
 ```
 

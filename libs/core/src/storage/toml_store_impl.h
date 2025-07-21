@@ -8,28 +8,28 @@
 
 namespace ion::core::detail {
 
-class TomlTransaction;
+class toml_transaction;
 
-class ION_CORE_API TomlStore final : public IStore {
+class ION_CORE_API toml_store final : public store_base {
 public:
-    TomlStore(std::filesystem::path const& path, TomlStoreOptions const& options);
-    ~TomlStore();
+    toml_store(std::filesystem::path const& path, toml_store_options const& options);
+    ~toml_store();
 
-    std::expected<void, Error> open(std::filesystem::path const& path) override;
-    std::expected<void, Error> close() override;
-    std::expected<std::unique_ptr<ITransaction>, Error> begin_transaction() override;
+    std::expected<void, std::error_code> open(std::filesystem::path const& path) override;
+    std::expected<void, std::error_code> close() override;
+    std::expected<std::unique_ptr<transaction_base>, std::error_code> begin_transaction() override;
 
 private:
-    friend class TomlTransaction;
+    friend class toml_transaction;
 
     std::filesystem::path path_;
-    TomlStoreOptions options_;
+    toml_store_options options_;
     toml::table data_;
     bool is_open_ = false;
     mutable std::mutex mutex_;
     
-    std::expected<void, Error> load_from_file();
-    std::expected<void, Error> save_to_file(toml::table const& data);
+    std::expected<void, std::error_code> load_from_file();
+    std::expected<void, std::error_code> save_to_file(toml::table const& data);
     void update_data(toml::table const& new_data) {
         std::lock_guard<std::mutex> lock(mutex_);
         data_ = new_data;

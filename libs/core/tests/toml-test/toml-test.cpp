@@ -11,15 +11,15 @@ using namespace ion::core;
 using namespace Catch::Matchers;
 namespace fs = std::filesystem;
 
-class TempFile {
+class temp_file {
     fs::path path_;
 public:
-    TempFile(const std::string& name) 
+    temp_file(const std::string& name) 
         : path_(fs::temp_directory_path() / name) {
         cleanup();
     }
     
-    ~TempFile() { cleanup(); }
+    ~temp_file() { cleanup(); }
     
     const fs::path& path() const { return path_; }
     
@@ -44,8 +44,8 @@ private:
 };
 
 TEST_CASE("TOML Store - Basic Operations", "[storage][toml]") {
-    TempFile temp("test_basic.toml");
-    TomlStoreOptions opts{};
+    temp_file temp("test_basic.toml");
+    toml_store_options opts{};
     
     SECTION("Create and open empty store") {
         auto store_result = make_toml_file_store(temp.path(), opts);
@@ -90,7 +90,7 @@ TEST_CASE("TOML Store - Basic Operations", "[storage][toml]") {
         
         auto open2 = store->open(temp.path());
         REQUIRE_FALSE(open2.has_value());
-        REQUIRE(open2.error().code == ErrorCode::AlreadyExists);
+        REQUIRE(open2.error() == core_errc::already_exists);
     }
     
     SECTION("Cannot begin transaction on closed store") {
@@ -101,13 +101,13 @@ TEST_CASE("TOML Store - Basic Operations", "[storage][toml]") {
         // Don't open the store
         auto txn_result = store->begin_transaction();
         REQUIRE_FALSE(txn_result.has_value());
-        REQUIRE(txn_result.error().code == ErrorCode::InvalidState);
+        REQUIRE(txn_result.error() == core_errc::invalid_state);
     }
 }
 
 TEST_CASE("TOML Transaction - ACID Properties", "[storage][toml][acid]") {
-    TempFile temp("test_acid.toml");
-    TomlStoreOptions opts{};
+    temp_file temp("test_acid.toml");
+    toml_store_options opts{};
     
     auto store_result = make_toml_file_store(temp.path(), opts);
     REQUIRE(store_result.has_value());
@@ -196,11 +196,11 @@ TEST_CASE("TOML Transaction - ACID Properties", "[storage][toml][acid]") {
         
         auto int_result = txn->get_int(*str_handle_result);
         REQUIRE_FALSE(int_result.has_value());
-        REQUIRE(int_result.error().code == ErrorCode::TypeMismatch);
+        REQUIRE(int_result.error() == core_errc::type_mismatch);
         
         auto bool_result = txn->get_bool(*str_handle_result);
         REQUIRE_FALSE(bool_result.has_value());
-        REQUIRE(bool_result.error().code == ErrorCode::TypeMismatch);
+        REQUIRE(bool_result.error() == core_errc::type_mismatch);
     }
     
     SECTION("Isolation - Transactions don't interfere") {
@@ -323,8 +323,8 @@ TEST_CASE("TOML Transaction - ACID Properties", "[storage][toml][acid]") {
 }
 
 TEST_CASE("TOML Transaction - Complex Data Structures", "[storage][toml]") {
-    TempFile temp("test_complex.toml");
-    TomlStoreOptions opts{};
+    temp_file temp("test_complex.toml");
+    toml_store_options opts{};
     
     auto store = make_toml_file_store(temp.path(), opts);
     REQUIRE(store.has_value());
@@ -433,8 +433,8 @@ TEST_CASE("TOML Transaction - Complex Data Structures", "[storage][toml]") {
 }
 
 TEST_CASE("TOML Transaction - Error Handling", "[storage][toml]") {
-    TempFile temp("test_errors.toml");
-    TomlStoreOptions opts{};
+    temp_file temp("test_errors.toml");
+    toml_store_options opts{};
     
     auto store = make_toml_file_store(temp.path(), opts);
     REQUIRE(store.has_value());
@@ -452,15 +452,15 @@ TEST_CASE("TOML Transaction - Error Handling", "[storage][toml]") {
         // Test invalid key patterns
         auto result1 = (*txn)->make_string(*root, "123invalid", "value");
         REQUIRE_FALSE(result1.has_value());
-        REQUIRE(result1.error().code == ErrorCode::PathSyntax);
+        REQUIRE(result1.error() == core_errc::path_syntax);
         
         auto result2 = (*txn)->make_string(*root, "has-dash", "value");
         REQUIRE_FALSE(result2.has_value());
-        REQUIRE(result2.error().code == ErrorCode::PathSyntax);
+        REQUIRE(result2.error() == core_errc::path_syntax);
         
         auto result3 = (*txn)->make_string(*root, "has space", "value");
         REQUIRE_FALSE(result3.has_value());
-        REQUIRE(result3.error().code == ErrorCode::PathSyntax);
+        REQUIRE(result3.error() == core_errc::path_syntax);
         
         // Valid keys
         auto result4 = (*txn)->make_string(*root, "valid_key", "value");
@@ -485,24 +485,24 @@ TEST_CASE("TOML Transaction - Error Handling", "[storage][toml]") {
         
         auto result2 = (*txn)->make_string(*root, "duplicate", "second");
         REQUIRE_FALSE(result2.has_value());
-        REQUIRE(result2.error().code == ErrorCode::AlreadyExists);
+        REQUIRE(result2.error() == core_errc::already_exists);
     }
     
     SECTION("Invalid handles") {
         auto txn = (*store)->begin_transaction();
         REQUIRE(txn.has_value());
         
-        StoreHandle invalid{0};  // Invalid handle
+        store_handle invalid{0};  // Invalid handle
         
         auto result = (*txn)->get_string(invalid);
         REQUIRE_FALSE(result.has_value());
-        REQUIRE(result.error().code == ErrorCode::InvalidArgument);
+        REQUIRE(result.error() == core_errc::invalid_argument);
         
-        StoreHandle nonexistent{999999};  // Valid format but doesn't exist
+        store_handle nonexistent{999999};  // Valid format but doesn't exist
         
         auto result2 = (*txn)->get_string(nonexistent);
         REQUIRE_FALSE(result2.has_value());
-        REQUIRE(result2.error().code == ErrorCode::KeyNotFound);
+        REQUIRE(result2.error() == core_errc::key_not_found);
     }
     
     SECTION("Type mismatches on parent operations") {
@@ -522,13 +522,13 @@ TEST_CASE("TOML Transaction - Error Handling", "[storage][toml]") {
         // Try to use it as a table
         auto child_result = (*txn)->make_string(*str_handle, "child", "value");
         REQUIRE_FALSE(child_result.has_value());
-        REQUIRE(child_result.error().code == ErrorCode::TypeMismatch);
+        REQUIRE(child_result.error() == core_errc::type_mismatch);
     }
 }
 
 TEST_CASE("TOML Transaction - Update Operations", "[storage][toml]") {
-    TempFile temp("test_updates.toml");
-    TomlStoreOptions opts{};
+    temp_file temp("test_updates.toml");
+    toml_store_options opts{};
     
     auto store = make_toml_file_store(temp.path(), opts);
     REQUIRE(store.has_value());
@@ -670,7 +670,7 @@ TEST_CASE("TOML Transaction - Update Operations", "[storage][toml]") {
             // Try to remove non-existent key
             auto remove3 = (*txn)->remove(*root, "doesnt_exist");
             REQUIRE_FALSE(remove3.has_value());
-            REQUIRE(remove3.error().code == ErrorCode::KeyNotFound);
+            REQUIRE(remove3.error() == core_errc::key_not_found);
             
             auto commit = (*txn)->commit();
             REQUIRE(commit.has_value());
@@ -707,8 +707,8 @@ TEST_CASE("TOML Transaction - Update Operations", "[storage][toml]") {
 }
 
 TEST_CASE("TOML Store - File Format", "[storage][toml]") {
-    TempFile temp("test_format.toml");
-    TomlStoreOptions opts{};
+    temp_file temp("test_format.toml");
+    toml_store_options opts{};
     
     SECTION("Verify TOML output format") {
         auto store = make_toml_file_store(temp.path(), opts);
@@ -804,9 +804,9 @@ file = "/var/log/app.log"
 }
 
 TEST_CASE("TOML Store - Crash Safety", "[storage][toml]") {
-    TempFile temp("test_crash.toml");
-    TempFile temp_backup(temp.path().string() + ".tmp");
-    TomlStoreOptions opts{};
+    temp_file temp("test_crash.toml");
+    temp_file temp_backup(temp.path().string() + ".tmp");
+    toml_store_options opts{};
     
     SECTION("Atomic file replacement") {
         // Create initial file
@@ -850,8 +850,8 @@ value = "original"
 }
 
 TEST_CASE("TOML Store - Performance", "[storage][toml][!benchmark]") {
-    TempFile temp("test_perf.toml");
-    TomlStoreOptions opts{};
+    temp_file temp("test_perf.toml");
+    toml_store_options opts{};
     
     auto store = make_toml_file_store(temp.path(), opts);
     REQUIRE(store.has_value());

@@ -1,4 +1,4 @@
-# Creating Applications
+# Creating applications
 
 This guide covers creating applications that use the Ion Vortex engine, from simple tools to full games.
 
@@ -10,7 +10,7 @@ Ion Vortex applications are:
 - **Resource-managed** using RAII and smart pointers
 - **Error-handling** with `std::expected` throughout
 
-## Application Structure
+## application Structure
 
 ```
 apps/your_app/
@@ -31,7 +31,7 @@ apps/your_app/
 
 ## Step-by-Step Guide
 
-### Step 1: Plan Your Application
+### Step 1: Plan Your application
 
 Consider:
 1. **What type of app?** (Game, tool, server, etc.)
@@ -39,7 +39,7 @@ Consider:
 3. **Platform requirements?**
 4. **Asset requirements?**
 
-### Step 2: Create Directory
+### Step 2: create Directory
 
 ```bash
 mkdir -p apps/your_app/src
@@ -64,7 +64,7 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../libs libs)
 endif()
 
-# Create application - dependencies auto-resolved
+# create application - dependencies auto-resolved
 ion_add_application(
     NAME your_app
     DEPENDENCIES
@@ -112,7 +112,7 @@ if(NOT WIN32 AND NOT APPLE)
 endif()
 ```
 
-### Step 4: Create Application Class
+### Step 4: Create `application` Class
 
 `src/application.h`:
 
@@ -132,54 +132,53 @@ endif()
 
 namespace your_app {
 
-class Application {
+class application {
 public:
     // Configuration
-    struct Config {
+    struct config {
         std::string title = "Your App";
         int width = 1280;
         int height = 720;
         bool fullscreen = false;
         bool vsync = true;
-        ion::core::ILogger* logger = nullptr;
+        ion::core::logger_base* logger = nullptr;
     };
     
     // Factory
-    [[nodiscard("Handle creation failure"), gnu::warn_unused_result]]
-    static std::expected<std::unique_ptr<Application>, ion::core::Error> 
-    Create(const Config& config);
+    [[OAT_NODISCARD("Please make sure to handle the creation failure.")]]
+    static std::expected<std::unique_ptr<application>, std::error_code> 
+    create(const config& config);
     
     // Lifecycle
     void run();
     void shutdown();
     
-    ~Application();
+    ~application();
     
 private:
-    Application(const Config& config);
+    application(const config& config);
     
-    [[nodiscard, gnu::warn_unused_result]]
-
-    std::expected<void, ion::core::Error> initialize();
+    [[OAT_NODISCARD("Please ensure to handle init failure.")]]
+    std::expected<void, std::error_code> initialize();
     
     void update(float delta_time);
     void render();
-    void handleInput();
+    void handle_input();
     
     // Core systems (all through interfaces)
-    Config config_;
-    std::unique_ptr<ion::platform::IWindow> window_;
-    std::unique_ptr<ion::render::IRenderBackend> renderer_;
-    std::unique_ptr<ion::ui::IUISystem> ui_;
-    std::unique_ptr<ion::audio::IAudioEngine> audio_;
+    config config_;
+    std::unique_ptr<ion::platform::window_base> window_;
+    std::unique_ptr<ion::render::render_backend_base> renderer_;
+    std::unique_ptr<ion::ui::ui_system_base> ui_;
+    std::unique_ptr<ion::audio::audio_engine_base> audio_;
     
     // State
     bool running_ = true;
     std::chrono::steady_clock::time_point last_frame_time_;
     
     // Prevent copying
-    Application(const Application&) = delete;
-    Application& operator=(const Application&) = delete;
+    application(const application&) = delete;
+    application& operator=(const application&) = delete;
 };
 
 } // namespace your_app
@@ -192,10 +191,10 @@ private:
 
 namespace your_app {
 
-std::expected<std::unique_ptr<Application>, ion::core::Error>
-Application::Create(const Config& config) {
-    // Create instance
-    auto app = std::unique_ptr<Application>(new Application(config));
+std::expected<std::unique_ptr<application>, std::error_code>
+application::create(const config& config) {
+    // create instance
+    auto app = std::unique_ptr<application>(new application(config));
     
     // Initialize
     if (auto result = app->initialize(); !result) {
@@ -205,49 +204,49 @@ Application::Create(const Config& config) {
     return app;
 }
 
-Application::Application(const Config& config) 
+application::application(const config& config) 
     : config_(config) {
 }
 
-Application::~Application() {
+application::~application() {
     shutdown();
 }
 
-std::expected<void, ion::core::Error> Application::initialize() {
+std::expected<void, std::error_code> application::initialize() {
     using namespace ion::core;
     
-    // Create window through ion platform system
-    ion::platform::WindowConfig window_config;
+    // create window through ion platform system
+    ion::platform::window_config window_config;
     window_config.title = config_.title;
     window_config.width = config_.width;
     window_config.height = config_.height;
     window_config.fullscreen = config_.fullscreen;
     
-    auto window_result = ion::platform::makeWindow(window_config);
+    auto window_result = ion::platform::make_window(window_config);
     if (!window_result) {
         return std::unexpected(window_result.error());
     }
     window_ = std::move(window_result.value());
     
     // Initialize renderer
-    auto render_result = ion::render::makeRenderBackend(window_.get());
+    auto render_result = ion::render::make_render_backend(window_.get());
     if (!render_result) {
         return std::unexpected(render_result.error());
     }
     renderer_ = std::move(render_result.value());
     
     // Initialize UI
-    auto ui_result = ion::ui::makeUISystem(window_.get(), renderer_.get());
+    auto ui_result = ion::ui::make_ui_system(window_.get(), renderer_.get());
     if (!ui_result) {
         return std::unexpected(ui_result.error());
     }
     ui_ = std::move(ui_result.value());
     
     // Initialize audio
-    auto audio_result = ion::audio::makeAudioEngine();
+    auto audio_result = ion::audio::make_audio_engine();
     if (!audio_result) {
         if (config_.logger) {
-            config_.logger->log(ion::core::LogLevel::Warn,
+            config_.logger->log(ion::core::log_level::warn,
                 "Audio initialization failed: " + 
                 std::string(audio_result.error().what())
             );
@@ -258,7 +257,7 @@ std::expected<void, ion::core::Error> Application::initialize() {
     }
     
     // Setup window callbacks
-    window_->setCloseCallback([this]() {
+    window_->set_close_callbacks([this]() {
         running_ = false;
     });
     
@@ -267,18 +266,18 @@ std::expected<void, ion::core::Error> Application::initialize() {
     return {};
 }
 
-void Application::run() {
-    while (running_ && !window_->shouldClose()) {
+void application::run() {
+    while (running_ && !window_->should_close()) {
         // Calculate delta time
         auto now = std::chrono::steady_clock::now();
         float delta_time = std::chrono::duration<float>(now - last_frame_time_).count();
         last_frame_time_ = now;
         
         // Poll events
-        window_->pollEvents();
+        window_->poll_events();
         
         // Update
-        handleInput();
+        handle_input();
         update(delta_time);
         
         // Render
@@ -286,7 +285,7 @@ void Application::run() {
     }
 }
 
-void Application::update(float delta_time) {
+void application::update(float delta_time) {
     // Update game logic
     
     // Update audio
@@ -295,44 +294,38 @@ void Application::update(float delta_time) {
     }
 }
 
-void Application::render() {
-    // Begin frame
-    renderer_->beginFrame();
-    
-    // Clear
-    renderer_->clear(0x2a2a2aff);  // Dark gray
-    
-    // Render game objects
-    // ...
-    
-    // UI
-    ui_->newFrame();
-    
-    // Main menu bar
-    if (ui_->beginMainMenuBar()) {
-        if (ui_->beginMenu("File")) {
-            if (ui_->menuItem("Exit")) {
-                running_ = false;
+void application::render() {
+    if (auto& fb = renderer_->frame(); fb.has_value())
+    {
+        // Clear
+        renderer_->clear(0x2a2a2aff);  // Dark gray
+        
+        // Render game objects
+        // ...
+        
+        // UI
+        if (auto& frame = _ui->frame(); frame.has_value()) {
+            if (auto& menu_bar = _ui->menu_bar(); menu_bar.has_value()) {
+                if (auto& menu = _ui->menu("File"); menu.has_value()) {
+                    if (auto& item = _ui->menu_item("Exit"); item.has_value()) {
+                        running_ = false;
+                    } // item cleans up automatically when it's out of scope.
+                } // ... etc
             }
-            ui_->endMenu();
         }
-        ui_->endMainMenuBar();
-    }
-    
-    // Debug window
-    ui_->beginWindow("Debug");
-    ui_->text("FPS: %.1f", ui_->getFramerate());
-    ui_->endWindow();
-    
-    ui_->render();
-    
-    // End frame
-    renderer_->endFrame();
+        
+        // Debug window
+        if (auto& window = _ui->window("Debug"); window.has_value()) {
+            ui_->text("FPS: %.1f", ui_->get_framerate());
+        } // window cleans up automatically when it's out of scope.
+        
+        ui_->render();
+    } // renderer automatically swaps the buffers, etc, when fb goes out of scope.
 }
 
-void Application::handleInput() {
+void application::handle_input() {
     // Handle keyboard through window interface
-    if (window_->isKeyPressed(ion::input::Key::Escape)) {
+    if (window_->is_key_pressed(ion::input::Key::Escape)) {
         running_ = false;
     }
     
@@ -340,7 +333,7 @@ void Application::handleInput() {
     // ...
 }
 
-void Application::shutdown() {
+void application::shutdown() {
     // Clean shutdown in reverse order
     audio_.reset();
     ui_.reset();
@@ -351,7 +344,7 @@ void Application::shutdown() {
 } // namespace your_app
 ```
 
-### Step 5: Create Main Entry Point
+### Step 5: create Main Entry Point
 
 `src/main.cpp`:
 
@@ -363,11 +356,11 @@ void Application::shutdown() {
 #include <cstdlib>
 
 int main(int argc, char* argv[]) {
-    // Create logger
-    auto logger = ion::core::makeConsoleLogger();
+    // create logger
+    auto logger = ion::core::make_console_logger();
     
     // Parse command line arguments
-    your_app::Application::Config config;
+    your_app::application::config config;
     config.logger = logger.get();
     
     for (int i = 1; i < argc; ++i) {
@@ -396,12 +389,12 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    // Create and run application
-    logger->log(ion::core::LogLevel::Info, "Starting application...");
+    // create and run application
+    logger->log(ion::core::log_level::info, "Starting application...");
     
-    auto app_result = your_app::Application::Create(config);
+    auto app_result = your_app::application::create(config);
     if (!app_result) {
-        logger->log(ion::core::LogLevel::Error,
+        logger->log(ion::core::log_level::error,
             "Failed to create application: " + 
             std::string(app_result.error().what())
         );
@@ -411,13 +404,13 @@ int main(int argc, char* argv[]) {
     try {
         app_result.value()->run();
     } catch (const std::exception& e) {
-        logger->log(ion::core::LogLevel::Critical,
+        logger->log(ion::core::log_level::critical,
             "Unhandled exception: " + std::string(e.what())
         );
         return 2;
     }
     
-    logger->log(ion::core::LogLevel::Info, "Application terminated normally");
+    logger->log(ion::core::log_level::info, "application terminated normally");
     return 0;
 }
 ```
@@ -433,18 +426,18 @@ add_subdirectory(unid)
 add_subdirectory(zoned)
 ```
 
-## Application Types
+## application Types
 
 ### Game Client
 
 Full game with rendering, audio, networking:
 
 ```cpp
-class GameClient : public Application {
+class game_client : public application {
     // Game-specific systems
-    std::unique_ptr<GameWorld> world_;
-    std::unique_ptr<NetworkClient> network_;
-    std::unique_ptr<InputManager> input_;
+    std::unique_ptr<game_world_base> world_;
+    std::unique_ptr<network_client_base> network_;
+    std::unique_ptr<input_manager_base> input_;
     
     void update(float dt) override {
         network_->receive();
@@ -460,9 +453,9 @@ class GameClient : public Application {
 Headless server without rendering:
 
 ```cpp
-class GameServer {
-    std::unique_ptr<NetworkServer> network_;
-    std::unique_ptr<GameSimulation> simulation_;
+class game_server {
+    std::unique_ptr<network_server_base> network_;
+    std::unique_ptr<game_sim_base> simulation_;
     
     void run() {
         while (running_) {
@@ -482,22 +475,12 @@ class GameServer {
 Focused on UI with file operations:
 
 ```cpp
-class LevelEditor : public Application {
-    void renderUI() {
-        if (ImGui::BeginMainMenuBar()) {
-            if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem("New")) newLevel();
-                if (ImGui::MenuItem("Open...")) openLevel();
-                if (ImGui::MenuItem("Save")) saveLevel();
-                ImGui::EndMenu();
-            }
-            ImGui::EndMainMenuBar();
-        }
-        
+class level_editor : public application {
+    void render_ui() {
         // Tool windows
-        renderSceneHierarchy();
-        renderPropertyEditor();
-        renderViewport();
+        render_scene_hierarchy();
+        render_property_editor();
+        render_viewport();
     }
 };
 ```
@@ -549,12 +532,12 @@ class LevelEditor : public Application {
 
 ```cpp
 class AssetManager {
-    std::expected<void, Error> loadFromDirectory(std::string_view path) {
+    std::expected<void, std::error_code> load_from_directory(std::string_view path) {
         namespace fs = std::filesystem;
         
         for (const auto& entry : fs::directory_iterator(path)) {
             if (entry.path().extension() == ".toml") {
-                auto result = loadConfig(entry.path());
+                auto result = loadconfig(entry.path());
                 if (!result) return result;
             }
         }
@@ -575,7 +558,7 @@ namespace embedded {
     extern const size_t default_shader_size;
 }
 
-auto shader = renderer_->createShader(
+auto shader = renderer_->create_shader(
     embedded::default_shader,
     embedded::default_shader_size
 );
@@ -587,10 +570,10 @@ auto shader = renderer_->createShader(
 
 ```cpp
 // Try to load user config, fall back to defaults
-auto config_result = loadConfig("user.toml");
+auto config_result = load_config("user.toml");
 if (!config_result) {
     logger->warn("Using default config: " + config_result.error().what());
-    config = getDefaultConfig();
+    config = get_default_config();
 } else {
     config = config_result.value();
 }
@@ -599,12 +582,12 @@ if (!config_result) {
 ### Fatal Errors
 
 ```cpp
-auto critical_resource = loadCriticalResource();
+auto critical_resource = load_critical_resources();
 if (!critical_resource) {
     // Log and show user-friendly error
     logger->error("Failed to load critical resource");
     
-    showErrorDialog(
+    show_error_dialog(
         "Startup Error",
         "Required files are missing. Please reinstall."
     );
@@ -618,15 +601,15 @@ if (!critical_resource) {
 ### Frame Timing
 
 ```cpp
-class FrameTimer {
-    static constexpr auto TARGET_FRAME_TIME = 16.667ms;  // 60 FPS
+class frame_timer {
+    static constexpr auto k_target_frame_time = 16.667ms;  // 60 FPS
     
-    void regulateFrameRate() {
+    void regulate_frame_rate() {
         auto frame_time = clock::now() - frame_start_;
         
-        if (frame_time < TARGET_FRAME_TIME) {
+        if (frame_time < k_target_frame_time) {
             std::this_thread::sleep_for(
-                TARGET_FRAME_TIME - frame_time
+                k_target_frame_time - frame_time
             );
         }
     }
@@ -636,9 +619,9 @@ class FrameTimer {
 ### Resource Pooling
 
 ```cpp
-class ParticleSystem {
+class particle_system {
     // Pre-allocate particles
-    std::vector<Particle> particle_pool_;
+    std::vector<particle> particle_pool_;
     std::queue<size_t> available_indices_;
     
     void emit() {
@@ -653,16 +636,16 @@ class ParticleSystem {
 };
 ```
 
-## Testing Applications
+## Testing applications
 
 ### Integration Tests
 
 ```cpp
-TEST_CASE("Application lifecycle", "[app]") {
-    Application::Config config;
+TEST_CASE("application lifecycle", "[app]") {
+    application::config config;
     config.headless = true;  // No window
     
-    auto app = Application::Create(config);
+    auto app = application::create(config);
     REQUIRE(app.has_value());
     
     // Simulate frames
@@ -679,14 +662,14 @@ TEST_CASE("Application lifecycle", "[app]") {
 
 ```cpp
 TEST_CASE("UI interactions", "[app][ui]") {
-    auto app = createTestApp();
+    auto app = create_test_app();
     
     // Simulate input
-    app->injectMouseClick(100, 200);
-    app->injectKeyPress(SDL_KEY_SPACE);
+    app->inject_mouse_click(100, 200);
+    app->inject_key_press(SDL_KEY_SPACE);
     
     // Check state
-    REQUIRE(app->isMenuOpen());
+    REQUIRE(app->is_menu_open());
 }
 ```
 
@@ -705,7 +688,7 @@ YourApp/
 └── README.txt           # User documentation
 ```
 
-### Build Configurations
+### Build configurations
 
 Release build for distribution:
 ```bash
@@ -732,7 +715,7 @@ cmake --install build/release/Windows --prefix dist/
 - ❌ Leak resources
 - ❌ Use global state
 
-## Example Applications
+## Example applications
 
 Study these for reference:
 - `apps/client/` - Full game client

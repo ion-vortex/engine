@@ -151,35 +151,6 @@ ctest --preset debug
 
 ## Advanced Build Options
 
-### Custom Build Directory
-
-```bash
-# Configure to custom directory
-cmake -B my-build -S . \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
-
-# Build
-cmake --build my-build
-```
-
-### Enable Link-Time Optimization (LTO)
-
-```bash
-# LTO is enabled by default for Release builds
-cmake --preset release
-
-# Or explicitly:
-cmake --preset debug -DION_ENABLE_LTO=ON
-```
-
-### Use Native CPU Optimizations
-
-```bash
-# Enable -march=native (Linux/macOS only)
-cmake --preset release -DION_ENABLE_MARCH_NATIVE=ON
-```
-
 ### Unity Builds
 
 Unity builds are enabled by default for faster compilation:

@@ -5,31 +5,31 @@
 using namespace ion::core;
 using namespace ion::core::detail;
 
-TomlTransaction::TomlTransaction(toml::table const& initial_data, TomlStore* store, TomlStoreOptions const& options)
+toml_transaction::toml_transaction(toml::table const& initial_data, toml_store* store, toml_store_options const& options)
     : data_(initial_data), store_(store), options_(options) {
     // Initialize root handle with empty path
     // The root handle is always 1, created here
-    handle_map_[1] = Node{{}};  // Empty path for root
+    handle_map_[1] = node{{}};  // Empty path for root
     next_handle_ = 2;  // Start from 2 for subsequent handles
 }
 
-TomlTransaction::~TomlTransaction() noexcept {
+toml_transaction::~toml_transaction() noexcept {
     if (!committed_) {
         rollback_impl();
     }
 }
 
-std::expected<StoreHandle, Error> TomlTransaction::root() const {
-    return StoreHandle{1};  // Root is always handle 1
+std::expected<store_handle, std::error_code> toml_transaction::root() const {
+    return store_handle{1};  // Root is always handle 1
 }
 
-StoreHandle TomlTransaction::make_handle(std::vector<std::string> path) const {
+store_handle toml_transaction::make_handle(std::vector<std::string> path) const {
     uint64_t handle = next_handle_++;
-    handle_map_[handle] = Node{std::move(path)};
-    return StoreHandle{handle};
+    handle_map_[handle] = node{std::move(path)};
+    return store_handle{handle};
 }
 
-toml::node* TomlTransaction::navigate_to_node(std::vector<std::string> const& path) {
+toml::node* toml_transaction::navigate_to_node(std::vector<std::string> const& path) {
     toml::node* current = &data_;
     
     for (size_t i = 0; i < path.size(); ++i) {
@@ -59,7 +59,7 @@ toml::node* TomlTransaction::navigate_to_node(std::vector<std::string> const& pa
     return current;
 }
 
-toml::node const* TomlTransaction::navigate_to_node(std::vector<std::string> const& path) const {
+toml::node const* toml_transaction::navigate_to_node(std::vector<std::string> const& path) const {
     toml::node const* current = &data_;
     
     for (size_t i = 0; i < path.size(); ++i) {
@@ -89,154 +89,154 @@ toml::node const* TomlTransaction::navigate_to_node(std::vector<std::string> con
     return current;
 }
 
-toml::node* TomlTransaction::get_node(StoreHandle h) {
+toml::node* toml_transaction::get_node(store_handle h) {
     auto it = handle_map_.find(h.raw);
     if (it == handle_map_.end()) return nullptr;
     
     return navigate_to_node(it->second.path);
 }
 
-toml::node const* TomlTransaction::get_node(StoreHandle h) const {
+toml::node const* toml_transaction::get_node(store_handle h) const {
     auto it = handle_map_.find(h.raw);
     if (it == handle_map_.end()) return nullptr;
     
     return navigate_to_node(it->second.path);
 }
 
-std::expected<toml::node*, Error> TomlTransaction::get_node_checked(StoreHandle h) {
+std::expected<toml::node*, std::error_code> toml_transaction::get_node_checked(store_handle h) {
     if (!h.valid()) {
-        return std::unexpected(Error{ErrorCode::InvalidArgument, "Invalid handle"});
+        return std::unexpected(make_error_code(core_errc::invalid_argument));
     }
     
     auto* node = get_node(h);
     if (!node) {
-        return std::unexpected(Error{ErrorCode::KeyNotFound, "Handle not found or path invalid"});
+        return std::unexpected(make_error_code(core_errc::key_not_found));
     }
     
     return node;
 }
 
-std::expected<toml::node const*, Error> TomlTransaction::get_node_checked(StoreHandle h) const {
+std::expected<toml::node const*, std::error_code> toml_transaction::get_node_checked(store_handle h) const {
     if (!h.valid()) {
-        return std::unexpected(Error{ErrorCode::InvalidArgument, "Invalid handle"});
+        return std::unexpected(make_error_code(core_errc::invalid_argument));
     }
     
     auto const* node = get_node(h);
     if (!node) {
-        return std::unexpected(Error{ErrorCode::KeyNotFound, "Handle not found or path invalid"});
+        return std::unexpected(make_error_code(core_errc::key_not_found));
     }
     
     return node;
 }
 
-bool TomlTransaction::is_valid_key(std::string_view key) const {
+bool toml_transaction::is_valid_key(std::string_view key) const {
     static const std::regex key_pattern("[A-Za-z_][A-Za-z0-9_]*");
     return std::regex_match(key.begin(), key.end(), key_pattern);
 }
 
-std::expected<bool, Error> TomlTransaction::get_bool(StoreHandle h) const {
+std::expected<bool, std::error_code> toml_transaction::get_bool(store_handle h) const {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* val = (*node_result)->as_boolean();
     if (!val) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not a boolean"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return val->get();
 }
 
-std::expected<int64_t, Error> TomlTransaction::get_int(StoreHandle h) const {
+std::expected<int64_t, std::error_code> toml_transaction::get_int(store_handle h) const {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* val = (*node_result)->as_integer();
     if (!val) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not an integer"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return val->get();
 }
 
-std::expected<double, Error> TomlTransaction::get_double(StoreHandle h) const {
+std::expected<double, std::error_code> toml_transaction::get_double(store_handle h) const {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* val = (*node_result)->as_floating_point();
     if (!val) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not a floating point"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return val->get();
 }
 
-std::expected<std::string, Error> TomlTransaction::get_string(StoreHandle h) const {
+std::expected<std::string, std::error_code> toml_transaction::get_string(store_handle h) const {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* val = (*node_result)->as_string();
     if (!val) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not a string"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return std::string(val->get());
 }
 
-std::expected<void, Error> TomlTransaction::set_bool(StoreHandle h, bool v) {
+std::expected<void, std::error_code> toml_transaction::set_bool(store_handle h, bool v) {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* val = (*node_result)->as_boolean();
     if (!val) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not a boolean"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     *val = v;
     return {};
 }
 
-std::expected<void, Error> TomlTransaction::set_int(StoreHandle h, int64_t v) {
+std::expected<void, std::error_code> toml_transaction::set_int(store_handle h, int64_t v) {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* val = (*node_result)->as_integer();
     if (!val) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not an integer"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     *val = v;
     return {};
 }
 
-std::expected<void, Error> TomlTransaction::set_double(StoreHandle h, double v) {
+std::expected<void, std::error_code> toml_transaction::set_double(store_handle h, double v) {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* val = (*node_result)->as_floating_point();
     if (!val) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not a floating point"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     *val = v;
     return {};
 }
 
-std::expected<void, Error> TomlTransaction::set_string(StoreHandle h, std::string_view v) {
+std::expected<void, std::error_code> toml_transaction::set_string(store_handle h, std::string_view v) {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* val = (*node_result)->as_string();
     if (!val) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not a string"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     *val = v;
     return {};
 }
 
-std::expected<StoreHandle, Error> TomlTransaction::make_array(StoreHandle parent, std::string_view key) {
+std::expected<store_handle, std::error_code> toml_transaction::make_array(store_handle parent, std::string_view key) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key name"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -244,11 +244,11 @@ std::expected<StoreHandle, Error> TomlTransaction::make_array(StoreHandle parent
     
     auto* table = (*node_result)->as_table();
     if (!table) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not a table"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (table->contains(key)) {
-        return std::unexpected(Error{ErrorCode::AlreadyExists, "Key already exists"});
+        return std::unexpected(make_error_code(core_errc::already_exists));
     }
     
     table->insert(key, toml::array{});
@@ -261,9 +261,9 @@ std::expected<StoreHandle, Error> TomlTransaction::make_array(StoreHandle parent
     return make_handle(std::move(path));
 }
 
-std::expected<StoreHandle, Error> TomlTransaction::make_object(StoreHandle parent, std::string_view key) {
+std::expected<store_handle, std::error_code> toml_transaction::make_object(store_handle parent, std::string_view key) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key name"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -271,11 +271,11 @@ std::expected<StoreHandle, Error> TomlTransaction::make_object(StoreHandle paren
     
     auto* table = (*node_result)->as_table();
     if (!table) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not a table"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (table->contains(key)) {
-        return std::unexpected(Error{ErrorCode::AlreadyExists, "Key already exists"});
+        return std::unexpected(make_error_code(core_errc::already_exists));
     }
     
     table->insert(key, toml::table{});
@@ -288,9 +288,9 @@ std::expected<StoreHandle, Error> TomlTransaction::make_object(StoreHandle paren
     return make_handle(std::move(path));
 }
 
-std::expected<void, Error> TomlTransaction::make_bool(StoreHandle parent, std::string_view key, bool v) {
+std::expected<void, std::error_code> toml_transaction::make_bool(store_handle parent, std::string_view key, bool v) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key name"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -298,20 +298,20 @@ std::expected<void, Error> TomlTransaction::make_bool(StoreHandle parent, std::s
     
     auto* table = (*node_result)->as_table();
     if (!table) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not a table"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (table->contains(key)) {
-        return std::unexpected(Error{ErrorCode::AlreadyExists, "Key already exists"});
+        return std::unexpected(make_error_code(core_errc::already_exists));
     }
     
     table->insert(key, v);
     return {};
 }
 
-std::expected<void, Error> TomlTransaction::make_int(StoreHandle parent, std::string_view key, int64_t v) {
+std::expected<void, std::error_code> toml_transaction::make_int(store_handle parent, std::string_view key, int64_t v) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key name"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -319,20 +319,20 @@ std::expected<void, Error> TomlTransaction::make_int(StoreHandle parent, std::st
     
     auto* table = (*node_result)->as_table();
     if (!table) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not a table"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (table->contains(key)) {
-        return std::unexpected(Error{ErrorCode::AlreadyExists, "Key already exists"});
+        return std::unexpected(make_error_code(core_errc::already_exists));
     }
     
     table->insert(key, v);
     return {};
 }
 
-std::expected<void, Error> TomlTransaction::make_double(StoreHandle parent, std::string_view key, double v) {
+std::expected<void, std::error_code> toml_transaction::make_double(store_handle parent, std::string_view key, double v) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key name"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -340,20 +340,20 @@ std::expected<void, Error> TomlTransaction::make_double(StoreHandle parent, std:
     
     auto* table = (*node_result)->as_table();
     if (!table) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not a table"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (table->contains(key)) {
-        return std::unexpected(Error{ErrorCode::AlreadyExists, "Key already exists"});
+        return std::unexpected(make_error_code(core_errc::already_exists));
     }
     
     table->insert(key, v);
     return {};
 }
 
-std::expected<void, Error> TomlTransaction::make_string(StoreHandle parent, std::string_view key, std::string_view v) {
+std::expected<void, std::error_code> toml_transaction::make_string(store_handle parent, std::string_view key, std::string_view v) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key name"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -361,86 +361,86 @@ std::expected<void, Error> TomlTransaction::make_string(StoreHandle parent, std:
     
     auto* table = (*node_result)->as_table();
     if (!table) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not a table"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (table->contains(key)) {
-        return std::unexpected(Error{ErrorCode::AlreadyExists, "Key already exists"});
+        return std::unexpected(make_error_code(core_errc::already_exists));
     }
     
     table->insert(key, std::string(v));
     return {};
 }
 
-std::expected<void, Error> TomlTransaction::remove(StoreHandle parent, std::string_view key) {
+std::expected<void, std::error_code> toml_transaction::remove(store_handle parent, std::string_view key) {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* table = (*node_result)->as_table();
     if (!table) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not a table"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (!table->contains(key)) {
-        return std::unexpected(Error{ErrorCode::KeyNotFound, "Key not found"});
+        return std::unexpected(make_error_code(core_errc::key_not_found));
     }
     
     table->erase(key);
     return {};
 }
 
-std::expected<bool, Error> TomlTransaction::has(StoreHandle parent, std::string_view key) const {
+std::expected<bool, std::error_code> toml_transaction::has(store_handle parent, std::string_view key) const {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* table = (*node_result)->as_table();
     if (!table) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not a table"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return table->contains(key);
 }
 
-std::expected<void, Error> TomlTransaction::erase_element(StoreHandle parent, size_t idx) {
+std::expected<void, std::error_code> toml_transaction::erase_element(store_handle parent, size_t idx) {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* array = (*node_result)->as_array();
     if (!array) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an array"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (idx >= array->size()) {
-        return std::unexpected(Error{ErrorCode::IndexOutOfRange, "Index out of range"});
+        return std::unexpected(make_error_code(core_errc::index_out_of_range));
     }
     
     array->erase(array->begin() + idx);
     return {};
 }
 
-std::expected<bool, Error> TomlTransaction::has_element(StoreHandle parent, size_t idx) const {
+std::expected<bool, std::error_code> toml_transaction::has_element(store_handle parent, size_t idx) const {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* array = (*node_result)->as_array();
     if (!array) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an array"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return idx < array->size();
 }
 
-std::expected<StoreHandle, Error> TomlTransaction::child(StoreHandle parent, std::string_view key) const {
+std::expected<store_handle, std::error_code> toml_transaction::child(store_handle parent, std::string_view key) const {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* table = (*node_result)->as_table();
     if (!table) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not a table"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (!table->contains(key)) {
-        return std::unexpected(Error{ErrorCode::KeyNotFound, "Key not found"});
+        return std::unexpected(make_error_code(core_errc::key_not_found));
     }
     
     // Build path by looking up parent's path
@@ -451,17 +451,17 @@ std::expected<StoreHandle, Error> TomlTransaction::child(StoreHandle parent, std
     return make_handle(std::move(path));
 }
 
-std::expected<StoreHandle, Error> TomlTransaction::element(StoreHandle parent, size_t idx) const {
+std::expected<store_handle, std::error_code> toml_transaction::element(store_handle parent, size_t idx) const {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* array = (*node_result)->as_array();
     if (!array) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an array"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (idx >= array->size()) {
-        return std::unexpected(Error{ErrorCode::IndexOutOfRange, "Index out of range"});
+        return std::unexpected(make_error_code(core_errc::index_out_of_range));
     }
     
     // Build path by looking up parent's path
@@ -472,9 +472,9 @@ std::expected<StoreHandle, Error> TomlTransaction::element(StoreHandle parent, s
     return make_handle(std::move(path));
 }
 
-std::expected<void, Error> TomlTransaction::commit_impl() {
+std::expected<void, std::error_code> toml_transaction::commit_impl() {
     if (!store_) {
-        return std::unexpected(Error{ErrorCode::InvalidState, "No store associated with transaction"});
+        return std::unexpected(make_error_code(core_errc::invalid_state));
     }
     
     auto result = store_->save_to_file(data_);
@@ -485,7 +485,7 @@ std::expected<void, Error> TomlTransaction::commit_impl() {
     return result;
 }
 
-void TomlTransaction::rollback_impl() noexcept {
+void toml_transaction::rollback_impl() noexcept {
     // Clear the transaction data
     data_.clear();
     handle_map_.clear();

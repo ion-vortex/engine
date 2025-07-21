@@ -9,15 +9,15 @@ using namespace ion::core;
 using namespace Catch::Matchers;
 namespace fs = std::filesystem;
 
-class TempFile {
+class temp_file {
     fs::path path_;
 public:
-    TempFile(const std::string& name) 
+    temp_file(const std::string& name) 
         : path_(fs::temp_directory_path() / name) {
         cleanup();
     }
     
-    ~TempFile() { cleanup(); }
+    ~temp_file() { cleanup(); }
     
     const fs::path& path() const { return path_; }
     
@@ -42,8 +42,8 @@ private:
 };
 
 TEST_CASE("JSON Store - Basic Operations", "[storage][json]") {
-    TempFile temp("test_basic.json");
-    JsonStoreOptions opts{};
+    temp_file temp("test_basic.json");
+    json_store_options opts{};
     
     SECTION("Create and open empty store") {
         auto store_result = make_json_file_store(temp.path(), opts);
@@ -88,7 +88,7 @@ TEST_CASE("JSON Store - Basic Operations", "[storage][json]") {
         
         auto open2 = store->open(temp.path());
         REQUIRE_FALSE(open2.has_value());
-        REQUIRE(open2.error().code == ErrorCode::AlreadyExists);
+        REQUIRE(open2.error() == core_errc::already_exists);
     }
     
     SECTION("Cannot begin transaction on closed store") {
@@ -99,13 +99,13 @@ TEST_CASE("JSON Store - Basic Operations", "[storage][json]") {
         // Don't open the store
         auto txn_result = store->begin_transaction();
         REQUIRE_FALSE(txn_result.has_value());
-        REQUIRE(txn_result.error().code == ErrorCode::InvalidState);
+        REQUIRE(txn_result.error() == core_errc::invalid_state);
     }
 }
 
 TEST_CASE("JSON Transaction - ACID Properties", "[storage][json][acid]") {
-    TempFile temp("test_acid.json");
-    JsonStoreOptions opts{};
+    temp_file temp("test_acid.json");
+    json_store_options opts{};
     
     auto store_result = make_json_file_store(temp.path(), opts);
     REQUIRE(store_result.has_value());
@@ -175,8 +175,8 @@ TEST_CASE("JSON Transaction - ACID Properties", "[storage][json][acid]") {
 }
 
 TEST_CASE("JSON Transaction - Data Types", "[storage][json][types]") {
-    TempFile temp("test_types.json");
-    JsonStoreOptions opts{};
+    temp_file temp("test_types.json");
+    json_store_options opts{};
     
     auto store_result = make_json_file_store(temp.path(), opts);
     REQUIRE(store_result.has_value());

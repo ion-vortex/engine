@@ -1,5 +1,5 @@
 #pragma once
-#include "i_buffer.h"
+#include "buffer_base.h"
 #include <array>
 #include <cstring>
 #include <ion/core/export.h>
@@ -7,38 +7,38 @@
 namespace ion::core::detail {
 
 template <std::size_t N>
-class StaticBuffer final : public IBuffer {
+class StaticBuffer final : public buffer_base {
     std::array<std::byte, N> data_;
     std::size_t size_ = 0;
 public:
-    std::expected<void, Error> resize(std::size_t bytes) override {
+    std::expected<void, std::error_code> resize(std::size_t bytes) override {
         if (bytes > N) {
-            return std::unexpected(Error(ErrorCode::MessageTooLong, "Resize exceeds static buffer size"));
+            return std::unexpected(make_error_code(core_errc::message_too_long));
         }
         size_ = bytes;
         return {};
     }
 
-    std::expected<void, Error> reserve(std::size_t bytes) override {
+    std::expected<void, std::error_code> reserve(std::size_t bytes) override {
         if (bytes > N) {
-            return std::unexpected(Error(ErrorCode::MessageTooLong, "Reserve exceeds static buffer size"));
+            return std::unexpected(make_error_code(core_errc::message_too_long));
         }
         return {};
     }
 
-    std::expected<void, Error> clear() override {
+    std::expected<void, std::error_code> clear() override {
         size_ = 0;
         return {};
     }
 
-    std::expected<void, Error> shrink_to_fit() override {
+    std::expected<void, std::error_code> shrink_to_fit() override {
         // No-op for static buffer
         return {};
     }
 
-    std::expected<void, Error> append(std::span<const std::byte> src) override {
+    std::expected<void, std::error_code> append(std::span<const std::byte> src) override {
         if (size_ + src.size() > N) {
-            return std::unexpected(Error(ErrorCode::MessageTooLong, "Append exceeds static buffer size"));
+            return std::unexpected(make_error_code(core_errc::message_too_long));
         }
         std::memcpy(data_.data() + size_, src.data(), src.size());
         size_ += src.size();

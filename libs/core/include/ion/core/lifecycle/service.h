@@ -4,10 +4,10 @@
 
 namespace ion::core {
 
-class ION_CORE_API IService {
+class ION_CORE_API service_base {
 public:
-    virtual ~IService() = default;
-    
+    virtual ~service_base() = default;
+
     virtual void init() = 0;
     virtual void tick() = 0;
     virtual void shutdown() = 0;

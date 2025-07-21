@@ -18,7 +18,7 @@ libs/your_library/
 ├── include/
 │   └── ion/
 │       └── your_library/
-│           ├── your_interface.h      # Public interface
+│           ├── your_type.h      # Public interface
 │           ├── error_codes.h         # Library-specific errors
 │           └── types.h               # Public types/structs
 ├── src/
@@ -52,7 +52,7 @@ mkdir -p libs/your_library/{include/ion/your_library,src,tests}
 
 ### Step 3: Define the Public Interface
 
-Create `include/ion/your_library/your_interface.h`:
+Create `include/ion/your_library/your_type.h`:
 
 ```cpp
 #pragma once
@@ -64,23 +64,23 @@ Create `include/ion/your_library/your_interface.h`:
 namespace ion::your_library {
 
 // Forward declarations
-class IYourInterface;
+class your_type_base;
 
 // Factory function declaration
-[[nodiscard("Handle the result"), gnu::warn_unused_result]]
-std::expected<std::unique_ptr<IYourInterface>, core::Error> 
-makeYourInterface(/* parameters */);
+[[OAT_NODISCARD("Please ensure that the result is valid.")]]
+std::expected<std::unique_ptr<your_type_base>, std::error_code> 
+make_your_type(/* parameters */);
 
 // Pure interface
-class IYourInterface {
+class your_type_base {
 public:
-    virtual ~IYourInterface() = default;
+    virtual ~your_type_base() = default;
     
     // Core functionality
-    virtual void doSomething() = 0;
+    virtual void do_something() = 0;
     
-    [[nodiscard("Check the result"), gnu::warn_unused_result]]
-    virtual std::expected<int, core::Error> computeValue() = 0;
+    [[OAT_NODISCARD("Please don't forget to check the result.")]]
+    virtual std::expected<int, std::error_code> compute_value() = 0;
     
     // No implementation details in interface!
 };
@@ -90,60 +90,7 @@ public:
 
 ### Step 4: Define Error Codes
 
-Create `include/ion/your_library/error_codes.h`:
-
-**Important**: Check `ion/core/error/error.h` for reserved error code ranges. Each library has an assigned range:
-- 1000-1999: render
-- 2000-2999: net
-- 3000-3999: asset
-- 4000-4999: audio
-- 5000-5999: crypto
-- 6000-6999: fs
-- 7000-7999: physics
-- 8000-8999: protocol
-- 9000-9999: ui
-- 10000+: Applications
-
-```cpp
-#pragma once
-
-#include <ion/core/error/error.h>
-
-namespace ion::your_library {
-
-enum class ErrorCode : std::uint32_t {
-    // Mirror core sentinels
-    Ok      = 0x00000000,
-    Unknown = 0xFFFFFFFF,
-    
-    // Library-specific errors (use your assigned range)
-    // Example: If assigned 3000-3999
-    NotInitialized      = 3001,
-    InvalidParameter    = 3002,
-    ResourceUnavailable = 3003,
-    OperationFailed     = 3004,
-    InvalidState        = 3005,
-    // ... more as needed
-};
-
-// Convert error code to string
-constexpr std::string_view to_string(ErrorCode code) noexcept {
-    switch (code) {
-        case ErrorCode::Ok:                  return "Ok";
-        case ErrorCode::Unknown:             return "Unknown error";
-        case ErrorCode::NotInitialized:      return "Not initialized";
-        case ErrorCode::InvalidParameter:    return "Invalid parameter";
-        case ErrorCode::ResourceUnavailable: return "Resource unavailable";
-        case ErrorCode::OperationFailed:     return "Operation failed";
-        case ErrorCode::InvalidState:        return "Invalid state";
-        default:
-            // Try core error codes
-            return ion::core::to_string(static_cast<ion::core::ErrorCode>(code));
-    }
-}
-
-} // namespace ion::your_library
-```
+See the C++ manual for more information, but basically you should create your own error category and then start your enum class like `enum class my_lib_errc { my_first_error = 1; }`
 
 ### Step 5: Create Implementation
 
@@ -152,24 +99,24 @@ Create `src/your_implementation.h`:
 ```cpp
 #pragma once
 
-#include <ion/your_library/your_interface.h>
+#include <ion/your_library/your_type.h>
 
 namespace ion::your_library::detail {
 
-class YourImplementation final : public IYourInterface {
+class your_type_impl final : public your_type_base {
 public:
     // Factory method
-    [[nodiscard("Handle the result"), gnu::warn_unused_result]]
-    static std::expected<std::unique_ptr<YourImplementation>, core::Error> 
-    Create(/* parameters */);
+    [[OAT_NODISCARD("Handle the result")]]
+    static std::expected<std::unique_ptr<your_type_impl>, std::error_code> 
+    create(/* parameters */);
     
-    // IYourInterface implementation
-    void doSomething() override;
-    std::expected<int, core::Error> computeValue() override;
+    // your_type_base implementation
+    void do_something() override;
+    std::expected<int, , std::error_code> compute_value() override;
     
 private:
     // Private constructor - use factory
-    YourImplementation(/* params */);
+    your_type_impl(/* params */);
     
     // Private members
     int state_ = 0;
@@ -186,49 +133,40 @@ Create `src/your_implementation.cpp`:
 
 namespace ion::your_library::detail {
 
-std::expected<std::unique_ptr<YourImplementation>, core::Error> 
-YourImplementation::Create(/* parameters */) {
+std::expected<std::unique_ptr<your_type_base>, std::error_code> 
+your_type_impl::create(/* parameters */) {
     // Validate parameters
     if (/* invalid */) {
-        return std::unexpected(core::Error(
-            ErrorCode::InvalidParameter,
-            "Description of what's wrong"
-        ));
+        return std::unexpected(lib_errc::invalid);
     }
     
     // Create instance (can't use make_unique with private constructor)
-    auto instance = std::unique_ptr<YourImplementation>(
-        new YourImplementation(/* params */)
+    auto instance = std::unique_ptr<your_type_impl>(
+        new your_type_impl(/* params */)
     );
     
     // Any initialization that can fail
     if (/* init failed */) {
-        return std::unexpected(core::Error(
-            ErrorCode::OperationFailed,
-            "Initialization failed"
-        ));
+        return std::unexpected(lib_errc::operation_failed);
     }
     
     return instance;
 }
 
-void YourImplementation::doSomething() {
+void your_type_impl::do_something() {
     // Implementation
     state_++;
 }
 
-std::expected<int, core::Error> YourImplementation::computeValue() {
+std::expected<int, std::error_code> your_type_impl::compute_value() {
     if (state_ < 0) {
-        return std::unexpected(core::Error(
-            ErrorCode::InvalidState,
-            "State is negative"
-        ));
+        return std::unexpected(lib_errc::invalid_state);
     }
     
     return state_ * 2;
 }
 
-YourImplementation::YourImplementation(/* params */) {
+your_type_impl::your_type_impl(/* params */) {
     // Constructor logic
 }
 
@@ -237,15 +175,15 @@ YourImplementation::YourImplementation(/* params */) {
 // Factory function implementation
 namespace ion::your_library {
 
-std::expected<std::unique_ptr<IYourInterface>, core::Error> 
-makeYourInterface(/* parameters */) {
-    auto result = detail::YourImplementation::Create(/* params */);
+std::expected<std::unique_ptr<your_type_base>, std::error_code> 
+make_your_interface(/* parameters */) {
+    auto result = detail::your_type_impl::create(/* params */);
     if (!result) {
         return std::unexpected(result.error());
     }
     
     // Return as interface pointer
-    return std::unique_ptr<IYourInterface>(std::move(result.value()));
+    return std::unique_ptr<your_type_base>(std::move(result.value()));
 }
 
 } // namespace ion::your_library
@@ -312,33 +250,33 @@ Create `tests/integration_tests.cpp`:
 
 ```cpp
 #include <catch2/catch_test_macros.hpp>
-#include <ion/your_library/your_interface.h>
+#include <ion/your_library/your_type.h>
 
 using namespace ion::your_library;
 
 TEST_CASE("YourInterface basic operations", "[your_library]") {
     SECTION("Creation succeeds with valid parameters") {
-        auto result = makeYourInterface(/* valid params */);
+        auto result = make_your_interface(/* valid params */);
         REQUIRE(result.has_value());
         REQUIRE(result.value() != nullptr);
     }
     
     SECTION("Creation fails with invalid parameters") {
-        auto result = makeYourInterface(/* invalid params */);
+        auto result = make_your_interface(/* invalid params */);
         REQUIRE(!result.has_value());
-        REQUIRE(result.error().code() == ErrorCode::InvalidParameter);
+        REQUIRE(result.error().code() == ErrorCode::invalid_parameter);
     }
     
     SECTION("Operations work correctly") {
-        auto result = makeYourInterface();
+        auto result = make_your_interface();
         REQUIRE(result.has_value());
         
         auto& interface = *result.value();
         
         // Test operations
-        interface.doSomething();
+        interface.do_something();
         
-        auto value_result = interface.computeValue();
+        auto value_result = interface.compute_value();
         REQUIRE(value_result.has_value());
         REQUIRE(value_result.value() == 2);
     }
@@ -376,33 +314,33 @@ Brief description of what this library does.
 ## Usage
 
 ```cpp
-#include <ion/your_library/your_interface.h>
+#include <ion/your_library/your_type.h>
 
-auto result = ion::your_library::makeYourInterface();
+auto result = ion::your_library::make_your_interface();
 if (!result) {
     // Handle error
     return result.error();
 }
 
 auto interface = std::move(result.value());
-interface->doSomething();
+interface->do_something();
 ```
 
 ## API Reference
 
-### IYourInterface
+### your_type_base
 
 Main interface for...
 
 #### Methods
 
-- `doSomething()` - Description
-- `computeValue()` - Returns computed value or error
+- `do_something()` - Description
+- `compute_value()` - Returns computed value or error
 
-### Error Codes
+### Error Codes (`oat::my_library::errc`)
 
-- `InvalidParameter` - When...
-- `OperationFailed` - When...
+- `invalid_parameter` - When...
+- `operation_failed` - When...
 
 ## Dependencies
 
@@ -412,7 +350,6 @@ Main interface for...
 ## Implementation Notes
 
 Any important implementation details...
-```
 
 ## Best Practices
 
@@ -420,8 +357,7 @@ Any important implementation details...
 - ✅ Keep interfaces minimal and focused
 - ✅ Hide all implementation details
 - ✅ Use `std::expected` for all fallible operations
-- ✅ Mark functions `[[nodiscard, gnu::warn_unused_result]]
-` when appropriate
+- ✅ Mark functions `[[OAT_NODISCARD("...")]]` when appropriate
 - ✅ Follow the dependency hierarchy strictly
 - ✅ Write comprehensive tests
 - ✅ Document the public API
@@ -439,13 +375,13 @@ Any important implementation details...
 ### Optional Dependencies
 
 ```cpp
-struct Config {
-    ILogger* logger = nullptr;  // Optional
-    IMetrics* metrics = nullptr;  // Optional
+struct config {
+    logger_base* logger = nullptr;  // Optional
+    metrics_base* metrics = nullptr;  // Optional
 };
 
-class Implementation {
-    void doWork() {
+class implementation {
+    void do_work() {
         if (logger_) {
             logger_->log("Doing work");
         }
@@ -457,20 +393,20 @@ class Implementation {
 ### Resource Management
 
 ```cpp
-class ResourceImpl : public IResource {
-    static std::expected<std::unique_ptr<ResourceImpl>, Error> Create() {
+class resource_impl : public resource_base {
+    static std::expected<std::unique_ptr<resource_impl>, std::error_code> create() {
         // Acquire resource
-        auto handle = acquireResource();
+        auto handle = acquire_resource();
         if (!handle) {
-            return std::unexpected(Error(ErrorCode::ResourceUnavailable));
+            return std::unexpected(make_mylib_error(lib_errc::handle_invalid));
         }
         
-        return std::unique_ptr<ResourceImpl>(
-            new ResourceImpl(std::move(handle))
+        return std::unique_ptr<resource_impl>(
+            new resource_impl(std::move(handle))
         );
     }
     
-    ~ResourceImpl() {
+    ~resource_impl() {
         // Automatic cleanup
     }
 };
@@ -479,11 +415,11 @@ class ResourceImpl : public IResource {
 ### Async Operations
 
 ```cpp
-class AsyncImpl : public IAsync {
-    std::expected<void, Error> startOperation() override {
+class async_impl : public async_base {
+    std::expected<void, std::error_code> start_operation() override {
         // Validate state
         if (busy_) {
-            return std::unexpected(Error(ErrorCode::Busy));
+            return std::unexpected(make_mylib_error(lib_errc::bad_state));
         }
         
         // Start async work
@@ -502,7 +438,7 @@ class AsyncImpl : public IAsync {
 Test through public interface:
 ```cpp
 TEST_CASE("Feature works end-to-end") {
-    auto system = makeSystem();
+    auto system = make_system();
     auto result = system->process(input);
     REQUIRE(result.value() == expected);
 }
@@ -510,7 +446,7 @@ TEST_CASE("Feature works end-to-end") {
 
 ### Mock Dependencies
 ```cpp
-class MockLogger : public ILogger {
+class mock_logger : public logger_base {
     void log(std::string_view msg) override {
         messages_.push_back(std::string(msg));
     }
@@ -523,9 +459,9 @@ class MockLogger : public ILogger {
 Always test error paths:
 ```cpp
 TEST_CASE("Handles errors gracefully") {
-    auto result = makeSystem(invalid_config);
+    auto result = make_system(invalid_config);
     REQUIRE(!result.has_value());
-    REQUIRE(result.error().code() == ErrorCode::InvalidConfig);
+    REQUIRE(result.error() == mylib::lib_errc::invalid_config);
 }
 ```
 

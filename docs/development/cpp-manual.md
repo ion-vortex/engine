@@ -8,7 +8,7 @@
     *   [L.1: C++23 Standard](#l1-c23-standard)
     *   [L.2: Exceptions Banned](#l2-exceptions-banned)
     *   [L.3: Factory Functions for Stateful Objects](#l3-factory-functions-for-stateful-objects)
-    *   [L.4: Ownership and Error Propagation](#l4-ownership-and-error-propagation)
+    *   [L.4: Ownership and error Propagation](#l4-ownership-and-error-propagation)
     *   [L.5: RTTI Off](#l5-rtti-off)
     *   [L.6: Header-Only Libraries Restricted](#l6-header-only-libraries-restricted)
 *   [🏗️ Architectural Principles (A)](#️-architectural-principles)
@@ -30,7 +30,7 @@
     *   [API.1: Minimal Entry Points](#api1-minimal-entry-points)
     *   [API.2: Construction Contract](#api2-construction-contract)
     *   [API.3: Use `struct` for POD](#api3-struct-pod)
-    *   [API.4: Error Codes](#api4-error-codes)
+    *   [API.4: error Codes](#api4-error-codes)
 *   [⚙️ Runtime Behavior & Lifecycle (RT)](#️-runtime-behavior--lifecycle)
     *   [RT.1: Tick-Based Loops](#rt1-tick-based-loops)
     *   [RT.2: Time Representation](#rt2-time-representation)
@@ -58,11 +58,11 @@
     *   [TSC.4: Test Failure Modes](#tsc4-test-failure-modes)
     *   [TSC.5: Cross-Platform CI](#tsc5-cross-platform-ci)
 *   [📢 Logging & Diagnostics (LOG)](#-logging--diagnostics)
-    *   [LOG.1: `Logger` Interface](#log1-logger-interface)
+    *   [LOG.1: `logger_base` Interface](#log1-logger-interface)
     *   [LOG.2: Structured & Prefixed Logs](#log2-structured--prefixed-logs)
     *   [LOG.3: Logging in Hot Paths](#log3-logging-in-hot-paths)
 *   [📈 Telemetry / Metrics (MET)](#-telemetry--metrics)
-    *   [MET.1: `Metrics*` Injection](#met1-metrics-injection)
+    *   [MET.1: `metrics_base*` Injection](#met1-metrics-injection)
     *   [MET.2: Metric Naming](#met2-metric-naming)
 *   [🧬 Versioning & Compatibility (VC)](#-versioning--compatibility)
     *   [VC.1: Version Constant](#vc1-version-constant)
@@ -127,7 +127,7 @@ You write systems. You write libraries. You build fast, deterministic code that'
 ### L.1. **Use C++23. No compromise.**
 <a name="l1-c23-standard"></a>
 
-If your compiler doesn't support `std::expected`, `consteval`, or `[[nodiscard("...")]]` -- please upgrade your toolchain.
+If your compiler doesn't support `std::expected`, `consteval`, or `[[nodiscard]]` -- please upgrade your toolchain.
 
 **Minimum standard: C++23.**
 Anything older is a maintenance burden we choose not to accept.
@@ -141,7 +141,7 @@ Anything older is a maintenance burden we choose not to accept.
 
 The only permitted exception usage is:
 
-*   In constructors that validate input (e.g. parsing a malformed IP in `Addr("abc", 1234)`). These exceptions **MUST** be caught within the factory function (see L.3, API.2) and translated into an `std::expected` error before leaving the creating API boundary.
+*   In constructors that validate input (e.g. parsing a malformed IP in `addr("abc", 1234)`). These exceptions **MUST** be caught within the factory function (see L.3, API.2) and translated into an `std::expected` error before leaving the creating API boundary.
 *   In third-party libraries (which we keep isolated and wrap cleanly, ensuring their exceptions are caught and translated to `std::expected` or handled internally).
 
 All runtime code SHALL use `std::expected` for error propagation. See API.3 for more information.
@@ -149,22 +149,22 @@ All runtime code SHALL use `std::expected` for error propagation. See API.3 for 
 ```cpp
 // Example of catching an internal exception in a factory
 // static
-[[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-std::expected<std::unique_ptr<MyObject>, Error> MyObject::Create(const std::string& config_data) {
+[[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+std::expected<std::unique_ptr<my_object>, std::error_code> my_object::create(const std::string& config_data) {
     try {
-        // MyObjectImpl constructor might throw on bad config_data
-        auto impl = std::make_unique<MyObjectImpl>(config_data);
+        // my_object_impl constructor might throw on bad config_data
+        auto impl = std::make_unique<my_object_impl>(config_data);
         return impl;
     } catch (const std::invalid_argument& e) {
-        return std::unexpected(Error(ErrorCode::InvalidConfiguration, e));
+        return std::unexpected(std::make_error_code(std::errc::invalid_argument));
     } catch (...) {
-        return std::unexpected(Error(ErrorCode::UnknownError));
+        return std::unexpected(std::make_error_code(std::errc::protocol_error));
     }
 }
 
 // Usage
-std::expected<std::unique_ptr<MyObject>, Error> result = MyObject::Create("bad data");
-if (!result) return result.error(); // Propagate Error
+std::expected<std::unique_ptr<my_object>, std::error_code> result = my_object::create("bad data");
+if (!result) return result.error(); // Propagate error
 ```
 
 This approach ensures predictable error handling throughout our codebase.
@@ -179,28 +179,28 @@ All real systems SHALL use static factory functions:
 ✅ Good:
 
 ```cpp
-// In MyObject.h
-class MyObject {
+// In my_object.h
+class my_object {
 public:
     // Public interface methods...
-    virtual ~MyObject() = default;
+    virtual ~my_object() = default;
 
     // Factory function
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-    static std::expected<std::unique_ptr<MyObject>, Error> Create(...);
+    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+    static std::expected<std::unique_ptr<my_object>, std::error_code> create(...);
 
 protected:
-    MyObject() = default; // Or make constructors private/protected if MyObjectImpl is a friend/nested
+    my_object() = default; // Or make constructors private/protected if my_object_impl is a friend/nested
 };
 ```
 
 🚫 Bad:
 
 ```cpp
-Session s(...);         // This approach can lead to problems if Session has complex state.
+session s(...);         // This approach can lead to problems if Session has complex state.
 ```
 
-If you expose a public constructor, it SHALL be for pure POD/struct-only utility objects with no invariants and trivial construction (e.g., `BufferView`, `Addr`). These typically do not require a `std::unique_ptr` or `std::expected` for creation.
+If you expose a public constructor, it SHALL be for pure POD/struct-only utility objects with no invariants and trivial construction (e.g., `buffer_view`, `addr`). These typically do not require a `std::unique_ptr` or `std::expected` for creation.
 
 ---
 
@@ -210,10 +210,10 @@ If you expose a public constructor, it SHALL be for pure POD/struct-only utility
 No raw `new`. No manual `delete`. No shared ownership by default.
 
 If you pass ownership: use `std::unique_ptr<T>`.
-If you return a result that might fail (including object creation): use `std::expected<T, Error>`.
-If you create an object that might fail: use `std::expected<std::unique_ptr<T>, Error>`.
+If you return a result that might fail (including object creation): use `std::expected<T, std::error_code>`.
+If you create an object that might fail: use `std::expected<std::unique_ptr<T>, std::error_code>`.
 
-If you're writing `T* foo = new T(...)` and returning it or storing it in a raw pointer member, please reconsider your approach.
+If you're writing `t* foo = new t(...)` and returning it or storing it in a raw pointer member, please reconsider your approach.
 
 ---
 
@@ -250,7 +250,7 @@ These layers establish strict boundaries crucial for maintainability, testabilit
 
 1.  **`[ Interface Layer ]`**
     *   **Location:** `include/oat/yourlib/...` (or similar public include path)
-    *   **Content:** Public headers defining abstract classes (interfaces), POD-like configuration structs, public enums (like `ErrorCode`), and factory function declarations (e.g., `static std::expected<std::unique_ptr<InterfaceType>, Error> Create(...)`).
+    *   **Content:** Public headers defining abstract classes (interfaces), POD-like configuration structs, public enums (like `ErrorCode`), and factory function declarations (e.g., `static std::expected<std::unique_ptr<type_base>, std::error_code> create(...)`).
     *   **Rule:** Interfaces expose **nothing private**. No implementation details, no private helper classes, no internal data structures. They define the "what," not the "how."
 
 2.  **`[ Implementation Layer ]`**
@@ -276,14 +276,14 @@ These layers establish strict boundaries crucial for maintainability, testabilit
     ```cpp
     // include/oat/service/protocol.h
     namespace oat::service {
-        class Protocol {
+        class protocol {
         public:
-            virtual ~Protocol() = default; // Always provide a virtual destructor for interfaces
+            virtual ~protocol() = default; // Always provide a virtual destructor for interfaces
 
             virtual void tick(uint64_t now_ns) = 0;
 
-            [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-            virtual std::expected<void, Error> sendMessage(BufferView payload) = 0;
+            [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+            virtual std::expected<void, std::error_code> send_message(buffer_view payload) = 0;
             // ... other interface methods
         };
     } // namespace oat::service
@@ -295,25 +295,25 @@ These layers establish strict boundaries crucial for maintainability, testabilit
 3.  **Mockability is Paramount:**
     All interfaces SHALL be mockable for testing without resorting to reflection, complex macro magic, or overriding behavior in the *actual* implementation. Tests should be able to provide a completely separate, fake implementation of an interface to isolate the system under test.
 
-    ✅ Good: Inject a `MockProtocol` that implements the `Protocol` interface.
-    🚫 Bad: Subclassing `ProtocolImpl` and overriding methods for a test. This is brittle and tests implementation details.
+    ✅ Good: Inject a `mock_protocol` that implements the `protocol` interface.
+    🚫 Bad: Subclassing `protocol_impl` and overriding methods for a test. This is brittle and tests implementation details.
 
 4.  **Callbacks (If Necessary) via `std::function`:**
     If an interface needs to signal events back to its owner, callbacks can be used. These SHALL use `std::function` and typically be passed into the factory function for the object implementing the interface. They should not generally be stored as mutable members that can be changed after construction, as this complicates lifetime and state reasoning.
 
     ```cpp
     // In configuration struct or factory function parameters:
-    using OnMessageReceived = std::function<void(BufferView message)>;
-    using OnDisconnected = std::function<void(Error reason)>;
+    using on_message_received = std::function<void(buffer_view message)>;
+    using on_disconnect = std::function<void(error reason)>;
 
-    struct ProtocolConfig {
+    struct protocol_config {
         // ... other config ...
-        OnMessageReceived on_message_received_cb;
-        OnDisconnected on_disconnected_cb;
+        on_message_received on_message_received_cb;
+        on_disconnect on_disconnected_cb;
     };
 
-    // static std::expected<std::unique_ptr<Protocol>, Error>
-    // CreateProtocol(Socket& transport, const ProtocolConfig& config);
+    // static std::expected<std::unique_ptr<protocol>, std::error_code>
+    // create_protocol(socket& transport, const protocol_config& config);
     ```
 
 ---
@@ -325,9 +325,9 @@ Implementations of interfaces live in the `src/` directory and are not exposed p
 
 1.  **Naming Convention:**
     A common pattern is to name the implementation class with an `Impl` suffix.
-    *   Public Interface: `include/oat/net/session.h` -> `class Session;`
-    *   Private Implementation Header: `src/session_impl.h` -> `class SessionImpl : public oat::net::Session { ... };`
-    *   Private Implementation Source: `src/session_impl.cpp` -> `// Implementation of SessionImpl methods`
+    *   Public Interface: `include/oat/net/session.h` -> `class session;`
+    *   Private Implementation Header: `src/session_impl.h` -> `class session_impl : public oat::net::session { ... };`
+    *   Private Implementation Source: `src/session_impl.cpp` -> `// Implementation of session_impl methods`
 
 2.  **Private Headers:**
     Headers in `src/` (like `session_impl.h`) are for internal use by the implementation files within that library or module. They **MUST NOT** be included by any public header in `include/`. They are not part of the installation and are not visible to downstream consumers.
@@ -388,7 +388,7 @@ All Oat Interactive libraries and systems SHALL adhere to the following primary 
 │   ├── sub_module_impl.cpp
 │   └── sub_module_impl.h     # Internal header for sub_module
 ├── tests/
-│   ├── IntegrationTest.cpp
+│   ├── integration_test.cpp
 │   ├── UnitTests.cpp         # For small, isolated utilities
 │   └── mock_some_dependency.h # Test-specific mocks
 ├── CMakeLists.txt            # Root CMake file for the library
@@ -413,21 +413,19 @@ Namespaces provide logical grouping and prevent naming collisions. They SHALL mi
     ```cpp
     // File: include/oat/net/session.h
     namespace oat::net {
-        class Session { /* ... */ };
-        enum class SessionError { /* ... */ };
+        class session { /* ... */ };
     } // namespace oat::net
     ```
 
-*   ✅ Good: `pulse::net::proto::Session`, `oat::core::asset::Cache`
-*   🚫 Bad (No snake_case namespaces): `pulse::snake_case_module::MyClass`
-*   🚫 Bad (No single-letter namespaces): `oat::c::MyClass` (unless `c` has a universally understood meaning in that context, which is rare).
+*   ✅ Good: `pulse::net::proto::session`, `oat::core::asset::cache`
+*   🚫 Bad (No single-letter namespaces): `oat::c::my_class` (unless `c` has a universally understood meaning in that context, which is rare).
 *   🚫 Bad (Global namespace pollution): Avoid defining widely-used library types outside a specific namespace.
 
 **Be explicit and descriptive with namespace components.**
 
 ---
 
-### PSN.3: **File Naming Conventions: snake_case for Files, PascalCase for Types.**
+### PSN.3: **File Naming Conventions: `snake_case` for everything.**
 <a name="psn3-file-naming-conventions"></a>
 
 This convention enhances readability and consistency.
@@ -439,11 +437,10 @@ This convention enhances readability and consistency.
 | Private Implementation Source     | `snake_case_impl.cpp`| `session_manager_impl.cpp`  | `src/session_manager_impl.cpp`     |
 | Utility/Helper Header (Public)    | `snake_case.h`    | `buffer_utils.h`            | `include/oat/core/buffer_utils.h`  |
 | Utility/Helper Source (Private)   | `snake_case.cpp`  | `string_helpers.cpp`        | `src/string_helpers.cpp`           |
-| Test Source File                  | `PascalCaseTests.cpp` or `feature_tests.cpp` | `SessionManagerTests.cpp`   | `tests/SessionManagerTests.cpp`    |
-| Class / Struct / Enum Class       | `PascalCase`      | `SessionManager`            | (Defined inside headers/sources)   |
+| Test Source File                  | `PascalCaseTests.cpp` or `feature_tests.cpp` | `session_manager_tests.cpp`   | `tests/session_manager_tests.cpp`    |
+| Class / Struct / Enum Class       | `PascalCase`      | `session_manager`            | (Defined inside headers/sources)   |
 | Enum (C-style, if unavoidable)  | `ALL_CAPS_SNAKE`  | `MAX_CONNECTIONS`           | (Strongly prefer `enum class`)     |
 
-*   We **do not** use `SessionManager.hpp`, `UDPProto.cpp`, or `Main.cpp` (for library components).
 *   Executable `main.cpp` files are acceptable for top-level application binaries or test executables, but not for library code.
 
 ---
@@ -451,7 +448,7 @@ This convention enhances readability and consistency.
 ### PSN.4: **One Primary Class/Interface Per File (Generally).**
 <a name="psn4-one-class-per-file-mostly"></a>
 
-*   Each major public interface (e.g., `SessionManager`) or significant public class should generally reside in its own header file (e.g., `session_manager.h`).
+*   Each major public interface (e.g., `session_manager`) or significant public class should generally reside in its own header file (e.g., `session_manager.h`).
 *   Associated helper structs or enums that are tightly coupled and primarily used with that main class/interface can live in the same header.
     *   Example: `packet.h` might define multiple small packet structs that are all part of the same protocol module.
 *   Avoid cramming multiple unrelated, complex classes or interfaces into a single header file. This increases coupling, compile times for unrelated changes, and makes the codebase harder to navigate and more prone to merge conflicts.
@@ -480,143 +477,139 @@ All header files (`.h`, `_impl.h`) SHALL use `#pragma once` as the include guard
 
 While this document is an engineering standard, not a granular style guide, certain stylistic aspects directly impact readability, maintainability, and adherence to our core principles.
 
-### CSH.1: **Naming Conventions: Types, Variables, Functions, Interfaces.**
-<a name="csh1-naming-conventions-types-variables"></a>
+### CSH.1: **Naming Conventions – one rule: *everything* is `snake_case`**
 
-Consistent naming is mandatory for code clarity and long-term maintainability. Please follow these conventions:
+The project now follows the **Boost / STL convention**: every identifier is lower‑snake‑case, with one small, explicit exception (ALL\_CAPS macros). No other casing schemes are permitted.
 
 ---
 
-#### 1. **Types (Classes, Structs, Enums, Enum Classes, Type Aliases): `PascalCase`**
+#### 1. **Types (classes, structs, enums, enum classes, type aliases)**
 
 ```cpp
-class PacketParser;
-struct ChannelStats;
-enum class PacketType { Data, Ack, KeepAlive };
-using UserId = uint64_t;
+class packet_parser;
+struct channel_stats;
+enum class packet_type { data, ack, keep_alive };
+using user_id = std::uint64_t;
 ```
 
+*Rationale*: matches Boost, Abseil, Folly, fmt, spdlog, range‑v3, etc. and eliminates “Pascal vs. snake” mental switching.
+
 ---
 
-#### 2. **Interfaces (Pure Virtual Abstract Types): `I` Prefix Required**
+#### 2. **Interfaces (pure‑virtual abstract bases): `_base` suffix**
 
-* Pure virtual interfaces SHALL be prefixed with `I`.
+* Pure‑virtual interfaces **shall** end in `_base`.
 * Example:
 
-  ```cpp
-  class ILogger {
-  public:
-      virtual void log(Level level, std::string_view msg) = 0;
-      virtual ~ILogger() = default;
-  };
+```cpp
+class logger_base {
+public:
+    virtual void log(level lvl, std::string_view msg) = 0;
+    virtual ~logger_base() = default;
+};
 
-  class ConsoleLogger : public ILogger {
-  public:
-      void log(Level level, std::string_view msg) override;
-  };
-  ```
-* Please ensure all interfaces use the `I` prefix for clarity.
-* See API.2 for more information on interfaces and object construction.
+class console_logger : public logger_base {
+public:
+    void log(level lvl, std::string_view msg) override;
+};
+```
+
+*The suffix makes the role obvious without resorting to “Hungarian” `I`‑prefixes.*
 
 ---
 
-#### 3. **Local Variables and Function Parameters: `snake_case`**
+#### 3. **Local variables and function parameters**
 
 ```cpp
-void process_data(BufferView incoming_payload) {
+void process_data(buffer_view incoming_payload) {
     auto last_recv_ns = get_current_time_ns();
-    int32_t packet_count = 0;
-    // ...
+    std::int32_t packet_count = 0;
+    // …
 }
 ```
 
 ---
 
-#### 4. **Class Member Variables: `snake_case_` (Trailing Underscore Required)**
-
-* This disambiguates members from parameters or locals and prevents "this->" confusion.
+#### 4. **Class member variables** – trailing underscore
 
 ```cpp
-class UserSession {
+class user_session {
 public:
-    UserSession(UserId user_id) : user_id_(user_id), creation_time_ns_(get_current_time_ns()) {}
-    UserId get_id() const { return user_id_; }
+    explicit user_session(user_id uid)
+        : user_id_(uid), creation_time_ns_(get_current_time_ns()) {}
+
+    user_id id() const { return user_id_; }
 
 private:
-    UserId user_id_;
-    uint64_t creation_time_ns_;
+    user_id user_id_;
+    std::uint64_t creation_time_ns_;
     std::string session_token_;
 };
 ```
 
 ---
 
-#### 5. **Class Member Functions: `snake_case` (Default) or `PascalCase` (Factory/Important Statics)**
+#### 5. **Member functions**
 
-* Use `snake_case` for all normal (non-static) member functions.
-* Use `PascalCase` for public static factory methods or functions that create/return significant API objects.
+* All member functions, including factories and important statics, use `snake_case`.
 
 ```cpp
-class DataProcessor {
+class data_processor {
 public:
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-    static std::expected<std::unique_ptr<DataProcessor>, Error> Create(Config& cfg);
+    [[OAT_NODISCARD("handle this result – failure to do so is a bug.")]]
+    static std::expected<std::unique_ptr<data_processor>, error>
+    create(config& cfg);                         // factory, still snake_case
 
-    void submit_data(BufferView data);
-    
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
+    void submit_data(buffer_view data);
+
+    [[OAT_NODISCARD("handle this result – failure to do so is a bug.")]]
     bool is_processing() const;
 
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-    std::optional<Result> get_result();
+    [[OAT_NODISCARD("handle this result – failure to do so is a bug.")]]
+    std::optional<result> get_result();
 
 private:
     void internal_process_queue();
 
-    std::vector<Buffer> queue_;
+    std::vector<buffer> queue_;
     bool is_active_;
 };
 ```
 
 ---
 
-#### 6. **Free (Non-Member) Functions: `snake_case`**
+#### 6. **Free (non‑member) functions**
 
 ```cpp
 namespace oat::utils {
-    uint64_t get_current_time_ns();
-    std::string format_address(const Addr& addr);
+    std::uint64_t get_current_time_ns();
+    std::string format_address(const addr& a);
 }
 ```
 
 ---
 
-#### 7. **Constants and `constexpr` Variables (Global or Static): `kPascalCase`**
+#### 7. **Constants and `constexpr` variables:** `k_constant_name`
 
-* Prefix constants with `k`.
-* This signals they are immutable and compile-time known.
+* Prefix all global, namespace‑scope, or `static` constants with `k_`.
 
 ```cpp
 namespace oat::net {
-    inline constexpr uint16_t kDefaultPort = 7777;
-    inline constexpr size_t kMaxPacketSize = 1200;
-    inline constexpr std::string_view kProtocolMagic = "OATP";
+    inline constexpr std::uint16_t   k_default_port       = 7777;
+    inline constexpr std::size_t     k_max_packet_size    = 1200;
+    inline constexpr std::string_view k_protocol_magic    = "OATP";
 }
 ```
 
-* If you're still writing macros instead of using `constexpr`, please consider using modern C++ features instead.
-
 ---
 
-#### 8. **Macros: `ALL_CAPS_SNAKE_CASE` (Use Sparingly)**
-
-* Macros are a last resort. If you must define one, follow this style:
+#### 8. **Macros:** `ALL_CAPS_SNAKE_CASE` (use sparingly)
 
 ```cpp
 #define OAT_ENABLE_DEBUG_LOGGING 1
 ```
 
-* Please minimize macro usage in favor of modern C++ features.
+*Macros remain the only ALL\_CAPS identifiers; prefer `constexpr`, templates, or inline functions whenever possible.*
 
 ---
 
@@ -636,10 +629,10 @@ You are writing libraries and robust systems, not quick scripts. Unqualified nam
             // OK for very common types if restricted to this namespace, but still use with caution
             // using ByteVector = std::vector<std::byte>;
 
-            class MyContainer {
+            class my_container {
                 // OK within a class for a type alias
-                using InternalMap = std::unordered_map<int, std::string>;
-                InternalMap data_;
+                using internal_map = std::unordered_map<int, std::string>;
+                internal_map data_;
             public:
                 std::vector<std::string> get_keys(); // Fully qualify std::vector
             };
@@ -665,24 +658,24 @@ Strive to minimize the `#include` directives in your header files.
     // my_service.h
     #pragma once
     #include <memory> // For std::unique_ptr
-    #include <oat/core/error_code.h> // For ErrorCode, Error (Tagged Enum Wrapper)
-    #include <oat/core/buffer_view.h> // For BufferView
+    #include <oat/core/error_code.h> // For ErrorCode, error (Tagged Enum Wrapper)
+    #include <oat/core/buffer_view.h> // For buffer_view
 
     // Forward declarations
-    namespace oat::another_module { class HelperComponent; }
-    struct ConfigData; // Assuming ConfigData is defined elsewhere
+    namespace oat::another_module { class helper_component; }
+    struct config_data; // Assuming config_data is defined elsewhere
 
     namespace oat::my_system {
-        class MyService {
+        class my_service {
         public:
             // ...
         private:
-            std::unique_ptr<another_module::HelperComponent> helper_;
-            const ConfigData* config_; // Only needs declaration of ConfigData
+            std::unique_ptr<another_module::helper_component> helper_;
+            const config_data* config_; // Only needs declaration of config_data
         };
     }
     ```
-    The full definition for `HelperComponent` and `ConfigData` would be included in `my_service.cpp`.
+    The full definition for `helper_component` and `config_data` would be included in `my_service.cpp`.
 
 *   **Include Only What You Use:** Don't `#include <vector>` if you're only using `std::string`. Don't pull in large, complex headers like `<algorithm>` or `<regex>` into a public API header unless absolutely essential for the *interface itself*.
 *   **Rationale:** Reduces compile times, minimizes coupling, and makes it easier to understand the true dependencies of a module. We ship fast builds to fast systems.
@@ -704,38 +697,38 @@ APIs should expose narrow, well-defined entry points. Functions or methods with 
 
     🚫 Wrong (Too many parameters):
     ```cpp
-    // class NetworkStack;
-    // static std::expected<std::unique_ptr<NetworkStack>, Error>
-    // CreateNetworkStack(
+    // class network_stack;
+    // static std::expected<std::unique_ptr<network_stack>, std::error_code>
+    // create_network_stack(
     //     const std::string& bind_ip,
     //     uint16_t bind_port,
     //     size_t max_sessions,
     //     uint64_t session_timeout_ns,
     //     bool enable_encryption,
     //     const std::string& cert_path,
-    //     Logger* logger,
-    //     Metrics* metrics
+    //     logger_base* logger,
+    //     metrics_base* metrics
     // );
     ```
 
     ✅ Right (Using a config struct):
     ```cpp
     // In network_stack_config.h (or similar)
-    struct NetworkStackConfig {
+    struct network_stack_config {
         std::string bind_ip = "0.0.0.0";
         uint16_t bind_port = 7777;
         size_t max_sessions = 1024;
         uint64_t session_timeout_ns = 30 * 1'000'000'000ULL; // 30 seconds
         bool enable_encryption = false;
         std::string cert_path; // Optional, only if encryption is enabled
-        Logger* logger = nullptr;   // Optional dependency
-        Metrics* metrics = nullptr; // Optional dependency
+        logger_base* logger = nullptr;   // Optional dependency
+        metrics_base* metrics = nullptr; // Optional dependency
     };
 
     // In network_stack.h
-    // class NetworkStack;
-    // static std::expected<std::unique_ptr<NetworkStack>, Error>
-    // CreateNetworkStack(const NetworkStackConfig& config);
+    // class network_stack;
+    // static std::expected<std::unique_ptr<network_stack>, std::error_code>
+    // create_network_stack(const network_stack_config& config);
     ```
 
 2.  **Rethink Architecture for Large Configs:**
@@ -743,7 +736,7 @@ APIs should expose narrow, well-defined entry points. Functions or methods with 
 
 ---
 
-### API.2: **Object Construction: Use Factory Interfaces + `std::expected<std::unique_ptr<T>, Error>`.**
+### API.2: **Object Construction: Use Factory Interfaces + `std::expected<std::unique_ptr<T>, std::error_code>`.**
 <a name="api2-construction-contract"></a>
 
 This is the **non-negotiable construction contract** for any non-POD, stateful, fallible object in an Oat Interactive library.
@@ -751,9 +744,9 @@ This is the **non-negotiable construction contract** for any non-POD, stateful, 
 You SHALL:
 
 * Prohibit public constructors on non-POD types.
-* Use static factory methods (`Create`) only on concrete classes, **never** on interfaces.
-* Implement factories via interfaces (`ILoggerFactory`, etc.) that produce `std::expected<std::unique_ptr<T>, Error>`.
-* Ensure factory methods catch all exceptions, including `...`, and wrap them in an `Error`.
+* Use static factory methods (`create`) only on concrete classes, **never** on interfaces.
+* Implement factories via interfaces (`logger_factory`, etc.) that produce `std::expected<std::unique_ptr<T>, std::error_code>`.
+* Ensure factory methods catch all exceptions, including `...`, and wrap them in an `error`.
 
 ---
 
@@ -767,23 +760,23 @@ You SHALL:
 #include <expected>
 #include <oat/lib/error.h>
 
-class ILogger {
+class logger_base {
 public:
     virtual void log(std::string_view msg) = 0;
-    virtual ~ILogger() = default;
+    virtual ~logger_base() = default;
 };
 
-class ILoggerFactory {
+class logger_factory {
 public:
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-    virtual std::expected<std::unique_ptr<ILogger>, Error> createLogger() = 0;
-    virtual ~ILoggerFactory() = default;
+    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+    virtual std::expected<std::unique_ptr<logger_base>, std::error_code> create_logger() = 0;
+    virtual ~logger_factory() = default;
 };
 ```
 
 ---
 
-#### ✅ Correct: Concrete Class with Private Constructor and Static `Create()`
+#### ✅ Correct: Concrete Class with Private Constructor and Static `create()`
 
 ```cpp
 // logger_impl.h (not exported publicly)
@@ -792,36 +785,36 @@ public:
 #include "public_interface.h"
 #include <fstream>
 
-class ConcreteLogger : public ILogger {
+class concrete_logger : public logger_base {
 public:
     void log(std::string_view msg) override {
         stream_ << msg << '\n';
     }
 
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-    static std::expected<std::unique_ptr<ILogger>, Error> Create(std::string_view path) {
+    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+    static std::expected<std::unique_ptr<logger_base>, std::error_code> create(std::string_view path) {
         try {
-            auto logger = std::unique_ptr<ConcreteLogger>(new ConcreteLogger(path));
-            return std::expected<std::unique_ptr<ILogger>, Error>{std::move(logger)};
+            auto logger = std::unique_ptr<concrete_logger>(new concrete_logger(path));
+            return std::expected<std::unique_ptr<logger_base>, std::error_code>{std::move(logger)};
         } catch (const std::exception& e) {
-            return std::unexpected(Error(ErrorCode::ResourceUnavailable, e));
+            return std::unexpected(std::make_error_code(std::errc::not_enough_memory));
         } catch (...) {
-            return std::unexpected(Error(ErrorCode::Unknown, "Unknown error during ConcreteLogger::Create"));
+            return std::unexpected(std::make_error_code(std::errc::protocol_error));
         }
     }
 
 private:
     std::ofstream stream_;
 
-    explicit ConcreteLogger(std::string_view path) : stream_(std::string(path)) {
+    explicit concrete_logger(std::string_view path) : stream_(std::string(path)) {
         if (!stream_) {
             throw std::runtime_error("Failed to open log file");
         }
     }
 
     // Explicitly disable copying
-    ConcreteLogger(const ConcreteLogger&) = delete;
-    ConcreteLogger& operator=(const ConcreteLogger&) = delete;
+    concrete_logger(const concrete_logger&) = delete;
+    concrete_logger& operator=(const concrete_logger&) = delete;
 };
 ```
 
@@ -836,11 +829,11 @@ private:
 #include "public_interface.h"
 #include "logger_impl.h"
 
-class ConcreteLoggerFactory : public ILoggerFactory {
+class concrete_logger_factory : public logger_factory_base {
 public:
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-    std::expected<std::unique_ptr<ILogger>, Error> createLogger() override {
-        return ConcreteLogger::Create("log.txt");
+    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+    std::expected<std::unique_ptr<logger_base>, std::error_code> create_logger() override {
+        return concrete_logger::create("log.txt");
     }
 };
 ```
@@ -849,23 +842,23 @@ public:
 
 #### 🏭 Global Factory Accessor Pattern
 
-If you need to provide a default, globally available factory (e.g., for sockets or loggers), follow this model:
+If you need to provide a default, globally available factory (e.g., for sockets or loggers), follow this model (or simply use C++17's inline variable model for globals):
 
 ```cpp
 namespace oat::log {
 
 namespace {
-    ILoggerFactory* current_factory = nullptr;
-    ConcreteLoggerFactory default_factory;
+    logger_factory_base* current_factory = nullptr;
+    concrete_logger_factory default_factory;
 }
 
-ILoggerFactory* get_logger_factory() {
+logger_factory_base* get_logger_factory() {
     if (!current_factory) current_factory = &default_factory;
     return current_factory;
 }
 
-ILoggerFactory* set_logger_factory(ILoggerFactory* new_factory) {
-    ILoggerFactory* previous = current_factory;
+logger_factory_base* set_logger_factory(logger_factory_base* new_factory) {
+    logger_factory_base* previous = current_factory;
     current_factory = new_factory;
     return previous;
 }
@@ -885,17 +878,17 @@ void reset_logger_factory() {
 * Example:
 
   ```cpp
-  class MockLogger : public ILogger { /* ... */ };
-  class MockLoggerFactory : public ILoggerFactory {
+  class mock_logger : public logger_base { /* ... */ };
+  class mock_logger_factory : public logger_factory_base {
   public:  
-      [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
-      std::expected<std::unique_ptr<ILogger>, Error> createLogger() override {
-          return std::make_unique<MockLogger>();
+      [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+      std::expected<std::unique_ptr<logger_base>, std::error_code> create_logger() override {
+          return std::make_unique<mock_logger>();
       }
   };
   ```
 
-* Don't add `set_x_factory` just so that your tests can inject a mock logger factory. Just use the `MockLoggerFactory` locally.
+* Don't add `set_x_factory` just so that your tests can inject a mock logger factory. Just use the `mock_logger_factory` locally.
 
 ---
 
@@ -904,21 +897,21 @@ void reset_logger_factory() {
 | Rule                                                                     | Enforcement                                          |
 | ------------------------------------------------------------------------ | ---------------------------------------------------- |
 | Non-POD types SHALL NOT have public constructors                         | Use `protected` or `private`                         |
-| Factory interface must return `std::expected<std::unique_ptr<T>, Error>` | No `new` or `make_unique` in user code               |
-| Static `Create()` SHALL only be declared on concrete implementations     | Never put static factories on interfaces             |
-| Static `Create()` MUST catch `std::exception` and `...`                  | Always return `std::unexpected<Error>` on failure    |
+| Factory interface must return `std::expected<std::unique_ptr<T>, std::error_code>` | No `new` or `make_unique` in user code               |
+| Static `create()` SHALL only be declared on concrete implementations     | Never put static factories on interfaces             |
+| Static `create()` MUST catch `std::exception` and `...`                  | Always return `std::unexpected<error>` on failure    |
 | Friend declarations SHALL NOT be used for factories                      | Avoid coupling, expose via factory interface instead |
 
 ---
 
 #### 🚫 Anti-Patterns
 
-##### ❌ Static `Create()` on Interface
+##### ❌ Static `create()` on Interface
 
 ```cpp
-class ILogger {
+class logger_base {
 public:
-    static std::unique_ptr<ILogger> Create(); // ❌ Please avoid this pattern
+    static std::unique_ptr<logger_base> create(); // ❌ Please avoid this pattern
 };
 ```
 
@@ -932,9 +925,9 @@ This design is problematic because:
 ##### ❌ Public Constructors on Complex Types
 
 ```cpp
-class BadThing {
+class bad_thing {
 public:
-    BadThing(int val); // ❌ Not recommended unless it's a trivial POD-style value object
+    bad_thing(int val); // ❌ Not recommended unless it's a trivial POD-style value object
 };
 ```
 
@@ -966,21 +959,21 @@ This makes the purpose of the type immediately obvious: You don't need a factory
 #### ✅ Correct Example:
 
 ```cpp
-struct Point {
+struct point {
     int x = 0;
     int y = 0;
 
-    Point() = default;
-    Point(int x_val, int y_val) : x(x_val), y(y_val) {}
+    point() = default;
+    point(int x_val, int y_val) : x(x_val), y(y_val) {}
 };
 ```
 
 #### ❌ Incorrect Example:
 
 ```cpp
-class Point { // ❌ Please use struct for POD types
+class point { // ❌ Please use struct for POD types
 public:
-    Point(int x, int y) : x_(x), y_(y) {}
+    point(int x, int y) : x_(x), y_(y) {}
 private:
     int x_;
     int y_;
@@ -997,7 +990,7 @@ This keeps the API surface clean and makes it immediately obvious what's a value
 
 ---
 
-### API .4 **Error handling – standard-compliant, type-safe, and compiler-enforced**
+### API .4 **error handling – standard-compliant, type-safe, and compiler-enforced**
 <a id="api4-error-codes"/>  
 
 All public functions that can fail **shall**
@@ -1022,42 +1015,42 @@ All public functions that can fail **shall**
 namespace oat::net {
 
 // 1. Strongly-typed enum (values start at 1 – zero means “success”)
-enum class NetErr {
-    ConnectionFailed = 1,
-    Timeout,
-    PacketTooLarge,
-    Unknown,
+enum class net_errc {
+    connection_failed = 1,
+    timeout,
+    packet_too_large,
+    unknown,
 };
 
 // 2. Category object – immortal, one per dynamic image
-class NetCategory : public std::error_category {
+class net_category : public std::error_category {
 public:
     const char*     name()    const noexcept override { return "oat.net"; }
     std::string     message(int ev) const override;
 };
-inline const NetCategory kNetCategory;
+inline const net_category k_net_category;
 
 // 3. make_error_code + trait – enables implicit conversion
-inline std::error_code make_error_code(NetErr e) noexcept {
-    return {static_cast<int>(e), kNetCategory};
+inline std::error_code make_error_code(net_errc e) noexcept {
+    return {static_cast<int>(e), k_net_category};
 }
 } // namespace oat::net
 
-template<> struct std::is_error_code_enum<oat::net::NetErr> : std::true_type {};
+template<> struct std::is_error_code_enum<oat::net::net_errc> : std::true_type {};
 ```
 
 ```cpp
 // net_error.cpp
 #include "net_error.h"
 namespace oat::net {
-std::string NetCategory::message(int ev) const
+std::string net_category::message(int ev) const
 {
-    using E = NetErr;
+    using E = net_errc;
     switch (static_cast<E>(ev)) {
-        case E::ConnectionFailed: return "connection failed";
-        case E::Timeout:          return "timeout";
-        case E::PacketTooLarge:   return "packet too large";
-        default:                  return "unknown network error";
+        case E::connection_failed: return "connection failed";
+        case E::timeout:           return "timeout";
+        case E::packet_too_large:  return "packet too large";
+        default:                   return "unknown network error";
     }
 }
 } // namespace oat::net
@@ -1066,7 +1059,7 @@ std::string NetCategory::message(int ev) const
 *Call-site safety remains intact:*
 
 ```cpp
-if (auto r = connect(...); !r && r.error() == oat::net::NetErr::Timeout) { … }
+if (auto r = connect(...); !r && r.error() == oat::net::net_errc::timeout) { … }
 ```
 
 ---
@@ -1084,19 +1077,19 @@ static std::error_code last_os_error() noexcept {
 }
 
 static std::error_code to_net_error(std::error_code ec) noexcept {
-    using E = oat::net::NetErr;
+    using E = oat::net::net_errc;
 
     if (ec.category() == std::generic_category()) {
         switch (ec.value()) {
-            case ETIMEDOUT: return E::Timeout;
-            case EMSGSIZE:  return E::PacketTooLarge;
+            case ETIMEDOUT: return E::timeout;
+            case EMSGSIZE:  return E::packet_too_large;
             default:        return E::Unknown;
         }
     }
     if (ec.category() == std::system_category()) {
         switch (ec.value()) {
-            case WSAETIMEDOUT:      return E::Timeout;
-            case WSAEMSGSIZE:       return E::PacketTooLarge;
+            case WSAETIMEDOUT:      return E::timeout;
+            case WSAEMSGSIZE:       return E::packet_too_large;
             default:                return E::Unknown;
         }
     }
@@ -1108,14 +1101,14 @@ static std::error_code to_net_error(std::error_code ec) noexcept {
 
 ```cpp
 [[OAT_NODISCARD("check connect result")]]
-std::expected<void, std::error_code> connect(Socket s, Address a)
+std::expected<void, std::error_code> connect(socket s, address a)
 {
     if (::connect(s.fd(), …) == 0)  return {};
     return std::unexpected(to_net_error(last_os_error()));
 }
 ```
 
-No caller ever sees `errno` or `DWORD`, only `oat::net::NetErr`.
+No caller ever sees `errno` or `DWORD`, only `oat::net::net_errc`.
 
 ---
 
@@ -1125,11 +1118,11 @@ No caller ever sees `errno` or `DWORD`, only `oat::net::NetErr`.
 // oat/attributes.h
 #pragma once
 #if defined(__GNUC__) || defined(__clang__)
-#  define OAT_NODISCARD(msg) [[nodiscard(msg), gnu::warn_unused_result]]
+#  define OAT_NODISCARD(msg) nodiscard(msg), gnu::warn_unused_result
 #elif defined(_MSC_VER)
-#  define OAT_NODISCARD(msg) [[nodiscard(msg)]]
+#  define OAT_NODISCARD(msg) nodiscard(msg)
 #else
-#  define OAT_NODISCARD(msg) [[nodiscard]]
+#  define OAT_NODISCARD(msg) nodiscard
 #endif
 ```
 
@@ -1140,7 +1133,7 @@ OAT_NODISCARD("handle the possible timeout")
 std::expected<void, std::error_code> wait_for_ready(...);
 
 OAT_NODISCARD("did the asset actually load?")
-std::expected<Asset, std::error_code> load_asset(std::string_view path);
+std::expected<asset, std::error_code> load_asset(std::string_view path);
 ```
 
 Each message explains *why* the caller shouldn’t ignore the value.
@@ -1153,8 +1146,8 @@ Each message explains *why* the caller shouldn’t ignore the value.
 | ---------------------------------- | ----------------------------------------------------------------------------------------------- |
 | **Value-bearing result**           | `std::expected<Image, std::error_code> load_png(Path p);`                                       |
 | **Void success**                   | `std::expected<void, std::error_code> flush();`                                                 |
-| **Wrapping exceptions internally** | `cpp try { … } catch (const std::bad_alloc&) { return std::unexpected(MemErr::OutOfMemory); } ` |
-| **Comparing errors**               | `if (ec == FileErr::NotFound) { … }` (typed, no magic numbers)                                  |
+| **Wrapping exceptions internally** | `cpp try { … } catch (const std::bad_alloc&) { return std::unexpected(std::errc::not_enough_memory); } ` |
+| **Comparing errors**               | `if (ec == our_errc::our_error) { … }` (typed, no magic numbers)                                  |
 | **Logging**                        | `log.error("flush failed: {}", ec);` (both `fmt` and `spdlog` format `error_code` natively).    |
 
 ---
@@ -1199,11 +1192,11 @@ Many Oat Interactive systems, especially those dealing with networking, game log
     *   The component should process pending inputs, update its internal state, and produce outputs based on the current time and inputs provided *during that specific tick*.
 
     ```cpp
-    // class RealTimeProtocol {
+    // class real_time_protocol {
     // public:
     //     // ... other methods ...
     //     virtual void tick(uint64_t current_time_ns) = 0;
-    //     virtual void onSocketReadable() = 0; // Called by I/O layer when data is available
+    //     virtual void on_socket_readable() = 0; // Called by I/O layer when data is available
     //     // ...
     // };
     ```
@@ -1277,17 +1270,17 @@ In performance-critical code paths, such as inside a `tick()` method that runs f
 Interactions with external I/O (network, disk, etc.) SHALL be explicit and visible at the API level. Avoid designs where a simple method call on an object implicitly triggers I/O operations without the caller's direct intent.
 
 1.  **Clear Send/Receive Operations:**
-    Network protocols should have clear `sendPacket(BufferView payload)` or `receiveData(MutableBufferView buffer)` style methods. The act of sending or attempting to receive is an explicit API call.
+    Network protocols should have clear `send_packet(buffer_view payload)` or `receive_data(mutable_buffer_view buffer)` style methods. The act of sending or attempting to receive is an explicit API call.
 
     ✅ Good:
     ```cpp
-    // session.sendReliable(CHANNEL_ID, payload_view);
+    // session.send_reliable(CHANNEL_ID, payload_view);
     // protocol.tick(now_ns); // tick() might internally process ACKs, retransmits, or new incoming data
-    // Socket.read(buffer_for_new_data); // Explicit read from socket
+    // socket.read(buffer_for_new_data); // Explicit read from socket
     ```
 
 2.  **State Machines and I/O:**
-    If a component manages a state machine that results in network I/O (e.g., sending an ACK, a keep-alive), this I/O should ideally be funneled through an explicit abstraction provided to it (e.g., a `Transport` interface) or happen as a result of its `tick()` method processing events. The caller of `tick()` understands that work, potentially including I/O, will be done.
+    If a component manages a state machine that results in network I/O (e.g., sending an ACK, a keep-alive), this I/O should ideally be funneled through an explicit abstraction provided to it (e.g., a `transport` interface) or happen as a result of its `tick()` method processing events. The caller of `tick()` understands that work, potentially including I/O, will be done.
 
 3.  **Control Over Flushing:**
     Give the caller control over when data is actually flushed to the wire, if applicable. Some systems might buffer sends until an explicit `flush()` call or until the `tick()` method processes the send queue.
@@ -1311,26 +1304,26 @@ Internal data structures, especially buffers or collections, must be protected f
 
     🚫 Bad (Breaks encapsulation and invariants):
     ```cpp
-    // class MyQueue {
+    // class my_queue {
     // private:
-    //     std::vector<Packet> queue_;
+    //     std::vector<packet> queue_;
     // public:
-    //     std::vector<Packet>& getRawQueue() { return queue_; } // NO! Caller can now corrupt state.
+    //     std::vector<packet>& get_raw_queue() { return queue_; } // NO! Caller can now corrupt state.
     // };
     ```
 
 2.  **Use Const Views for Read-Only Access:**
-    If you need to provide read-only access to internal data, return a const reference, a `BufferView` (for raw data), `std::span<const T>`, or `std::string_view`.
+    If you need to provide read-only access to internal data, return a const reference, a `buffer_view` (for raw data), `std::span<const T>`, or `std::string_view`.
 
     ✅ Good (Read-only access):
     ```cpp
-    // class MyDataStore {
+    // class my_data_store {
     // private:
-    //     std::vector<Item> items_;
+    //     std::vector<item> items_;
     //     std::string internal_buffer_;
     // public:
-    //     std::span<const Item> getItemsView() const { return items_; }
-    //     BufferView getInternalBufferView() const { return BufferView(internal_buffer_.data(), internal_buffer_.size()); }
+    //     std::span<const item> get_items_view() const { return items_; }
+    //     buffer_view get_internal_buffer_view() const { return buffer_view(internal_buffer_.data(), internal_buffer_.size()); }
     // };
     ```
 
@@ -1341,8 +1334,8 @@ Internal data structures, especially buffers or collections, must be protected f
     If a component generates data that the caller should own and manage, return it by `std::unique_ptr` (if heap-allocated) or by value (if small and copyable), often wrapped in `std::expected`.
 
     ```cpp
-    // std::expected<std::unique_ptr<DataObject>, Error> createDataObject();
-    // std::expected<CopiedResult, Error> processAndReturnCopy();
+    // std::expected<std::unique_ptr<data_object>, std::error_code> create_data_object();
+    // std::expected<copied_result, std::error_code> process_and_return_copy();
     ```
 
 **Your component owns its internal state. External interaction happens through controlled interfaces.**
@@ -1355,11 +1348,11 @@ Internal data structures, especially buffers or collections, must be protected f
 The lifetime of objects created by your library must be clear and managed correctly, primarily through the `std::unique_ptr` returned by factory functions.
 
 1.  **Safe to Destroy Anytime (Post-Creation):**
-    Objects returned via `std::expected<std::unique_ptr<T>, Error>` by a factory function (`CreateX()`) MUST be safe for the caller to destroy (by letting the `std::unique_ptr` go out of scope) at any point after successful creation, without requiring additional cleanup calls on other objects *unless explicitly documented as a coupled lifetime*.
+    Objects returned via `std::expected<std::unique_ptr<T>, std::error_code>` by a factory function (`create_x()`) MUST be safe for the caller to destroy (by letting the `std::unique_ptr` go out of scope) at any point after successful creation, without requiring additional cleanup calls on other objects *unless explicitly documented as a coupled lifetime*.
     *   Avoid designs where destroying object A in isolation causes crashes because object B (not owned by A's `unique_ptr`) still holds a raw pointer to A's internals without a proper observer/subscriber removal mechanism.
 
 2.  **No `.init()` Calls After Construction via Factory:**
-    An object obtained from a factory function (`CreateX()`) MUST be in a fully usable state. It SHALL NOT require a subsequent `.init()` or `.start()` call to become functional for its basic advertised contract.
+    An object obtained from a factory function (`create_x()`) MUST be in a fully usable state. It SHALL NOT require a subsequent `.init()` or `.start()` call to become functional for its basic advertised contract.
     *   Any setup that can fail or is essential for the object's initial valid state MUST happen *within* the factory function (or the constructor called by the factory) and be covered by the `std::expected` error handling.
     *   Methods like `.start()`, `.connect()`, or `.open()` are acceptable if they represent a distinct state transition *after* initial valid construction (e.g., an idle network session object calling `.connect()`).
 
@@ -1373,16 +1366,16 @@ The lifetime of objects created by your library must be clear and managed correc
 Exposing Standard Library (STL) types directly in the Application Binary Interface (ABI) of your shared libraries (`.dll`, `.so`, `.dylib`) is fraught with peril due to potential inconsistencies between compiler versions, standard library implementations, and build settings (like `_ITERATOR_DEBUG_LEVEL` on MSVC).
 
 1.  **Avoid `std::string`, `std::vector`, etc., in Public Function Signatures of Exported APIs if possible:**
-    *   If you *must* pass string data, prefer `const char*` + `size_t` (or your `BufferView`/`string_view`-like type that is ABI-stable) for input.
+    *   If you *must* pass string data, prefer `const char*` + `size_t` (or your `buffer_view`/`string_view`-like type that is ABI-stable) for input.
     *   For outputting string or collection data where the caller takes ownership, you might need to provide C-style allocator functions or return opaque pointers that are managed via C-style API calls if maximum ABI stability is paramount.
     *   However, within the Oat Interactive ecosystem, if all components are built with the same compiler toolchain and C++ standard, using `std::string` by value or const reference *can* be acceptable for convenience, but be aware of the tight coupling it creates.
 
-2.  **`BufferView` / `std::span`-like Types are Preferred for Views:**
-    For passing non-owning views of data across API boundaries, use a simple, ABI-stable struct like `BufferView { const std::byte* data; size_t size; }` or `std::span` (if C++20 `std::span` is deemed ABI-stable enough *for your toolchain and deployment environment* – C++23 `std::span` is better but check compiler support).
+2.  **`buffer_view` / `std::span`-like Types are Preferred for Views:**
+    For passing non-owning views of data across API boundaries, use a simple, ABI-stable struct like `buffer_view { const std::byte* data; size_t size; }` or `std::span` (if C++20 `std::span` is deemed ABI-stable enough *for your toolchain and deployment environment* – C++23 `std::span` is better but check compiler support).
     *   **`std::string_view` lifetime:** Be extremely careful. A `std::string_view` is only valid as long as the underlying buffer it points to is valid. Returning a `std::string_view` that points to a temporary `std::string`'s internal buffer is a dangling pointer waiting to happen.
 
 3.  **Full Ownership Transfer for Complex Types:**
-    If an API needs to return a complex STL object (like `std::vector`) and the caller owns it, often the safest (though potentially less performant) way across a hard ABI boundary is to return it by value (if it's movable and the move is efficient) or serialize it to a C-style buffer. For internal Oat Interactive libraries built together, `std::expected<std::vector<MyPOD>, Error>` can be fine.
+    If an API needs to return a complex STL object (like `std::vector`) and the caller owns it, often the safest (though potentially less performant) way across a hard ABI boundary is to return it by value (if it's movable and the move is efficient) or serialize it to a C-style buffer. For internal Oat Interactive libraries built together, `std::expected<std::vector<my_pod>, std::error_code>` can be fine.
 
 **Rule of Thumb for Shared Libraries:** The "C" subset of C++ is the most stable ABI. If you expose complex C++ types, you are implicitly tying yourself to a specific compiler toolchain and settings for ABI compatibility. For Oat Interactive internal modules built together, this is less of a concern than for libraries distributed to third parties.
 
@@ -1395,20 +1388,20 @@ This is a reiteration of MOI.1 but specifically for STL containers, as they are 
 
 🚫 Bad:
 ```cpp
-// class ThingManager {
+// class thing_manager {
 // public:
-//     std::vector<std::string>& getMutableNames(); // NO! Client can break invariants.
-//     const std::map<int, DataObject>& getInternalMap() const; // OK for const access
+//     std::vector<std::string>& get_mutable_names(); // NO! Client can break invariants.
+//     const std::map<int, data_object>& get_internal_map() const; // OK for const access
 // };
 ```
 
 If a client needs to add or remove items, provide methods:
 ```cpp
-// class ThingManager {
+// class thing_manager {
 // public:
-//     void addName(std::string_view name);
-//     bool removeName(std::string_view name);
-//     std::vector<std::string> getAllNames() const; // Returns a copy for safety
+//     void add_name(std::string_view name);
+//     bool remove_name(std::string_view name);
+//     std::vector<std::string> get_all_names() const; // Returns a copy for safety
 // };
 ```
 Returning by copy can be expensive for large collections. Alternatives include:
@@ -1436,39 +1429,39 @@ If your library has an *optional* dependency on a third-party library (e.g., a s
     ```cpp
     // Your library provides these interfaces:
     // include/oat/core/logger.h
-    class Logger {
+    class logger_base {
     public:
-        virtual ~Logger() = default;
-        virtual void log(LogLevel level, const std::string& message) = 0;
+        virtual ~logger_base() = default;
+        virtual void log(log_level level, const std::string& message) = 0;
     };
 
     // include/oat/core/metrics.h
-    class Metrics {
+    class metrics_base {
     public:
-        virtual ~Metrics() = default;
+        virtual ~metrics_base() = default;
         virtual void increment(const std::string& name, uint64_t value = 1) = 0;
         virtual void gauge(const std::string& name, double value) = 0;
     };
 
     // Your system takes these via config or factory:
-    // struct MySystemConfig {
-    //     Logger* logger = nullptr;   // Can be null
-    //     Metrics* metrics = nullptr; // Can be null
+    // struct my_system_config {
+    //     logger_base* logger = nullptr;   // Can be null
+    //     metrics_base* metrics = nullptr; // Can be null
     //     // ...
     // };
     ```
 
 2.  **Fallback to No-Op Implementations:**
-    If an optional dependency (like `Logger*` or `Metrics*`) is not provided (i.e., is `nullptr`), your system SHALL gracefully fall back to internal no-op (no-operation) implementations. These no-op versions do nothing, ensuring the system functions correctly without the optional feature.
+    If an optional dependency (like `logger_base*` or `metrics_base*`) is not provided (i.e., is `nullptr`), your system SHALL gracefully fall back to internal no-op (no-operation) implementations. These no-op versions do nothing, ensuring the system functions correctly without the optional feature.
 
     ```cpp
     // Inside your system's implementation:
     // if (config_.logger) {
-    //     config_.logger->log(LogLevel::Info, "System started.");
+    //     config_.logger->log(log_level::info, "System started.");
     // }
-    // // No else needed, or use a NoopLogger instance.
+    // // No else needed, or use a noop_logger instance.
     ```
-    Your library can even provide default `NoopLogger` and `NoopMetrics` implementations.
+    Your library can even provide default `noop_logger` and `noop_metrics` implementations.
 
 3.  **Rationale:**
     *   **Decoupling:** Your library doesn't have a hard compile-time or link-time dependency on specific third-party implementations.
@@ -1511,7 +1504,7 @@ Oat Interactive aims for a streamlined and reproducible build process.
         *   The library must be genuinely header-only (no separate `.cpp` files to compile).
         *   It should be relatively stable and not updated excessively frequently (to avoid constant manual updates).
         *   Its license must be compatible with your project.
-        *   It should be isolated (e.g., `#include "third_party/json.hpp"`), and its symbols should ideally not pollute your library's primary namespaces if it defines its own.
+        *   It should be isolated (e.g., `#include "third_party/json.h"`), and its symbols should ideally not pollute your library's primary namespaces if it defines its own.
     *   `FetchContent` is still often cleaner even for header-only libraries if they provide good CMake support, as it centralizes version management.
 
 3.  **Pre-compiled Binaries: Strongly Discouraged for Dependencies:**
@@ -1799,7 +1792,7 @@ While unit tests have their place for small, isolated utility functions or class
 
 1.  **Black-Box Testing via Public APIs:**
     Integration tests interact with your library or system through its public API, just like any other consumer. They should not rely on internal implementation details, "friend" access, or private headers.
-    *   **File Location:** Typically `tests/IntegrationTest.cpp` or `tests/MyFeatureIntegrationTest.cpp`.
+    *   **File Location:** Typically `tests/integration_test.cpp` or `tests/my_feature_integration_test.cpp`.
     *   **Focus:** Verifying that components work together correctly and that the public contract of the library is upheld.
 
 2.  **Unit Tests for Isolated Logic:**
@@ -1834,12 +1827,12 @@ A failing test that provides no useful information wastes valuable debugging tim
     ```cpp
     // Example with a hypothetical test framework
     ASSERT_EQUALS(actual_value, expected_value, "Packet sequence number mismatch");
-    ASSERT_TRUE(session->isConnected(), "Session failed to connect within timeout");
+    ASSERT_TRUE(session->is_connected(), "Session failed to connect within timeout");
     ```
 2.  **Dump Relevant State:** On failure, tests should output relevant state information that helps diagnose the problem. This might include:
     *   The specific input data that caused the failure.
     *   Key internal state variables (accessed via public getters if appropriate, or logged by the component itself under test).
-    *   Relevant log messages from the component under test (ensure your `Logger` interface can be directed to a test-specific buffer).
+    *   Relevant log messages from the component under test (ensure your `logger_base` interface can be directed to a test-specific buffer).
 3.  **No "Segfault at line 999" as the Only Output:** While crashes are bugs to be fixed, the test itself should aim to catch error conditions *before* a crash, or the environment should provide a clear stack trace. Relying on a segfault as the sole indicator of failure is insufficient.
 
 **Make your tests help you (and others) find and fix bugs quickly.**
@@ -1854,7 +1847,7 @@ Testing only the "happy path" (where everything works perfectly) is insufficient
 Your tests MUST cover:
 
 *   **Invalid Inputs:** Null pointers, empty buffers, out-of-range values, malformed data.
-*   **Error Conditions:** How does the system behave when an operation fails? Are correct `Error`s returned?
+*   **error Conditions:** How does the system behave when an operation fails? Are correct `std::error_code`s returned?
 *   **Resource Exhaustion (Simulated):** How does the system react if it can't allocate memory (if testable), or if a dependent service reports an error?
 *   **Timeouts:** For time-sensitive operations, do timeouts work correctly?
 *   **Network Issues (for network code):**
@@ -1892,13 +1885,13 @@ Oat Interactive software is cross‑platform. “Works on my machine” is not a
 
 Effective logging is indispensable for debugging, monitoring, and understanding the runtime behavior of systems--especially distributed and real‑time ones. At Oat Interactive, logging is a first‑class concern.
 
-### LOG.1: **All Logs SHALL Go Through a `Logger` Interface.**
+### LOG.1: **All Logs SHALL Go Through a `logger_base` Interface.**
 <a name="log1-logger-interface"></a>
 
-Direct use of `std::cout`, `printf`, `spdlog::log()`, or any other concrete logging mechanism within library or system code is strictly forbidden. All logging activity MUST be routed through a `Logger` interface provided to the component.
+Direct use of `std::cout`, `printf`, `spdlog::log()`, or any other concrete logging mechanism within library or system code is strictly forbidden. All logging activity MUST be routed through a `logger_base` interface provided to the component.
 
-1.  **The `Logger` Interface:**
-    Define a standard `Logger` interface.
+1.  **The `logger_base` Interface:**
+    Define a standard `logger_base` interface.
     ```cpp
     // include/oat/core/logger.h (or similar central location)
     #pragma once
@@ -1907,27 +1900,27 @@ Direct use of `std::cout`, `printf`, `spdlog::log()`, or any other concrete logg
 
     namespace oat::core {
 
-        enum class LogLevel {
-            Trace,    // Highly detailed, for deep debugging
-            Debug,    // Developer-centric information
-            Info,     // General operational information
-            Warn,     // Potentially problematic situations
-            Error,    // Errors that the component handled or is reporting
-            Critical  // Severe errors that may lead to shutdown
+        enum class log_level {
+            trace,    // Highly detailed, for deep debugging
+            debug,    // Developer-centric information
+            info,     // General operational information
+            warn,     // Potentially problematic situations
+            error,    // Errors that the component handled or is reporting
+            critical  // Severe errors that may lead to shutdown
         };
 
-        // Optional: Helper to convert LogLevel to string
-        // const char* to_string(LogLevel level);
+        // Optional: Helper to convert log_level to string
+        // const char* to_string(log_level level);
 
-        class Logger {
+        class logger_base {
         public:
-            virtual ~Logger() = default;
+            virtual ~logger_base() = default;
 
             // Basic logging method
-            virtual void log(LogLevel level, const std::string& message) = 0;
+            virtual void log(log_level level, const std::string& message) = 0;
 
             // Enriched logging method (preferred)
-            virtual void log(LogLevel level,
+            virtual void log(log_level level,
                              const std::string& message,
                              const std::source_location& location = std::source_location::current()) {
                 // Default implementation can simply call the basic one,
@@ -1939,45 +1932,45 @@ Direct use of `std::cout`, `printf`, `spdlog::log()`, or any other concrete logg
             }
 
             // Convenience methods (optional, can be implemented in terms of the above)
-            // void trace(const std::string& message, const std::source_location& loc = ...){ log(LogLevel::Trace, message, loc); }
-            // void debug(const std::string& message, const std::source_location& loc = ...){ log(LogLevel::Debug, message, loc); }
-            // void info(const std::string& message, const std::source_location& loc = ...){ log(LogLevel::Info, message, loc); }
-            // void warn(const std::string& message, const std::source_location& loc = ...){ log(LogLevel::Warn, message, loc); }
-            // void error(const std::string& message, const std::source_location& loc = ...){ log(LogLevel::Error, message, loc); }
-            // void critical(const std::string& message, const std::source_location& loc = ...){ log(LogLevel::Critical, message, loc); }
+            // void trace(const std::string& message, const std::source_location& loc = ...){ log(log_level::trace, message, loc); }
+            // void debug(const std::string& message, const std::source_location& loc = ...){ log(log_level::debug, message, loc); }
+            // void info(const std::string& message, const std::source_location& loc = ...){ log(log_level::info, message, loc); }
+            // void warn(const std::string& message, const std::source_location& loc = ...){ log(log_level::warn, message, loc); }
+            // void error(const std::string& message, const std::source_location& loc = ...){ log(log_level::error, message, loc); }
+            // void critical(const std::string& message, const std::source_location& loc = ...){ log(log_level::critical, message, loc); }
 
-            virtual bool isEnabled(LogLevel level) const { // Optional: for performance critical paths
+            virtual bool is_enabled(log_level level) const { // Optional: for performance critical paths
                  return true; // Default: always enabled, concrete loggers can be smarter
             }
         };
 
-        // Provide a No-Op Logger for convenience
-        class NoopLogger : public Logger {
+        // Provide a No-Op logger_base for convenience
+        class noop_logger : public logger_base {
         public:
-            void log(LogLevel /*level*/, const std::string& /*message*/) override {}
-            void log(LogLevel /*level*/, const std::string& /*message*/, const std::source_location& /*location*/) override {}
-            bool isEnabled(LogLevel /*level*/) const override { return false; }
+            void log(log_level /*level*/, const std::string& /*message*/) override {}
+            void log(log_level /*level*/, const std::string& /*message*/, const std::source_location& /*location*/) override {}
+            bool is_enabled(log_level /*level*/) const override { return false; }
         };
 
     } // namespace oat::core
     ```
 
 2. **Injection:**
-    Systems receive a `Logger*` (typically non-owning) via their factory function / configuration struct.
+    Systems receive a `logger_base*` (typically non-owning) via their factory function / configuration struct.
     ```cpp
-    // struct MySystemConfig {
-    //     oat::core::Logger* logger = nullptr; // Default to no logging if not provided
+    // struct my_system_config {
+    //     oat::core::logger_base* logger = nullptr; // Default to no logging if not provided
     //     // ...
     // };
     ```
-   If `logger` is `nullptr`, the system SHOULD either use a static `NoopLogger` instance or perform `nullptr` checks before every log call. A preferred approach is for the factory to instantiate a `NoopLogger` if none is provided.
+   If `logger` is `nullptr`, the system SHOULD either use a static `noop_logger` instance or perform `nullptr` checks before every log call. A preferred approach is for the factory to instantiate a `noop_logger` if none is provided.
 
 3. **Rationale:**
    * **Decoupling:** Libraries are not tied to a specific logging implementation.
    * **Controllability:** The application controls log output, formatting, and destinations.
    * **Testability:** Easy to inject a mock/test logger to verify logging behavior.
 
-**Directly writing plain text such as `"something went wrong"` to standard output without using an appropriate `LogLevel` enum results in logs that are difficult to parse, filter, or maintain.**
+**Directly writing plain text such as `"something went wrong"` to standard output without using an appropriate `log_level` enum results in logs that are difficult to parse, filter, or maintain.**
 
 ---
 
@@ -1987,13 +1980,13 @@ Direct use of `std::cout`, `printf`, `spdlog::log()`, or any other concrete logg
 Log messages MUST be informative and easy to parse, both for humans and machines.
 
 1. **Prefix with Component/Subsystem:**
-   Every log message originating from a specific component SHOULD clearly indicate its source. This can be achieved by the component itself prefixing its messages, or by the `Logger` implementation if it supports contextual logging.
+   Every log message originating from a specific component SHOULD clearly indicate its source. This can be achieved by the component itself prefixing its messages, or by the `logger_base` implementation if it supports contextual logging.
 
     ✅ Good (Component adds context):
     ```cpp
-    // In SessionManager.cpp
-    // if (logger_ && logger_->isEnabled(LogLevel::Warn)) {
-    //    logger_->warn("[SessionManager] Session " + session_id_ + " timed out.");
+    // In session_manager.cpp
+    // if (logger_ && logger_->is_enabled(log_level::warn)) {
+    //    logger_->warn("[session_manager] Session " + session_id_ + " timed out.");
     // }
     ```
 2. **Include Relevant Contextual Data:**
@@ -2001,9 +1994,9 @@ Log messages MUST be informative and easy to parse, both for humans and machines
 
     ✅ Good:
     ```cpp
-    // logger_->error("[PacketParser] Failed to parse packet type " + std::to_string(type_val) +
+    // logger_->error("[packet_parser] Failed to parse packet type " + std::to_string(type_val) +
     //               " from " + sender_addr.toString() + ": invalid length field.");
-    // logger_->info("[ReliableChannel:" + channel_id_ + "] Retrying SEQ=" + std::to_string(seq_num) +
+    // logger_->info("[reliable_channel:" + channel_id_ + "] Retrying SEQ=" + std::to_string(seq_num) +
     //              " (attempt " + std::to_string(retry_count) + ")");
     ```
 
@@ -2014,7 +2007,7 @@ Log messages MUST be informative and easy to parse, both for humans and machines
     ```
 
 3. **Structured Logging (If Supported by Implementation):**
-   While the basic interface uses strings, concrete `Logger` implementations might support structured logging (key‑value pairs). If so, prefer it for easier machine parsing. The interface itself remains simple.
+   While the basic interface uses strings, concrete `logger_base` implementations might support structured logging (key‑value pairs). If so, prefer it for easier machine parsing. The interface itself remains simple.
 
 **Logs are critical instrumentation for operations, troubleshooting, and automated analysis; ensure every entry provides meaningful information.**
 
@@ -2028,7 +2021,7 @@ Excessive logging in performance‑critical code sections (e.g., per packet, per
 1. **Check Log Level Before Formatting:**
     If formatting a log message is expensive, check if the current log level is enabled before doing the work.
     ```cpp
-    // if (logger_ && logger_->isEnabled(LogLevel::Debug)) {
+    // if (logger_ && logger_->is_enabled(log_level::debug)) {
     //     std::string complex_debug_info = format_lots_of_data(); // Expensive
     //     logger_->debug("[MyComponent] State: " + complex_debug_info);
     // }
@@ -2046,10 +2039,10 @@ Excessive logging in performance‑critical code sections (e.g., per packet, per
     // const uint64_t LOG_THROTTLE_INTERVAL_NS = 5 * 1'000'000'000ULL; // 5 seconds
 
     // void handle_queue_full() {
-    //     if (logger_ && logger_->isEnabled(LogLevel::Warn)) {
+    //     if (logger_ && logger_->is_enabled(log_level::warn)) {
     //         uint64_t now_ns = get_current_time_ns();
     //         if (now_ns - last_queue_full_log_ns_ > LOG_THROTTLE_INTERVAL_NS) {
-    //             logger_->warn("[DataQueue] Queue is full. Dropping data.");
+    //             logger_->warn("[data_queue] Queue is full. Dropping data.");
     //             last_queue_full_log_ns_ = now_ns;
     //         }
     //     }
@@ -2057,25 +2050,25 @@ Excessive logging in performance‑critical code sections (e.g., per packet, per
     // }
     ```
 
-3. **`Trace` and `Debug` Levels for Verbosity:**
-   Use `LogLevel::Trace` and `LogLevel::Debug` for highly verbose output. These levels are typically disabled in production but can be enabled for detailed diagnostics.
+3. **`trace` and `debug` Levels for Verbosity:**
+   Use `log_level::trace` and `log_level::debug` for highly verbose output. These levels are typically disabled in production but can be enabled for detailed diagnostics.
 
 **Logging is a diagnostic tool, not a denial‑of‑service vector against your own application or logging infrastructure.**
 
 ---
 
-## 📈 Telemetry / Metrics (MET)
+## 📈 Telemetry / metrics_base (MET)
 <a name="-telemetry--metrics"></a>
 
 While logs provide detailed, event‑specific information, metrics offer a higher‑level, aggregated view of a system’s health and performance over time. Oat Interactive systems SHOULD expose key operational metrics.
 
-### MET.1: **Every System SHALL Support `Metrics*` Injection for Key Indicators.**
+### MET.1: **Every System SHALL Support `metrics_base*` Injection for Key Indicators.**
 <a name="met1-metrics-injection"></a>
 
-Similar to logging, components SHOULD NOT be hard‑coded to a specific metrics backend. Instead, they SHOULD accept a `Metrics` interface.
+Similar to logging, components SHOULD NOT be hard‑coded to a specific metrics backend. Instead, they SHOULD accept a `metrics_base` interface.
 
-1. **The `Metrics` Interface:**
-   Define a standard `Metrics` interface.
+1. **The `metrics_base` Interface:**
+   Define a standard `metrics_base` interface.
     ```cpp
     // include/oat/core/metrics.h (or similar central location)
     #pragma once
@@ -2086,55 +2079,55 @@ Similar to logging, components SHOULD NOT be hard‑coded to a specific metrics 
     namespace oat::core {
 
         // Optional: A simple struct for key-value tags/labels
-        struct MetricTag {
+        struct metric_tag {
             std::string key;
             std::string value;
         };
-        using MetricTags = std::vector<MetricTag>;
+        using metric_tags = std::vector<metric_tag>;
 
 
-        class Metrics {
+        class metrics_base {
         public:
-            virtual ~Metrics() = default;
+            virtual ~metrics_base() = default;
 
             // Increment a counter
             virtual void increment(const std::string& name,
-                                   const MetricTags& tags = {},
+                                   const metric_tags& tags = {},
                                    uint64_t value = 1) = 0;
 
             // Set a gauge (a value that can go up or down)
             virtual void gauge(const std::string& name,
-                               const MetricTags& tags = {},
+                               const metric_tags& tags = {},
                                double value) = 0;
 
             // Record a timing/histogram observation (often in milliseconds or nanoseconds)
             // The concrete implementation would handle aggregation (e.g., Prometheus histograms/summaries)
             virtual void timing(const std::string& name,
-                                const MetricTags& tags = {},
+                                const metric_tags& tags = {},
                                 uint64_t duration_ns) = 0;
         };
 
-        // Provide a No-Op Metrics implementation
-        class NoopMetrics : public Metrics {
+        // Provide a No-Op metrics_base implementation
+        class noop_metrics : public metrics_base {
         public:
-            void increment(const std::string& /*name*/, const MetricTags& /*tags*/, uint64_t /*value*/) override {}
-            void gauge(const std::string& /*name*/, const MetricTags& /*tags*/, double /*value*/) override {}
-            void timing(const std::string& /*name*/, const MetricTags& /*tags*/, uint64_t /*duration_ns*/) override {}
+            void increment(const std::string& /*name*/, const metric_tags& /*tags*/, uint64_t /*value*/) override {}
+            void gauge(const std::string& /*name*/, const metric_tags& /*tags*/, double /*value*/) override {}
+            void timing(const std::string& /*name*/, const metric_tags& /*tags*/, uint64_t /*duration_ns*/) override {}
         };
 
     } // namespace oat::core
     ```
 
 2. **Injection:**
-   Systems receive a `Metrics*` (typically non‑owning) via their factory function / configuration struct.
+   Systems receive a `metrics_base*` (typically non‑owning) via their factory function / configuration struct.
     ```cpp
-    // struct MySystemConfig {
-    //     oat::core::Metrics* metrics = nullptr; // Default to no metrics if not provided
+    // struct my_system_config {
+    //     oat::core::metrics_base* metrics = nullptr; // Default to no metrics if not provided
     //     // ...
     // };
     ```
 
-   If `metrics` is `nullptr`, the system SHOULD use a static `NoopMetrics` instance or perform `nullptr` checks.
+   If `metrics` is `nullptr`, the system SHOULD use a static `noop_metrics` instance or perform `nullptr` checks.
 
 3. **What to Instrument:**
    Focus on key performance indicators (KPIs) and operational health:
@@ -2216,19 +2209,19 @@ Any data format that is serialized to disk, transmitted over a network, or other
     ```cpp
     // include/oat/your_protocol/protocol_constants.h
     namespace oat::your_protocol {
-        inline constexpr uint8_t PROTOCOL_VERSION = 2; // Current version is 2
-        // inline constexpr uint8_t MIN_SUPPORTED_CLIENT_VERSION = 1; // If applicable
+        inline constexpr uint8_t k_protocol_version = 2; // Current version is 2
+        // inline constexpr uint8_t k_min_supported_client_version = 1; // If applicable
     }
 
     // In your packet structure:
     struct HandshakePacket {
-        uint8_t version; // Will be set to PROTOCOL_VERSION by sender
+        uint8_t version; // Will be set to k_protocol_version by sender
         // ... other handshake data
     };
 
     struct FileHeader {
         uint32_t magic_number;
-        uint16_t format_version; // Set to DATA_FORMAT_VERSION
+        uint16_t format_version; // Set to k_data_format_version
         // ... other metadata
     };
     ```
@@ -2243,7 +2236,7 @@ Any data format that is serialized to disk, transmitted over a network, or other
     *   Decide if your current code can understand/support this version.
     *   Reject, adapt, or warn based on the version mismatch.
 
-**Omitting `PROTOCOL_VERSION` in the initial release can lead to ambiguous or incompatible Version 1 behavior and could require disruptive changes later.**
+**Omitting `k_protocol_version` in the initial release can lead to ambiguous or incompatible Version 1 behavior and could require disruptive changes later.**
 
 ---
 
@@ -2254,7 +2247,7 @@ When introducing changes that alter the wire format, add capabilities, or change
 
 1.  **Handshake for Feature Negotiation (Preferred for Network Protocols):**
     During the initial connection handshake, peers can exchange their versions and a set of supported feature flags.
-    *   **Example:** Client connects, sends `HelloPacket { version = 2, feature_flags = 0b00000001 /* supports_compression */ }`.
+    *   **Example:** Client connects, sends `hello_packet { version = 2, feature_flags = 0b00000001 /* supports_compression */ }`.
     *   Server receives, checks version. If `version == 2`, it checks its own `feature_flags`. If server also supports compression, they can agree to use it. If client `version == 1` (which didn't have compression), server communicates without it.
     *   This allows incremental feature rollout without breaking older clients/servers immediately.
 
@@ -2279,19 +2272,19 @@ API versioning for C++ libraries should be explicit and manageable, not hidden b
 
 1.  **Explicit New Interfaces for Major Breaking API Changes:**
     If you need to make significant, backward-incompatible changes to a C++ library's public API:
-    *   Create a new set of interfaces, potentially in a new namespace (e.g., `oat::your_lib::v2::MyInterface`).
-    *   The old version (`oat::your_lib::MyInterface` or `oat::your_lib::v1::MyInterface`) can be maintained for a deprecation period or kept if long-term support is needed.
+    *   Create a new set of interfaces, potentially in a new namespace (e.g., `oat::your_lib::v2::my_interface`).
+    *   The old version (`oat::your_lib::my_interface` or `oat::your_lib::v1::my_interface`) can be maintained for a deprecation period or kept if long-term support is needed.
     *   Provide clear documentation on how to migrate from v1 to v2.
 
     ```cpp
     // Old: include/oat/your_lib/v1/service.h
     namespace oat::your_lib::v1 {
-        class Service { /* ... */ };
+        class service { /* ... */ };
     }
 
     // New: include/oat/your_lib/v2/service.h
     namespace oat::your_lib::v2 {
-        class Service { /* new, improved, incompatible API */ };
+        class service { /* new, improved, incompatible API */ };
     }
     ```
 
@@ -2327,12 +2320,12 @@ These patterns are fundamentally misaligned with Oat Interactive’s engineeri
                                    // whose data is then viewed, also DANGLING.
         }
         ```
-    *   **Oat Interactive Way:** Ensure `std::string_view` (or `BufferView`) always points to data with a guaranteed lifetime that outlives the view. Return strings by value (`std::string`), by const reference to a stable member, or use owned buffer types if data needs to be passed around.
+    *   **Oat Interactive Way:** Ensure `std::string_view` (or `buffer_view`) always points to data with a guaranteed lifetime that outlives the view. Return strings by value (`std::string`), by const reference to a stable member, or use owned buffer types if data needs to be passed around.
 
 3.  **Virtual Destructors in Non-Polymorphic Base Classes (or Classes Not Intended for Polymorphic Deletion).**
     *   **Problem:** Adds unnecessary vtable overhead if the class is never intended to be derived from and deleted via a base class pointer. Conversely, *forgetting* a virtual destructor in a class *intended* to be a polymorphic base is a bug.
     *   **Oat Interactive Way:**
-        *   Public base classes meant to be interfaces (deleted via base pointer) **MUST** have a `virtual ~Base() = default;` (See A.2).
+        *   Public base classes meant to be interfaces (deleted via base pointer) **MUST** have a `virtual ~base() = default;` (See A.2).
         *   Classes not intended for polymorphic deletion (e.g., concrete utility classes, PODs) should not have virtual destructors. Mark them `final` if they shouldn't be derived from at all.
 
 4.  **Deep Inheritance Chains (Longer than 1-2 Levels for Implementation Inheritance).**
@@ -2340,19 +2333,19 @@ These patterns are fundamentally misaligned with Oat Interactive’s engineeri
     *   **Oat Interactive Way:**
         *   Prefer composition over implementation inheritance. Build complex objects by assembling smaller, focused components.
         *   Interface inheritance (deriving from abstract classes with pure virtuals) is fine and encouraged (A.2), but this is about *contract*, not *implementation* sharing.
-        *   If you have `class D : public C; class C : public B; class B : public A;`, your design is likely flawed.
+        *   If you have `class d : public c; class c : public b; class b : public a;`, your design is likely flawed.
 
 5.  **Singleton Pattern (Classic Global Access Version).**
     *   **Problem:** Singletons introduce global state, make dependency tracking difficult, hinder testability (hard to mock/replace), and often lead to issues with initialization order and lifetime management in complex systems.
     *   **Oat Interactive Way:** If you need a single, shared instance of a service, make it an explicit dependency. Create it once at the application's composition root and pass it (as a pointer or reference, often via an interface) to the components that need it (see DL.1, LOG.1, MET.1). This is called "Dependency Injection."
 
-6.  **Returning Error Codes (e.g., `int` or `bool`) and Output Parameters for Results.**
+6.  **Returning error Codes (e.g., `int` or `bool`) and Output Parameters for Results.**
     *   **Problem:** C-style error handling with output parameters is error-prone (caller might forget to check the return code), makes function signatures clunky, and doesn't compose well.
         ```cpp
         // 🚫 DOA Example:
-        // bool get_data(int id, MyData* out_data, Error* out_error);
+        // bool get_data(int id, my_data* out_data, error* out_error);
         ```
-    *   **Oat Interactive Way:** Use `std::expected<T, Error>` to return either a value `T` or an `Error`. This forces the caller to explicitly check for and handle the error case. (See L.2, L.4, API.2, API.3).
+    *   **Oat Interactive Way:** Use `std::expected<T, std::error_code>` to return either a value `T` or an `error`. This forces the caller to explicitly check for and handle the error case. (See L.2, L.4, API.2, API.3).
 
 ---
 
@@ -2364,8 +2357,8 @@ This is a quick checklist. If you find yourself doing any of these, pause, take 
 *   **You're writing templates for code that isn't genuinely generic across multiple, unrelated types.**
     *   *Why stop?* Templates add compile-time overhead and complexity. Only use them when the generic algorithm or data structure truly applies to a family of types that cannot be reasonably handled by runtime polymorphism or simple function overloading. Don't use templates just to avoid writing a function twice for `int` and `float` if that's the only use case.
 
-*   **You're wrapping everything in a "Manager" class (e.g., `SessionManager`, `NetworkManager`, `UIManager`) because you don't have a clearer name or defined responsibility for the component.**
-    *   *Why stop?* "Manager" is often a sign of a god object or a class with poorly defined, overly broad responsibilities. Try to break down "managers" into smaller, more focused components with clear, single responsibilities.
+*   **You're wrapping everything in a "manager" class (e.g., `session_manager`, `network_manager`, `ui_manager`) because you don't have a clearer name or defined responsibility for the component.**
+    *   *Why stop?* "manager" is often a sign of a god object or a class with poorly defined, overly broad responsibilities. Try to break down "managers" into smaller, more focused components with clear, single responsibilities.
 
 *   **You're hiding I/O (network, disk) behind lambda callbacks passed deep into a system, instead of using explicit I/O calls or a proper event dispatch/`tick()` mechanism.**
     *   *Why stop?* Obscures when and how I/O occurs, making it hard to debug, test, and reason about threading or blocking behavior. I/O should be explicit (RT.4) or handled through a well-defined event loop/`tick()` process.

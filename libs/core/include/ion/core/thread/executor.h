@@ -8,17 +8,17 @@ namespace ion::core {
 
 using Task = std::function<void()>;
 
-class ION_CORE_API IThreadPool {
+class ION_CORE_API thread_pool_base {
 public:
-    virtual ~IThreadPool() = default;
+    virtual ~thread_pool_base() = default;
     
     virtual void submit(Task&& task) = 0;
     virtual void wait_idle() = 0;
 };
 
-class ION_CORE_API IExecutor {
+class ION_CORE_API executor_base {
 public:
-    virtual ~IExecutor() = default;
+    virtual ~executor_base() = default;
     
     virtual void execute(Task&& task) = 0;
 };
