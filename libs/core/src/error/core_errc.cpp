@@ -1,5 +1,5 @@
 #include <ion/core/error/core_errc.h>
 
 namespace ion::core {
-core_category const k_core_category;
+ION_CORE_API const core_category k_core_category;
 }
