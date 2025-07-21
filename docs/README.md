@@ -6,21 +6,11 @@ Welcome to the Ion Vortex documentation hub! Use the sections below to navigate 
 
 - [Prerequisites & Quick Start](getting-started/README.md)
 - [Building Ion Vortex](getting-started/building.md)
-- [Your First App Tutorial](getting-started/first-app.md)
-
-## 📖 Design & Architecture
-
-- [Game Design & Systems](game-design/README.md)
-- [Network Architecture](game-design/network-architecture.md)
-- [Game Mechanics](game-design/game-mechanics.md)
-- [Ships & Equipment](game-design/ships-equipment.md)
-- [MVP Requirements](game-design/mvp-requirements.md)
 
 ## 📚 Development References
 
 - [Development Reference Overview](development/README.md)
 - [C++ Manual (Coding Standard)](development/cpp-manual.md)
-- [Creating Applications](development/creating-apps.md)
 - [Creating Libraries](development/creating-libraries.md)
 - [Testing Reference](development/testing.md)
 - [API Reference Overview](api/README.md)

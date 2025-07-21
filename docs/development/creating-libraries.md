@@ -1,6 +1,6 @@
 # Creating Libraries
 
-This guide walks through creating a new library in the Ion Vortex engine, following all architectural and coding standards.
+This guide walks through creating a new library in the Ion Vortex framework, following all architectural and coding standards.
 
 ## Overview
 
@@ -112,7 +112,7 @@ public:
     
     // your_type_base implementation
     void do_something() override;
-    std::expected<int, , std::error_code> compute_value() override;
+    std::expected<int, std::error_code> compute_value() override;
     
 private:
     // Private constructor - use factory
@@ -470,8 +470,9 @@ TEST_CASE("Handles errors gracefully") {
 After creating your library:
 1. Run tests: `ctest --preset debug-linux`
 2. Build standalone: `cd libs/your_library && cmake -B build`
-3. Use in apps: Link with `ion::your_library`
+3. Use in other libraries: Link with `ion::your_library`
 4. Document in API reference
 5. Add examples if complex
 
 Remember: Your library is only as good as its interface. Design it carefully!
+```

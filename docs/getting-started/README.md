@@ -1,6 +1,6 @@
 # Getting Started with Ion Vortex
 
-Welcome to Ion Vortex! This guide will help you get up and running with the framework, from initial setup to building your first application.
+Welcome to Ion Vortex! This guide will help you get up and running with the framework, from initial setup to building and integrating its libraries.
 
 ## Quick Start
 
@@ -15,7 +15,7 @@ cd ion
 # Build and run
 cmake --preset debug-linux    # or debug-windows, debug-macos
 cmake --build --preset debug-linux
-./build/debug/Linux/apps/client/client
+./build/debug/Linux/libs/engine_interface/tests
 ```
 
 ## Detailed Guides
@@ -34,18 +34,11 @@ Step-by-step build instructions:
 - Debug vs Release builds
 - Troubleshooting common issues
 
-### 🚀 [Your First App](first-app.md)
-Create a simple application using Ion:
-- Project structure
-- Using ion libraries
-- Basic rendering with SDL3
-- Adding ImGui interface
-
 ## Choose Your Path
 
 After completing the basics, explore based on your interests:
 
-- **Game Development** → See [Game Design docs](../game-design/)
+- **Library Integration** → See [API Reference](../api/)
 - **Engine Development** → See [Architecture docs](../architecture/)
 - **Contributing** → See [Contributing guide](../contributing/)
 
@@ -77,7 +70,6 @@ After completing the basics, explore based on your interests:
 
 1. ✅ Complete [Prerequisites](prerequisites.md)
 2. ✅ Follow [Building Guide](building.md)
-3. ✅ Create [Your First App](first-app.md)
-4. 🎯 Pick a feature and start coding!
+3. 🎯 Pick a library and start coding!
 
 Remember: Ion Vortex follows strict C++ standards. Review the [C++ Manual](../development/cpp-manual.md) to understand our coding requirements.

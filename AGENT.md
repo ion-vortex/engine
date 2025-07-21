@@ -16,17 +16,13 @@
 
 ## 2   Library boundaries
 
-| Layer           | May call                           | **Must NOT** call                |
-| --------------- | ---------------------------------- | -------------------------------- |
-| `libs/core`     | – (bottom layer)                   | anything else                    |
-| `libs/crypto`   | `core`                             | asset, physics, render, ui       |
-| `libs/asset`    | `core`, `crypto`                   | physics, render, ui              |
-| `libs/physics`  | `core`                             | asset, render, ui, protocol      |
-| `libs/protocol` | `core`, `crypto`                   | render, ui, physics              |
-| `libs/audio`    | `core`                             | render, ui                       |
-| `libs/render`   | `core`, `physics` *(read-only)*    | protocol, ui (except imgui draw) |
-| `libs/ui`       | `core`, `render`                   | protocol, physics, crypto        |
-| `apps/*`        | all libs **via public interfaces** | –                                |
+| Layer               | May call                           | **Must NOT** call                |
+| ------------------- | ---------------------------------- | -------------------------------- |
+| `libs/core`         | – (bottom layer)                   | anything else                    |
+| `libs/crypto`       | `core`                             | engine_interface, script         |
+| `libs/engine_interface` | `core`, `crypto`                   | script                           |
+| `libs/script`       | `core`, `engine_interface`         | crypto                           |
+| `apps/*`            | all libs **via public interfaces** | –                                |
 
 ### Sanity macro
 
@@ -43,7 +39,7 @@ Every `*.cpp` **must** start with:
 * **No exceptions** across public boundaries (`std::expected` only).
 * **No RTTI** (`dynamic_cast`, `typeid`) in libs.
 * **No singletons.**  Inject via factory or pass a reference.
-* **No `std::shared_ptr`** in engine libs.  Use `std::unique_ptr`; UI (ImGui) is immediate-mode and does not require shared ownership.
+* **No `std::shared_ptr`** in engine libs.  Use `std::unique_ptr`.
 * Public headers: `#pragma once`, no `using namespace std`.
 * Must compile with `-Wall -Wextra -Werror -Wshadow -Wconversion` (or MSVC equivalents).
 * Use CMake ≥ **3.28**.  Unity builds (`CMAKE_UNITY_BUILD`) and PCH are on by default via `CMakePresets.json`.

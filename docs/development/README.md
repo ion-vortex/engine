@@ -52,12 +52,12 @@ Testing philosophy and practices:
 
 ### Current Status: Tier 0 (MVP Foundation)
 
-**Goal**: Static single-player sandbox with basic ship movement and rendering.
+**Goal**: Static single-player sandbox with basic ship movement and loging.
 
 **Tier 0 Requirements**:
 1. ✅ Spawn one ship in a single zone
 2. 🔄 Car-style steering (hold W to accelerate forward; heading changes momentum)
-3. 🔄 Server replicates pos/rot/vel each tick; client interpolates & renders
+3. 🔄 Server replicates pos/rot/vel each tick; client interpolates & logs
 4. 🔄 ImGui shows FPS/ping
 
 ### Upcoming Milestones
@@ -82,7 +82,7 @@ Testing philosophy and practices:
    crypto/    ← Cryptographic utilities
    physics/   ← SAT collision queries
    protocol/  ← Network protocol definitions
-   render/    ← SDL3 init, view & frame orchestration
+   log/    ← SDL3 init, view & frame orchestration
    ui/        ← ImGui context per-view, dockspace, debug widgets
 ```
 
@@ -144,15 +144,15 @@ auto obj = std::move(result.value());
 ### 3. **Interface-Based Design**
 ```cpp
 // Public interface
-class renderer_base {
+class logger_base {
 public:
-    virtual ~renderer_base() = default;
-    virtual void render() = 0;
+    virtual ~logger_base() = default;
+    virtual void log() = 0;
 };
 
 // Hidden implementation
-class renderer_impl : public renderer_base {
-    void render() override { /* ... */ }
+class logger_impl : public logger_base {
+    void log() override { /* ... */ }
 };
 ```
 

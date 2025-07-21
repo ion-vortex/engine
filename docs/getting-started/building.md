@@ -68,11 +68,8 @@ cmake --build --preset debug-linux    # or debug-windows, debug-macos
 
 Build specific targets:
 ```bash
-# Build only the client application
-cmake --build --preset debug-linux --target client
-
 # Build a specific library
-cmake --build --preset debug-linux --target ion_core
+cmake --build --preset debug-linux --target ion_engine_interface
 
 # Build with parallel jobs (if not automatic)
 cmake --build --preset debug-linux -j 8
@@ -119,21 +116,11 @@ ion/
 # Configure if not already done
 cmake --preset debug
 
-# Build just ion::core
-cmake --build --preset debug --target ion_core
+# Build just ion::engine_interface
+cmake --build --preset debug --target ion_engine_interface
 
-# Build just ion::render
-cmake --build --preset debug --target ion_render
-```
-
-### Build Without Applications
-
-```bash
-# Configure without apps
-cmake --preset debug -DION_BUILD_APPS=OFF
-
-# Build libraries only
-cmake --build --preset debug
+# Build just ion::script
+cmake --build --preset debug --target ion_script
 ```
 
 ### Build With Tests
@@ -189,14 +176,11 @@ After building, find executables and libraries:
 
 ```
 build/[preset]/
-├── apps/
-│   ├── client/client      # Main client executable
-│   ├── zoned/zoned        # Zone server
-│   └── unid/unid          # Universe directory
 ├── libs/
-│   ├── libion_core.a    # Core library
-│   ├── libion_render.a  # Render library
-│   └── ...                # Other libraries
+│   ├── libion_core.a          # Core library
+│   ├── libion_engine_interface.a  # Engine interface library
+│   ├── libion_script.a        # Script library
+│   └── ...                    # Other libraries
 ```
 
 ## Troubleshooting
@@ -264,10 +248,9 @@ rm -rf build/
 ## Next Steps
 
 After successfully building:
-1. Run the client: `./build/debug/apps/client/client`
-2. Follow [Your First App](first-app.md) tutorial
-3. Learn about the [Build System](../development/build-system.md)
-4. Read the [Architecture](../architecture/) documentation
+1. Learn about the [Build System](../development/build-system.md)
+2. Read the [Architecture](../architecture/) documentation
+3. Explore the [API Reference](../api/)
 
 ## Tips for Faster Builds
 
