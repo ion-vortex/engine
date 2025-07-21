@@ -22,7 +22,7 @@ class json_store;
  * using an in-memory representation of JSON data. It supports ACID-compliant
  * operations on hierarchical storage data.
  */
-class ION_CORE_API json_transaction final : public transaction_base {
+class json_transaction final : public transaction_base {
 public:
     json_transaction(nlohmann::json const& initial_data, json_store* store, json_store_options const& options);
     ~json_transaction() noexcept override;

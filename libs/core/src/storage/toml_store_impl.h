@@ -10,7 +10,7 @@ namespace ion::core::detail {
 
 class toml_transaction;
 
-class ION_CORE_API toml_store final : public store_base {
+class toml_store final : public store_base {
 public:
     toml_store(std::filesystem::path const& path, toml_store_options const& options);
     ~toml_store();
