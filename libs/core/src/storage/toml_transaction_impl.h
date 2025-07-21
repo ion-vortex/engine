@@ -21,7 +21,7 @@ class toml_store;
  * using an in-memory representation of TOML data. It supports ACID-compliant
  * operations on hierarchical storage data.
  */
-class ION_CORE_API toml_transaction final : public transaction_base {
+class toml_transaction final : public transaction_base {
 public:
     toml_transaction(toml::table const& initial_data, toml_store* store, toml_store_options const& options);
     ~toml_transaction() noexcept override;

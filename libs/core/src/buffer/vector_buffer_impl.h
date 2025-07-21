@@ -6,7 +6,7 @@
 
 namespace ion::core::detail {
 
-class ION_CORE_API vector_buffer final : public buffer_base {
+class vector_buffer final : public buffer_base {
     std::vector<std::byte> data_;
 public:
     [[ION_NODISCARD("Handle resize result")]]

@@ -10,7 +10,7 @@ namespace ion::core::detail {
 
 class json_transaction;
 
-class ION_CORE_API json_store final : public store_base {
+class json_store final : public store_base {
 public:
     json_store(std::filesystem::path const& path, json_store_options const& options);
     ~json_store();
