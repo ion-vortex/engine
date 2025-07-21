@@ -1,8 +1,8 @@
 /**
  * @file json_store_impl.cpp
- * @brief Implementation of the JsonStore class for managing JSON-based storage.
+ * @brief Implementation of the json_store class for managing JSON-based storage.
  *
- * This file contains the implementation of the JsonStore class, which provides
+ * This file contains the implementation of the json_store class, which provides
  * methods for opening, closing, and managing transactions on a JSON-based
  * storage backend. The class ensures ACID compliance by using atomic file
  * operations for saving data.
@@ -17,19 +17,19 @@ using namespace ion::core;
 using namespace ion::core::detail;
 
 /**
- * @brief Constructs a JsonStore instance.
+ * @brief Constructs a json_store instance.
  * @param path Filesystem path to the JSON file.
  * @param options Options for configuring the JSON store.
  */
-JsonStore::JsonStore(std::filesystem::path const& path, JsonStoreOptions const& options)
+json_store::json_store(std::filesystem::path const& path, json_store_options const& options)
     : path_(path), options_(options), data_(nlohmann::json::object()) { }
 
 /**
- * @brief Destructor for JsonStore.
+ * @brief Destructor for json_store.
  *
  * Ensures the store is properly closed if it is still open.
  */
-JsonStore::~JsonStore() {
+json_store::~json_store() {
     if (is_open_) {
         auto result = close();
         if (!result) {
@@ -45,11 +45,11 @@ JsonStore::~JsonStore() {
  * @param path Filesystem path to the JSON file.
  * @return Success or an error if the store is already open or the file cannot be read.
  */
-std::expected<void, Error> JsonStore::open(std::filesystem::path const& path) {
+std::expected<void, std::error_code> json_store::open(std::filesystem::path const& path) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (is_open_) {
-        return std::unexpected(Error{ErrorCode::AlreadyExists, "Store already open"});
+        return std::unexpected(make_error_code(core_errc::already_exists));
     }
 
     path_ = path;
@@ -72,10 +72,10 @@ std::expected<void, Error> JsonStore::open(std::filesystem::path const& path) {
  * Clears the in-memory data and marks the store as closed.
  * @return Success or an error if the store is not open.
  */
-std::expected<void, Error> JsonStore::close() {
+std::expected<void, std::error_code> json_store::close() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!is_open_) {
-        return std::unexpected(Error{ErrorCode::InvalidState, "Store not open"});
+        return std::unexpected(make_error_code(core_errc::invalid_state));
     }
 
     is_open_ = false;
@@ -86,16 +86,16 @@ std::expected<void, Error> JsonStore::close() {
 /**
  * @brief Begins a new transaction on the JSON store.
  *
- * Creates a new JsonTransaction instance for managing changes to the store.
+ * Creates a new json_transaction instance for managing changes to the store.
  * @return A unique pointer to the transaction or an error if the store is not open.
  */
-std::expected<std::unique_ptr<ITransaction>, Error> JsonStore::begin_transaction() {
+std::expected<std::unique_ptr<transaction_base>, std::error_code> json_store::begin_transaction() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!is_open_) {
-        return std::unexpected(Error{ErrorCode::InvalidState, "Store not open"});
+        return std::unexpected(make_error_code(core_errc::invalid_state));
     }
 
-    auto txn = std::make_unique<JsonTransaction>(data_, this, options_);
+    auto txn = std::make_unique<json_transaction>(data_, this, options_);
     return txn;
 }
 
@@ -105,11 +105,11 @@ std::expected<std::unique_ptr<ITransaction>, Error> JsonStore::begin_transaction
  * Parses the JSON file and populates the in-memory representation.
  * @return Success or an error if the file cannot be read or parsed.
  */
-std::expected<void, Error> JsonStore::load_from_file() {
+std::expected<void, std::error_code> json_store::load_from_file() {
     try {
         std::ifstream file(path_, std::ios::in | std::ios::binary);
         if (!file.is_open()) {
-            return std::unexpected(Error{ErrorCode::IoFailure, "Failed to open file for reading"});
+            return std::unexpected(make_error_code(core_errc::io_failure));
         }
 
         std::stringstream buffer;
@@ -125,11 +125,11 @@ std::expected<void, Error> JsonStore::load_from_file() {
 
         return {};
     } catch (const nlohmann::json::parse_error& e) {
-        return std::unexpected(Error{ErrorCode::ParseError, e.what()});
+        return std::unexpected(make_error_code(core_errc::parse_error));
     } catch (const std::exception& e) {
-        return std::unexpected(Error{ErrorCode::Unknown, e.what()});
+        return std::unexpected(make_error_code(core_errc::unknown));
     } catch (...) {
-        return std::unexpected(Error{ErrorCode::Unknown, "Unknown error occurred while loading JSON file"});
+        return std::unexpected(make_error_code(core_errc::unknown));
     }
 }
 
@@ -141,7 +141,7 @@ std::expected<void, Error> JsonStore::load_from_file() {
  * @param data The JSON data to save.
  * @return Success or an error if the file cannot be written.
  */
-std::expected<void, Error> JsonStore::save_to_file(nlohmann::json const& data) {
+std::expected<void, std::error_code> json_store::save_to_file(nlohmann::json const& data) {
     try {
         // Write to a temporary file for atomicity
         std::filesystem::path temp_path = path_;
@@ -150,7 +150,7 @@ std::expected<void, Error> JsonStore::save_to_file(nlohmann::json const& data) {
         {
             std::ofstream temp_file(temp_path, std::ios::out | std::ios::trunc);
             if (!temp_file.is_open()) {
-                return std::unexpected(Error{ErrorCode::IoFailure, "Failed to open temporary file"});
+                return std::unexpected(make_error_code(core_errc::io_failure));
             }
             
             // Pretty print with 2-space indentation
@@ -158,7 +158,7 @@ std::expected<void, Error> JsonStore::save_to_file(nlohmann::json const& data) {
             temp_file.flush();
 
             if (!temp_file.good()) {
-                return std::unexpected(Error{ErrorCode::IoFailure, "Failed to write to temporary file"});
+                return std::unexpected(make_error_code(core_errc::io_failure));
             }
         }
 
@@ -167,8 +167,8 @@ std::expected<void, Error> JsonStore::save_to_file(nlohmann::json const& data) {
         
         return {};
     } catch (const std::exception& e) {
-        return std::unexpected(Error{ErrorCode::IoFailure, e.what()});
+        return std::unexpected(make_error_code(core_errc::io_failure));
     } catch (...) {
-        return std::unexpected(Error{ErrorCode::Unknown, "Unknown error occurred while saving JSON file"});
+        return std::unexpected(make_error_code(core_errc::unknown));
     }
 }

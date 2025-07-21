@@ -6,12 +6,11 @@
 
 namespace ion::core {
 
-class ION_CORE_API IClock {
+class ION_CORE_API clock_base {
 public:
-    virtual ~IClock() = default;
+    virtual ~clock_base() = default;
     
-    [[nodiscard, gnu::warn_unused_result]]
-
+    [[OAT_NODISCARD("If you're using this, you should be checking the result")]]
     virtual uint64_t now_ns() const = 0;
 };
 

@@ -106,7 +106,7 @@ namespace ion::your_library::detail {
 class your_type_impl final : public your_type_base {
 public:
     // Factory method
-    [[nodiscard("Handle the result"), gnu::warn_unused_result]]
+    [[OAT_NODISCARD("Handle the result")]]
     static std::expected<std::unique_ptr<your_type_impl>, std::error_code> 
     create(/* parameters */);
     
@@ -416,7 +416,7 @@ class resource_impl : public resource_base {
 
 ```cpp
 class async_impl : public async_base {
-    std::expected<void, Error> start_operation() override {
+    std::expected<void, std::error_code> start_operation() override {
         // Validate state
         if (busy_) {
             return std::unexpected(make_mylib_error(lib_errc::bad_state));

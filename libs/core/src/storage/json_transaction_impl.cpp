@@ -5,7 +5,7 @@
 using namespace ion::core;
 using namespace ion::core::detail;
 
-JsonTransaction::JsonTransaction(nlohmann::json const& initial_data, JsonStore* store, JsonStoreOptions const& options)
+json_transaction::json_transaction(nlohmann::json const& initial_data, json_store* store, json_store_options const& options)
     : data_(initial_data), store_(store), options_(options) {
     // Initialize root handle with empty path
     // The root handle is always 1, created here
@@ -13,23 +13,23 @@ JsonTransaction::JsonTransaction(nlohmann::json const& initial_data, JsonStore* 
     next_handle_ = 2;  // Start from 2 for subsequent handles
 }
 
-JsonTransaction::~JsonTransaction() noexcept {
+json_transaction::~json_transaction() noexcept {
     if (!committed_) {
         rollback_impl();
     }
 }
 
-std::expected<StoreHandle, Error> JsonTransaction::root() const {
-    return StoreHandle{1};  // Root is always handle 1
+std::expected<store_handle, std::error_code> json_transaction::root() const {
+    return store_handle{1};  // Root is always handle 1
 }
 
-StoreHandle JsonTransaction::make_handle(std::vector<std::string> path) const {
+store_handle json_transaction::make_handle(std::vector<std::string> path) const {
     uint64_t handle = next_handle_++;
     handle_map_[handle] = Node{std::move(path)};
-    return StoreHandle{handle};
+    return store_handle{handle};
 }
 
-nlohmann::json* JsonTransaction::navigate_to_node(std::vector<std::string> const& path) {
+nlohmann::json* json_transaction::navigate_to_node(std::vector<std::string> const& path) {
     nlohmann::json* current = &data_;
     
     for (size_t i = 0; i < path.size(); ++i) {
@@ -57,7 +57,7 @@ nlohmann::json* JsonTransaction::navigate_to_node(std::vector<std::string> const
     return current;
 }
 
-nlohmann::json const* JsonTransaction::navigate_to_node(std::vector<std::string> const& path) const {
+nlohmann::json const* json_transaction::navigate_to_node(std::vector<std::string> const& path) const {
     nlohmann::json const* current = &data_;
     
     for (size_t i = 0; i < path.size(); ++i) {
@@ -85,47 +85,47 @@ nlohmann::json const* JsonTransaction::navigate_to_node(std::vector<std::string>
     return current;
 }
 
-nlohmann::json* JsonTransaction::get_node(StoreHandle h) {
+nlohmann::json* json_transaction::get_node(store_handle h) {
     auto it = handle_map_.find(h.raw);
     if (it == handle_map_.end()) return nullptr;
     
     return navigate_to_node(it->second.path);
 }
 
-nlohmann::json const* JsonTransaction::get_node(StoreHandle h) const {
+nlohmann::json const* json_transaction::get_node(store_handle h) const {
     auto it = handle_map_.find(h.raw);
     if (it == handle_map_.end()) return nullptr;
     
     return navigate_to_node(it->second.path);
 }
 
-std::expected<nlohmann::json*, Error> JsonTransaction::get_node_checked(StoreHandle h) {
+std::expected<nlohmann::json*, std::error_code> json_transaction::get_node_checked(store_handle h) {
     if (h.raw == 0) {
-        return std::unexpected(Error{ErrorCode::InvalidHandle, "Invalid handle"});
+        return std::unexpected(make_error_code(core_errc::invalid_handle));
     }
     
     auto* node = get_node(h);
     if (!node) {
-        return std::unexpected(Error{ErrorCode::InvalidHandle, "Node not found"});
+        return std::unexpected(make_error_code(core_errc::invalid_handle));
     }
     
     return node;
 }
 
-std::expected<nlohmann::json const*, Error> JsonTransaction::get_node_checked(StoreHandle h) const {
+std::expected<nlohmann::json const*, std::error_code> json_transaction::get_node_checked(store_handle h) const {
     if (h.raw == 0) {
-        return std::unexpected(Error{ErrorCode::InvalidHandle, "Invalid handle"});
+        return std::unexpected(make_error_code(core_errc::invalid_handle));
     }
     
     auto const* node = get_node(h);
     if (!node) {
-        return std::unexpected(Error{ErrorCode::InvalidHandle, "Node not found"});
+        return std::unexpected(make_error_code(core_errc::invalid_handle));
     }
     
     return node;
 }
 
-bool JsonTransaction::is_valid_key(std::string_view key) const {
+bool json_transaction::is_valid_key(std::string_view key) const {
     if (key.empty()) return false;
     
     // Simple validation: must start with letter or underscore, then alphanumeric or underscore
@@ -138,55 +138,55 @@ bool JsonTransaction::is_valid_key(std::string_view key) const {
     return true;
 }
 
-std::expected<bool, Error> JsonTransaction::get_bool(StoreHandle h) const {
+std::expected<bool, std::error_code> json_transaction::get_bool(store_handle h) const {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto const* node = *node_result;
     if (!node->is_boolean()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not a boolean"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return node->get<bool>();
 }
 
-std::expected<int64_t, Error> JsonTransaction::get_int(StoreHandle h) const {
+std::expected<int64_t, std::error_code> json_transaction::get_int(store_handle h) const {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto const* node = *node_result;
     if (!node->is_number_integer()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not an integer"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return node->get<int64_t>();
 }
 
-std::expected<double, Error> JsonTransaction::get_double(StoreHandle h) const {
+std::expected<double, std::error_code> json_transaction::get_double(store_handle h) const {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto const* node = *node_result;
     if (!node->is_number()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not a number"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return node->get<double>();
 }
 
-std::expected<std::string, Error> JsonTransaction::get_string(StoreHandle h) const {
+std::expected<std::string, std::error_code> json_transaction::get_string(store_handle h) const {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto const* node = *node_result;
     if (!node->is_string()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Node is not a string"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return node->get<std::string>();
 }
 
-std::expected<void, Error> JsonTransaction::set_bool(StoreHandle h, bool v) {
+std::expected<void, std::error_code> json_transaction::set_bool(store_handle h, bool v) {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
@@ -195,7 +195,7 @@ std::expected<void, Error> JsonTransaction::set_bool(StoreHandle h, bool v) {
     return {};
 }
 
-std::expected<void, Error> JsonTransaction::set_int(StoreHandle h, int64_t v) {
+std::expected<void, std::error_code> json_transaction::set_int(store_handle h, int64_t v) {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
@@ -204,7 +204,7 @@ std::expected<void, Error> JsonTransaction::set_int(StoreHandle h, int64_t v) {
     return {};
 }
 
-std::expected<void, Error> JsonTransaction::set_double(StoreHandle h, double v) {
+std::expected<void, std::error_code> json_transaction::set_double(store_handle h, double v) {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
@@ -213,7 +213,7 @@ std::expected<void, Error> JsonTransaction::set_double(StoreHandle h, double v) 
     return {};
 }
 
-std::expected<void, Error> JsonTransaction::set_string(StoreHandle h, std::string_view v) {
+std::expected<void, std::error_code> json_transaction::set_string(store_handle h, std::string_view v) {
     auto node_result = get_node_checked(h);
     if (!node_result) return std::unexpected(node_result.error());
     
@@ -222,9 +222,9 @@ std::expected<void, Error> JsonTransaction::set_string(StoreHandle h, std::strin
     return {};
 }
 
-std::expected<StoreHandle, Error> JsonTransaction::make_array(StoreHandle parent, std::string_view key) {
+std::expected<store_handle, std::error_code> json_transaction::make_array(store_handle parent, std::string_view key) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key format"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -232,7 +232,7 @@ std::expected<StoreHandle, Error> JsonTransaction::make_array(StoreHandle parent
     
     auto* node = *node_result;
     if (!node->is_object()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an object"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     // Create the array
@@ -246,9 +246,9 @@ std::expected<StoreHandle, Error> JsonTransaction::make_array(StoreHandle parent
     return make_handle(std::move(path));
 }
 
-std::expected<StoreHandle, Error> JsonTransaction::make_object(StoreHandle parent, std::string_view key) {
+std::expected<store_handle, std::error_code> json_transaction::make_object(store_handle parent, std::string_view key) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key format"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -256,7 +256,7 @@ std::expected<StoreHandle, Error> JsonTransaction::make_object(StoreHandle paren
     
     auto* node = *node_result;
     if (!node->is_object()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an object"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     // Create the object
@@ -270,9 +270,9 @@ std::expected<StoreHandle, Error> JsonTransaction::make_object(StoreHandle paren
     return make_handle(std::move(path));
 }
 
-std::expected<void, Error> JsonTransaction::make_bool(StoreHandle parent, std::string_view key, bool v) {
+std::expected<void, std::error_code> json_transaction::make_bool(store_handle parent, std::string_view key, bool v) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key format"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -280,16 +280,16 @@ std::expected<void, Error> JsonTransaction::make_bool(StoreHandle parent, std::s
     
     auto* node = *node_result;
     if (!node->is_object()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an object"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     (*node)[std::string(key)] = v;
     return {};
 }
 
-std::expected<void, Error> JsonTransaction::make_int(StoreHandle parent, std::string_view key, int64_t v) {
+std::expected<void, std::error_code> json_transaction::make_int(store_handle parent, std::string_view key, int64_t v) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key format"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -297,16 +297,16 @@ std::expected<void, Error> JsonTransaction::make_int(StoreHandle parent, std::st
     
     auto* node = *node_result;
     if (!node->is_object()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an object"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     (*node)[std::string(key)] = v;
     return {};
 }
 
-std::expected<void, Error> JsonTransaction::make_double(StoreHandle parent, std::string_view key, double v) {
+std::expected<void, std::error_code> json_transaction::make_double(store_handle parent, std::string_view key, double v) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key format"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -314,16 +314,16 @@ std::expected<void, Error> JsonTransaction::make_double(StoreHandle parent, std:
     
     auto* node = *node_result;
     if (!node->is_object()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an object"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     (*node)[std::string(key)] = v;
     return {};
 }
 
-std::expected<void, Error> JsonTransaction::make_string(StoreHandle parent, std::string_view key, std::string_view v) {
+std::expected<void, std::error_code> json_transaction::make_string(store_handle parent, std::string_view key, std::string_view v) {
     if (!is_valid_key(key)) {
-        return std::unexpected(Error{ErrorCode::PathSyntax, "Invalid key format"});
+        return std::unexpected(make_error_code(core_errc::path_syntax));
     }
     
     auto node_result = get_node_checked(parent);
@@ -331,83 +331,83 @@ std::expected<void, Error> JsonTransaction::make_string(StoreHandle parent, std:
     
     auto* node = *node_result;
     if (!node->is_object()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an object"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     (*node)[std::string(key)] = std::string(v);
     return {};
 }
 
-std::expected<void, Error> JsonTransaction::remove(StoreHandle parent, std::string_view key) {
+std::expected<void, std::error_code> json_transaction::remove(store_handle parent, std::string_view key) {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* node = *node_result;
     if (!node->is_object()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an object"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     auto it = node->find(std::string(key));
     if (it == node->end()) {
-        return std::unexpected(Error{ErrorCode::KeyNotFound, "Key not found"});
+        return std::unexpected(make_error_code(core_errc::key_not_found));
     }
     
     node->erase(it);
     return {};
 }
 
-std::expected<bool, Error> JsonTransaction::has(StoreHandle parent, std::string_view key) const {
+std::expected<bool, std::error_code> json_transaction::has(store_handle parent, std::string_view key) const {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto const* node = *node_result;
     if (!node->is_object()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an object"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return node->contains(std::string(key));
 }
 
-std::expected<void, Error> JsonTransaction::erase_element(StoreHandle parent, size_t idx) {
+std::expected<void, std::error_code> json_transaction::erase_element(store_handle parent, size_t idx) {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto* node = *node_result;
     if (!node->is_array()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an array"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (idx >= node->size()) {
-        return std::unexpected(Error{ErrorCode::IndexOutOfRange, "Index out of range"});
+        return std::unexpected(make_error_code(core_errc::index_out_of_range));
     }
     
     node->erase(node->begin() + idx);
     return {};
 }
 
-std::expected<bool, Error> JsonTransaction::has_element(StoreHandle parent, size_t idx) const {
+std::expected<bool, std::error_code> json_transaction::has_element(store_handle parent, size_t idx) const {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto const* node = *node_result;
     if (!node->is_array()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an array"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     return idx < node->size();
 }
 
-std::expected<StoreHandle, Error> JsonTransaction::child(StoreHandle parent, std::string_view key) const {
+std::expected<store_handle, std::error_code> json_transaction::child(store_handle parent, std::string_view key) const {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto const* node = *node_result;
     if (!node->is_object()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an object"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (!node->contains(std::string(key))) {
-        return std::unexpected(Error{ErrorCode::KeyNotFound, "Key not found"});
+        return std::unexpected(make_error_code(core_errc::key_not_found));
     }
     
     // Build path by looking up parent's path
@@ -418,17 +418,17 @@ std::expected<StoreHandle, Error> JsonTransaction::child(StoreHandle parent, std
     return make_handle(std::move(path));
 }
 
-std::expected<StoreHandle, Error> JsonTransaction::element(StoreHandle parent, size_t idx) const {
+std::expected<store_handle, std::error_code> json_transaction::element(store_handle parent, size_t idx) const {
     auto node_result = get_node_checked(parent);
     if (!node_result) return std::unexpected(node_result.error());
     
     auto const* node = *node_result;
     if (!node->is_array()) {
-        return std::unexpected(Error{ErrorCode::TypeMismatch, "Parent is not an array"});
+        return std::unexpected(make_error_code(core_errc::type_mismatch));
     }
     
     if (idx >= node->size()) {
-        return std::unexpected(Error{ErrorCode::IndexOutOfRange, "Index out of range"});
+        return std::unexpected(make_error_code(core_errc::index_out_of_range));
     }
     
     // Build path by looking up parent's path
@@ -439,9 +439,9 @@ std::expected<StoreHandle, Error> JsonTransaction::element(StoreHandle parent, s
     return make_handle(std::move(path));
 }
 
-std::expected<void, Error> JsonTransaction::commit_impl() {
+std::expected<void, std::error_code> json_transaction::commit_impl() {
     if (!store_) {
-        return std::unexpected(Error{ErrorCode::InvalidState, "No store associated with transaction"});
+        return std::unexpected(make_error_code(core_errc::invalid_state));
     }
     
     auto result = store_->save_to_file(data_);
@@ -452,7 +452,7 @@ std::expected<void, Error> JsonTransaction::commit_impl() {
     return result;
 }
 
-void JsonTransaction::rollback_impl() noexcept {
+void json_transaction::rollback_impl() noexcept {
     // Clear the transaction data
     data_.clear();
     handle_map_.clear();

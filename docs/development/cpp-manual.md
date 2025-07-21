@@ -127,7 +127,7 @@ You write systems. You write libraries. You build fast, deterministic code that'
 ### L.1. **Use C++23. No compromise.**
 <a name="l1-c23-standard"></a>
 
-If your compiler doesn't support `std::expected`, `consteval`, or `[[nodiscard("...")]]` -- please upgrade your toolchain.
+If your compiler doesn't support `std::expected`, `consteval`, or `[[nodiscard]]` -- please upgrade your toolchain.
 
 **Minimum standard: C++23.**
 Anything older is a maintenance burden we choose not to accept.
@@ -149,7 +149,7 @@ All runtime code SHALL use `std::expected` for error propagation. See API.3 for 
 ```cpp
 // Example of catching an internal exception in a factory
 // static
-[[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
+[[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
 std::expected<std::unique_ptr<my_object>, std::error_code> my_object::create(const std::string& config_data) {
     try {
         // my_object_impl constructor might throw on bad config_data
@@ -186,7 +186,7 @@ public:
     virtual ~my_object() = default;
 
     // Factory function
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
+    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
     static std::expected<std::unique_ptr<my_object>, std::error_code> create(...);
 
 protected:
@@ -282,7 +282,7 @@ These layers establish strict boundaries crucial for maintainability, testabilit
 
             virtual void tick(uint64_t now_ns) = 0;
 
-            [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
+            [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
             virtual std::expected<void, std::error_code> send_message(buffer_view payload) = 0;
             // ... other interface methods
         };
@@ -556,16 +556,16 @@ private:
 ```cpp
 class data_processor {
 public:
-    [[nodiscard("handle this result – failure to do so is a bug."), gnu::warn_unused_result]]
+    [[OAT_NODISCARD("handle this result – failure to do so is a bug.")]]
     static std::expected<std::unique_ptr<data_processor>, error>
     create(config& cfg);                         // factory, still snake_case
 
     void submit_data(buffer_view data);
 
-    [[nodiscard("handle this result – failure to do so is a bug."), gnu::warn_unused_result]]
+    [[OAT_NODISCARD("handle this result – failure to do so is a bug.")]]
     bool is_processing() const;
 
-    [[nodiscard("handle this result – failure to do so is a bug."), gnu::warn_unused_result]]
+    [[OAT_NODISCARD("handle this result – failure to do so is a bug.")]]
     std::optional<result> get_result();
 
 private:
@@ -768,7 +768,7 @@ public:
 
 class logger_factory {
 public:
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
+    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
     virtual std::expected<std::unique_ptr<logger_base>, std::error_code> create_logger() = 0;
     virtual ~logger_factory() = default;
 };
@@ -791,7 +791,7 @@ public:
         stream_ << msg << '\n';
     }
 
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
+    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
     static std::expected<std::unique_ptr<logger_base>, std::error_code> create(std::string_view path) {
         try {
             auto logger = std::unique_ptr<concrete_logger>(new concrete_logger(path));
@@ -831,7 +831,7 @@ private:
 
 class concrete_logger_factory : public logger_factory_base {
 public:
-    [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
+    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
     std::expected<std::unique_ptr<logger_base>, std::error_code> create_logger() override {
         return concrete_logger::create("log.txt");
     }
@@ -881,7 +881,7 @@ void reset_logger_factory() {
   class mock_logger : public logger_base { /* ... */ };
   class mock_logger_factory : public logger_factory_base {
   public:  
-      [[nodiscard("Handle this result! Failure to do so is a bug."), gnu::warn_unused_result]]
+      [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
       std::expected<std::unique_ptr<logger_base>, std::error_code> create_logger() override {
           return std::make_unique<mock_logger>();
       }
@@ -1019,7 +1019,7 @@ enum class net_errc {
     connection_failed = 1,
     timeout,
     packet_too_large,
-    Unknown,
+    unknown,
 };
 
 // 2. Category object – immortal, one per dynamic image

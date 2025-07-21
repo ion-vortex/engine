@@ -4,7 +4,7 @@
 namespace ion::core
 {
 
-std::expected<std::unique_ptr<IBuffer>, Error>
+std::expected<std::unique_ptr<buffer_base>, std::error_code>
 create_buffer(std::size_t initial_capacity)
 {
     auto buf = std::make_unique<detail::VectorBuffer>();

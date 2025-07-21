@@ -7,9 +7,9 @@
 
 namespace ion::core {
 
-class ION_CORE_API IMetrics {
+class ION_CORE_API metrics_base {
 public:
-    virtual ~IMetrics() = default;
+    virtual ~metrics_base() = default;
     
     virtual void increment(std::string_view name, uint64_t value = 1) = 0;
     virtual void gauge(std::string_view name, double value) = 0;

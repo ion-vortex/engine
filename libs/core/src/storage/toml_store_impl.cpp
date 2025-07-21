@@ -1,8 +1,8 @@
 /**
  * @file toml_store_impl.cpp
- * @brief Implementation of the TomlStore class for managing TOML-based storage.
+ * @brief Implementation of the toml_store class for managing TOML-based storage.
  *
- * This file contains the implementation of the TomlStore class, which provides
+ * This file contains the implementation of the toml_store class, which provides
  * methods for opening, closing, and managing transactions on a TOML-based
  * storage backend. The class ensures ACID compliance by using atomic file
  * operations for saving data.
@@ -17,19 +17,19 @@ using namespace ion::core;
 using namespace ion::core::detail;
 
 /**
- * @brief Constructs a TomlStore instance.
+ * @brief Constructs a toml_store instance.
  * @param path Filesystem path to the TOML file.
  * @param options Options for configuring the TOML store.
  */
-TomlStore::TomlStore(std::filesystem::path const& path, TomlStoreOptions const& options)
+toml_store::toml_store(std::filesystem::path const& path, toml_store_options const& options)
     : path_(path), options_(options), data_() { }
 
 /**
- * @brief Destructor for TomlStore.
+ * @brief Destructor for toml_store.
  *
  * Ensures the store is properly closed if it is still open.
  */
-TomlStore::~TomlStore() {
+toml_store::~toml_store() {
     if (is_open_) {
         auto result = close();
         if (!result) {
@@ -45,11 +45,11 @@ TomlStore::~TomlStore() {
  * @param path Filesystem path to the TOML file.
  * @return Success or an error if the store is already open or the file cannot be read.
  */
-std::expected<void, Error> TomlStore::open(std::filesystem::path const& path) {
+std::expected<void, std::error_code> toml_store::open(std::filesystem::path const& path) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (is_open_) {
-        return std::unexpected(Error{ErrorCode::AlreadyExists, "Store already open"});
+        return std::unexpected(make_error_code(core_errc::already_exists));
     }
 
     path_ = path;
@@ -72,10 +72,10 @@ std::expected<void, Error> TomlStore::open(std::filesystem::path const& path) {
  * Clears the in-memory data and marks the store as closed.
  * @return Success or an error if the store is not open.
  */
-std::expected<void, Error> TomlStore::close() {
+std::expected<void, std::error_code> toml_store::close() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!is_open_) {
-        return std::unexpected(Error{ErrorCode::InvalidState, "Store not open"});
+        return std::unexpected(make_error_code(core_errc::invalid_state));
     }
 
     is_open_ = false;
@@ -86,16 +86,16 @@ std::expected<void, Error> TomlStore::close() {
 /**
  * @brief Begins a new transaction on the TOML store.
  *
- * Creates a new TomlTransaction instance for managing changes to the store.
+ * Creates a new toml_transaction instance for managing changes to the store.
  * @return A unique pointer to the transaction or an error if the store is not open.
  */
-std::expected<std::unique_ptr<ITransaction>, Error> TomlStore::begin_transaction() {
+std::expected<std::unique_ptr<transaction_base>, std::error_code> toml_store::begin_transaction() {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!is_open_) {
-        return std::unexpected(Error{ErrorCode::InvalidState, "Store not open"});
+        return std::unexpected(make_error_code(core_errc::invalid_state));
     }
 
-    auto txn = std::make_unique<TomlTransaction>(data_, this, options_);
+    auto txn = std::make_unique<toml_transaction>(data_, this, options_);
     return txn;
 }
 
@@ -105,11 +105,11 @@ std::expected<std::unique_ptr<ITransaction>, Error> TomlStore::begin_transaction
  * Parses the TOML file and populates the in-memory representation.
  * @return Success or an error if the file cannot be read or parsed.
  */
-std::expected<void, Error> TomlStore::load_from_file() {
+std::expected<void, std::error_code> toml_store::load_from_file() {
     try {
         std::ifstream file(path_, std::ios::in | std::ios::binary);
         if (!file.is_open()) {
-            return std::unexpected(Error{ErrorCode::IoFailure, "Failed to open file for reading"});
+            return std::unexpected(make_error_code(core_errc::io_failure));
         }
 
         std::stringstream buffer;
@@ -120,11 +120,11 @@ std::expected<void, Error> TomlStore::load_from_file() {
 
         return {};
     } catch (const toml::parse_error& e) {
-        return std::unexpected(Error{ErrorCode::ParseError, e.description()});
+        return std::unexpected(make_error_code(core_errc::parse_error));
     } catch (const std::exception& e) {
-        return std::unexpected(Error{ErrorCode::Unknown, e.what()});
+        return std::unexpected(make_error_code(core_errc::unknown));
     } catch (...) {
-        return std::unexpected(Error{ErrorCode::Unknown, "Unknown error occurred while loading TOML file"});
+        return std::unexpected(make_error_code(core_errc::unknown));
     }
 }
 
@@ -136,7 +136,7 @@ std::expected<void, Error> TomlStore::load_from_file() {
  * @param data The TOML data to save.
  * @return Success or an error if the file cannot be written.
  */
-std::expected<void, Error> TomlStore::save_to_file(toml::table const& data) {
+std::expected<void, std::error_code> toml_store::save_to_file(toml::table const& data) {
     try {
         // Write to a temporary file for atomicity
         std::filesystem::path temp_path = path_;
@@ -145,14 +145,14 @@ std::expected<void, Error> TomlStore::save_to_file(toml::table const& data) {
         {
             std::ofstream temp_file(temp_path, std::ios::out | std::ios::trunc);
             if (!temp_file.is_open()) {
-                return std::unexpected(Error{ErrorCode::IoFailure, "Failed to open temporary file"});
+                return std::unexpected(make_error_code(core_errc::io_failure));
             }
             
             temp_file << data;
             temp_file.flush();
 
             if (!temp_file.good()) {
-                return std::unexpected(Error{ErrorCode::IoFailure, "Failed to write to temporary file"});
+                return std::unexpected(make_error_code(core_errc::io_failure));
             }
         }
 
@@ -161,8 +161,8 @@ std::expected<void, Error> TomlStore::save_to_file(toml::table const& data) {
         
         return {};
     } catch (const std::exception& e) {
-        return std::unexpected(Error{ErrorCode::IoFailure, e.what()});
+        return std::unexpected(make_error_code(core_errc::io_failure));
     } catch (...) {
-        return std::unexpected(Error{ErrorCode::Unknown, "Unknown error occurred while saving TOML file"});
+        return std::unexpected(make_error_code(core_errc::unknown));
     }
 }

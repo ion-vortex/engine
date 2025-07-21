@@ -6,23 +6,23 @@
 
 namespace ion::core::detail {
 
-class ION_CORE_API VectorBuffer final : public IBuffer {
+class ION_CORE_API vector_buffer final : public buffer_base {
     std::vector<std::byte> data_;
 public:
-    [[nodiscard("Handle resize result"), gnu::warn_unused_result]]
-    std::expected<void, Error> resize(std::size_t bytes) override;
+    [[OAT_NODISCARD("Handle resize result")]]
+    std::expected<void, std::error_code> resize(std::size_t bytes) override;
     
-    [[nodiscard("Handle reserve result"), gnu::warn_unused_result]]
-    std::expected<void, Error> reserve(std::size_t bytes) override;
+    [[OAT_NODISCARD("Handle reserve result")]]
+    std::expected<void, std::error_code> reserve(std::size_t bytes) override;
     
-    [[nodiscard("Handle clear result"), gnu::warn_unused_result]]
-    std::expected<void, Error> clear() override;
+    [[OAT_NODISCARD("Handle clear result")]]
+    std::expected<void, std::error_code> clear() override;
     
-    [[nodiscard("Handle shrinkToFit result"), gnu::warn_unused_result]]
-    std::expected<void, Error> shrink_to_fit() override;
+    [[OAT_NODISCARD("Handle shrinkToFit result")]]
+    std::expected<void, std::error_code> shrink_to_fit() override;
     
-    [[nodiscard("Handle append result"), gnu::warn_unused_result]]
-    std::expected<void, Error> append(std::span<const std::byte> src) override;
+    [[OAT_NODISCARD("Handle append result")]]
+    std::expected<void, std::error_code> append(std::span<const std::byte> src) override;
 
     std::span<const std::byte> view() const noexcept override;
     
