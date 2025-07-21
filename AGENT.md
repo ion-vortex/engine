@@ -1,6 +1,6 @@
 # AGENT.md
 
-*Rules and check-list for every human **or** automated agent that touches the **Ion Framework** code-base.*
+*Rules and check-list for every human **or** automated agent that touches the **Ion Vortex** code-base.*
 *(This file is surfaced to both ChatGPT / Claude agents via project settings — keep it tight, explicit, and up-to-date.)*
 
 ---
