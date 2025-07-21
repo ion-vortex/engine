@@ -165,7 +165,7 @@ for (auto it = vec.begin(); it != vec.end(); it++) {
 - [ ] No naked `new`/`delete` - use `std::unique_ptr`
 - [ ] Factory functions return `std::expected<std::unique_ptr<T>, std::error_code>`
 - [ ] No exceptions escaping module boundaries
-- [ ] Proper `[[OAT_NODISCARD("...")]]
+- [ ] Proper `[[ION_NODISCARD("...")]]
 ` usage
 - [ ] Interface segregation (pure virtual interfaces)
 - [ ] No `std::shared_ptr` without justification

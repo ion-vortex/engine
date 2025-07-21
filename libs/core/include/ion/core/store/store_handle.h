@@ -20,7 +20,7 @@ struct ION_CORE_API store_handle {
     /**
      * @brief Returns true if the handle is valid (nonzero).
      */
-    [[OAT_NODISCARD("Check if handle is valid")]]
+    [[ION_NODISCARD("Check if handle is valid")]]
     constexpr bool valid() const noexcept { return raw != 0; }
 
     /**
@@ -28,7 +28,7 @@ struct ION_CORE_API store_handle {
      * @param o The other handle.
      * @return True if both refer to the same node.
      */
-    [[OAT_NODISCARD("Check if handles are equal")]]
+    [[ION_NODISCARD("Check if handles are equal")]]
     bool operator==(store_handle o) const noexcept { return raw == o.raw; }
 };
 

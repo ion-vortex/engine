@@ -67,7 +67,7 @@ namespace ion::your_library {
 class your_type_base;
 
 // Factory function declaration
-[[OAT_NODISCARD("Please ensure that the result is valid.")]]
+[[ION_NODISCARD("Please ensure that the result is valid.")]]
 std::expected<std::unique_ptr<your_type_base>, std::error_code> 
 make_your_type(/* parameters */);
 
@@ -79,7 +79,7 @@ public:
     // Core functionality
     virtual void do_something() = 0;
     
-    [[OAT_NODISCARD("Please don't forget to check the result.")]]
+    [[ION_NODISCARD("Please don't forget to check the result.")]]
     virtual std::expected<int, std::error_code> compute_value() = 0;
     
     // No implementation details in interface!
@@ -106,7 +106,7 @@ namespace ion::your_library::detail {
 class your_type_impl final : public your_type_base {
 public:
     // Factory method
-    [[OAT_NODISCARD("Handle the result")]]
+    [[ION_NODISCARD("Handle the result")]]
     static std::expected<std::unique_ptr<your_type_impl>, std::error_code> 
     create(/* parameters */);
     
@@ -264,7 +264,7 @@ TEST_CASE("YourInterface basic operations", "[your_library]") {
     SECTION("Creation fails with invalid parameters") {
         auto result = make_your_interface(/* invalid params */);
         REQUIRE(!result.has_value());
-        REQUIRE(result.error().code() == ErrorCode::invalid_parameter);
+        REQUIRE(result.error() == core_errc::invalid_parameter);
     }
     
     SECTION("Operations work correctly") {
@@ -357,7 +357,7 @@ Any important implementation details...
 - ✅ Keep interfaces minimal and focused
 - ✅ Hide all implementation details
 - ✅ Use `std::expected` for all fallible operations
-- ✅ Mark functions `[[OAT_NODISCARD("...")]]` when appropriate
+- ✅ Mark functions `[[ION_NODISCARD("...")]]` when appropriate
 - ✅ Follow the dependency hierarchy strictly
 - ✅ Write comprehensive tests
 - ✅ Document the public API

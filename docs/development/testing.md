@@ -54,7 +54,7 @@ TEST_CASE("Feature description", "[your_library]") {
         
         // Assert
         REQUIRE(!system.has_value());
-        REQUIRE(system.error().code() == ErrorCode::InvalidConfig);
+        REQUIRE(system.error() == core_errc::invalid_config);
     }
 }
 ```
@@ -88,22 +88,22 @@ TEST_CASE("Async operations complete correctly", "[async]") {
 ### Testing State Machines
 
 ```cpp
-TEST_CASE("State machine transitions", "[state]") {
-    auto machine = makeStateMachine();
+TEST_CASE("state machine transitions", "[state]") {
+    auto machine = make_state_machine();
     REQUIRE(machine.has_value());
     
     // Initial state
-    REQUIRE(machine.value()->getState() == State::Idle);
+    REQUIRE(machine.value()->get_state() == state::idle);
     
     // Valid transition
-    auto result = machine.value()->transition(Event::Start);
+    auto result = machine.value()->transition(event::start);
     REQUIRE(result.has_value());
-    REQUIRE(machine.value()->getState() == State::Running);
+    REQUIRE(machine.value()->get_state() == state::running);
     
     // Invalid transition
-    result = machine.value()->transition(Event::Start);
+    result = machine.value()->transition(event::start);
     REQUIRE(!result.has_value());
-    REQUIRE(result.error().code() == ErrorCode::InvalidTransition);
+    REQUIRE(result.error().code() == core_errc::InvalidTransition);
 }
 ```
 

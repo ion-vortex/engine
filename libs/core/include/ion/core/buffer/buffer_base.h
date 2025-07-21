@@ -11,31 +11,31 @@ class ION_CORE_API buffer_base {
 public:
     virtual ~buffer_base() = default;
 
-    [[OAT_NODISCARD("Handle resize result")]]
+    [[ION_NODISCARD("Handle resize result")]]
     virtual std::expected<void, std::error_code> resize(std::size_t bytes) = 0;
 
-    [[OAT_NODISCARD("Handle reserve result")]]
+    [[ION_NODISCARD("Handle reserve result")]]
     virtual std::expected<void, std::error_code> reserve(std::size_t bytes) = 0;
 
-    [[OAT_NODISCARD("Handle clear result")]]
+    [[ION_NODISCARD("Handle clear result")]]
     virtual std::expected<void, std::error_code> clear() = 0;
 
-    [[OAT_NODISCARD("Handle shrink result")]]
+    [[ION_NODISCARD("Handle shrink result")]]
     virtual std::expected<void, std::error_code> shrink_to_fit() = 0;
 
-    [[OAT_NODISCARD("Handle append result")]]
+    [[ION_NODISCARD("Handle append result")]]
     virtual std::expected<void, std::error_code> append(std::span<const std::byte> src) = 0;
 
-    [[OAT_NODISCARD("Handle view result")]]
+    [[ION_NODISCARD("Handle view result")]]
     virtual std::span<const std::byte> view() const noexcept = 0;
 
-    [[OAT_NODISCARD("Handle mutate result")]]
+    [[ION_NODISCARD("Handle mutate result")]]
     virtual std::span<      std::byte> mutate() noexcept      = 0;
 
-    [[OAT_NODISCARD("Handle size result")]]
+    [[ION_NODISCARD("Handle size result")]]
     virtual std::size_t size() const noexcept = 0;
 
-    [[OAT_NODISCARD("Handle capacity result")]]
+    [[ION_NODISCARD("Handle capacity result")]]
     virtual std::size_t capacity() const noexcept = 0;
 };
 

@@ -73,7 +73,7 @@ public:
      * @param path Filesystem path to open.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on open")]]
+    [[ION_NODISCARD("Check for error on open")]]
     virtual std::expected<void, std::error_code>
     open(std::filesystem::path const& path) = 0;
 
@@ -81,7 +81,7 @@ public:
      * @brief Closes the store.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on close")]]
+    [[ION_NODISCARD("Check for error on close")]]
     virtual std::expected<void, std::error_code>
     close() = 0;
 
@@ -89,7 +89,7 @@ public:
      * @brief Begins a new transaction on the store.
      * @return Unique pointer to transaction_base or error.
      */
-    [[OAT_NODISCARD("Check for error or valid transaction")]]
+    [[ION_NODISCARD("Check for error or valid transaction")]]
     virtual std::expected<std::unique_ptr<class transaction_base>, std::error_code>
     begin_transaction() = 0;
 };
@@ -101,7 +101,7 @@ public:
  * @param opts Options for the JSON store.
  * @return Unique pointer to store_base or error.
  */
-[[OAT_NODISCARD("Check for error or valid store")]]
+[[ION_NODISCARD("Check for error or valid store")]]
 ION_CORE_API std::expected<std::unique_ptr<store_base>, std::error_code>
 make_json_file_store(std::filesystem::path const&, json_store_options);
 
@@ -111,7 +111,7 @@ make_json_file_store(std::filesystem::path const&, json_store_options);
  * @param opts Options for the TOML store.
  * @return Unique pointer to store_base or error.
  */
-[[OAT_NODISCARD("Check for error or valid store")]]
+[[ION_NODISCARD("Check for error or valid store")]]
 ION_CORE_API std::expected<std::unique_ptr<store_base>, std::error_code>
 make_toml_file_store(std::filesystem::path const&, toml_store_options);
 
@@ -119,7 +119,7 @@ make_toml_file_store(std::filesystem::path const&, toml_store_options);
  * @brief Creates an in-memory store.
  * @return Unique pointer to store_base or error.
  */
-[[OAT_NODISCARD("Check for error or valid store")]]
+[[ION_NODISCARD("Check for error or valid store")]]
 ION_CORE_API std::expected<std::unique_ptr<store_base>, std::error_code>
 make_in_memory_store();
 

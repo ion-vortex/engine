@@ -157,7 +157,7 @@ class renderer_impl : public renderer_base {
 ```
 
 ### 4. **Explicit Error Handling**
-Every fallible operation returns `std::expected<T, std::error_code>` and is marked `[[OAT_NODISCARD("...")]]`.
+Every fallible operation returns `std::expected<T, std::error_code>` and is marked `[[ION_NODISCARD("...")]]`.
 
 ## Common Tasks
 
