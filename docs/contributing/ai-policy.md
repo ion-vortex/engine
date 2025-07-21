@@ -153,16 +153,15 @@ auto result = some_complex_ai_generated_function_i_dont_understand();
 
 // ✅ Good: Understand and improve AI suggestions
 // AI suggested basic version, but I added error handling and
-// adapted to our Error/std::expected pattern
-[[nodiscard, gnu::warn_unused_result]]
-
-std::expected<ProcessedData, Error> processData(BufferView input) {
+// adapted to our std::error_code/std::expected pattern
+[[OAT_NODISCARD("Please remember to verify the std::expected result.")]]
+std::expected<processed_data, std::error_code> process_data(buffer_view input) {
     if (input.empty()) {
-        return std::unexpected(Error(ErrorCode::InvalidInput));
+        return std::unexpected(std::make_error_code(std::errc::bad_message));
     }
     
     // Core algorithm from AI, verified and optimized
-    ProcessedData result;
+    processed_data result;
     // ... implementation ...
     return result;
 }

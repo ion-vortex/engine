@@ -130,12 +130,12 @@ Minimal, explicit, forward-compatible design.
 
 **Base Header** (all packets):
 ```
-[1B: Version][2B: Length][1B: PacketType][...Payload]
+[1B: version][2B: length][1B: packet_type][...payload]
 ```
 
 **Example ShipState Payload**:
 ```
-[4B: EntityID][2B: PosX][2B: PosY][1B: Angle][1B: Shield][1B: Hull][...]
+[4B: entity_id][2B: pos_x][2B: pos_y][1B: angle][1B: shield][1B: hull][...]
 ```
 
 ### Protocol Features

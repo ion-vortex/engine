@@ -99,10 +99,10 @@ Create `apps/triangle_viewer/src/main.cpp`:
 
 using namespace ion;
 
-class TriangleViewerApp {
+class triangle_viewer_app {
 public:
-    static std::expected<std::unique_ptr<TriangleViewerApp>, core::Error> Create() {
-        auto app = std::make_unique<TriangleViewerApp>();
+    static std::expected<std::unique_ptr<triangle_viewer_app>, std::error_code> create() {
+        auto app = std::make_unique<triangle_viewer_app>();
 
         // 1) Create SDL window
         app->window_ = SDL_CreateWindow(
@@ -112,26 +112,23 @@ public:
             SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
         );
         if (!app->window_) {
-            return std::unexpected(core::Error(
-                core::ErrorCode::ResourceUnavailable,
-                SDL_GetError()
-            ));
+            return std::unexpected(std::make_error_code(std::errc::not_enough_memory));
         }
 
         // 2) Initialize renderer
-        auto render_res = render::IRenderBackend::Create(app->window_);
+        auto render_res = render::create_render_backend(app->window_);
         if (!render_res)
             return std::unexpected(render_res.error());
         app->renderer_ = std::move(render_res.value());
 
         // 3) Initialize ImGui
-        auto ui_res = ui::IImGuiContext::Create(app->window_, app->renderer_.get());
+        auto ui_res = ui::create_ui_system(app->window_, app->renderer_.get());
         if (!ui_res)
             return std::unexpected(ui_res.error());
         app->ui_ = std::move(ui_res.value());
 
         // 4) Setup triangle geometry
-        if (auto err = app->setupTriangle())
+        if (auto err = app->setup_triangle())
             return std::unexpected(err);
 
         return app;
@@ -139,7 +136,7 @@ public:
 
     void run() {
         auto start = std::chrono::steady_clock::now();
-        while (!windowShouldClose()) {
+        while (!window_should_close()) {
             SDL_PollEvent(nullptr);
 
             // Time since start
@@ -151,14 +148,14 @@ public:
         }
     }
 
-    ~TriangleViewerApp() {
+    ~triangle_viewer_app() {
         if (window_) SDL_DestroyWindow(window_);
     }
 
 private:
-    TriangleViewerApp() = default;
+    triangle_viewer_app() = default;
 
-    std::expected<void, core::Error> setupTriangle() {
+    std::expected<void, std::error_code> setup_triangle() {
         // Triangle vertices: position (x,y) + color (RGBA8)
         struct Vertex { float x, y; uint32_t color; };
         Vertex verts[3] = {
@@ -180,39 +177,40 @@ private:
     }
 
     void render() {
-        renderer_->beginFrame();
-        renderer_->clear(0x202020ff);
+        if (auto& frame = renderer_->frame(); frame.has_result()) {
+            renderer_->clear(0x202020ff);
 
-        // Build transform
-        int w, h;
-        SDL_GetWindowSize(window_, &w, &h);
-        float aspect = float(w)/float(h);
+            // Build transform
+            int w, h;
+            SDL_GetWindowSize(window_, &w, &h);
+            float aspect = float(w)/float(h);
 
-        glm::mat4 proj = glm::ortho(-aspect, aspect, -1.0f, 1.0f);
-        glm::mat4 model = glm::rotate(
-            glm::mat4(1.0f),
-            rotation_,
-            glm::vec3(0.0f, 0.0f, 1.0f)
-        );
-        glm::mat4 mvp = proj * model;
+            glm::mat4 proj = glm::ortho(-aspect, aspect, -1.0f, 1.0f);
+            glm::mat4 model = glm::rotate(
+                glm::mat4(1.0f),
+                rotation_,
+                glm::vec3(0.0f, 0.0f, 1.0f)
+            );
+            glm::mat4 mvp = proj * model;
 
-        renderer_->setTransform(mvp);
-        renderer_->setVertexBuffer(vertex_buffer_.get());
-        renderer_->submit();
+            renderer_->set_transform(mvp);
+            renderer_->set_vertex_buffer(vertex_buffer_.get());
+            renderer_->submit();
 
-        // ImGui overlay
-        ui_->newFrame();
-        ImGui::Begin("Triangle Viewer");
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-        ImGui::Text("Rotation: %.2f rad", rotation_);
-        if (ImGui::Button("Reset")) rotation_ = 0.0f;
-        ImGui::End();
-        ui_->render();
-
-        renderer_->endFrame();
+            // HUD
+            if (auto& hud = ui_->frame("Triangle Viewer"); hud.has_value()) {
+                // We'd be using the UI system, but you get the idea.
+                ui_->text("FPS: %.1f", ImGui::GetIO().Framerate);
+                ui_->text("Rotation: %.2f rad", rotation_);
+                if (ui_->button("Reset")) {
+                    rotation_ = 0.0f;
+                }
+            }
+            ui_->render();
+        }
     }
 
-    bool windowShouldClose() {
+    bool window_should_close() {
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
             if (ev.type == SDL_QUIT) return true;
@@ -221,22 +219,22 @@ private:
     }
 
     SDL_Window* window_ = nullptr;
-    std::unique_ptr<render::IRenderBackend> renderer_;
-    std::unique_ptr<ui::IImGuiContext> ui_;
-    std::unique_ptr<render::IVertexBuffer> vertex_buffer_;
+    std::unique_ptr<render::render_backend_base> renderer_;
+    std::unique_ptr<ui::ui_system_base> ui_;
+    std::unique_ptr<render::vertex_buffer> vertex_buffer_;
     float rotation_ = 0.0f;
 };
 
 int main() {
-    auto logger = core::makeConsoleLogger();
+    auto logger = core::make_console_logger();
 
-    auto app_res = TriangleViewerApp::Create();
+    auto app_res = triangle_viewer_app::create();
     if (!app_res) {
-        logger->log(core::LogLevel::Error,
+        logger->log(core::LogLevel::error,
             "Failed to create app: " + std::string(app_res.error().what()));
         return 1;
     }
-    logger->log(core::LogLevel::Info, "Starting Triangle Viewer…");
+    logger->log(core::LogLevel::info, "Starting Triangle Viewer...");
     app_res.value()->run();
     return 0;
 }
