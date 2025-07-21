@@ -52,21 +52,7 @@ Testing philosophy and practices:
 
 ### Current Status: Tier 0 (MVP Foundation)
 
-**Goal**: Static single-player sandbox with basic ship movement and loging.
-
-**Tier 0 Requirements**:
-1. ✅ Spawn one ship in a single zone
-2. 🔄 Car-style steering (hold W to accelerate forward; heading changes momentum)
-3. 🔄 Server replicates pos/rot/vel each tick; client interpolates & logs
-4. 🔄 ImGui shows FPS/ping
-
-### Upcoming Milestones
-
-| Tier | Milestone | Outcome |
-|------|-----------|---------|
-| **R1** | Headless **zone** server + authoritative client prediction | 30 Hz tick rate, client interpolation, bullet-proof reconnection |
-| **R2** | Multi-zone universe router (**unid**) | Transparent warp between zone shards, hot-patch asset streaming |  
-| **R3** | Public alpha | Self-contained dedicated server binary & automatic asset diff-patcher |
+**Goal**: Small multi-player sandbox with basic ship movement and godot engine_interface implementation.
 
 ### Repository Structure
 
