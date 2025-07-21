@@ -16,44 +16,38 @@ The network architecture is built on a single, non-negotiable principle: **the s
 ### Design Principles
 
 Following the Ion Vortex C++ Manual:
-- **Error Handling**: All fallible operations return `std::expected<T, Error>`
-- **Object Creation**: Factory methods return `std::expected<std::unique_ptr<T>, Error>`
-- **Interface-Based**: Polymorphism via abstract interfaces (`ILogger`, `INetworkServer`, `IGameZone`)
+- **Error Handling**: All fallible operations return `std::expected<T, std::error_code>`
+- **Object Creation**: Factory methods return `std::expected<std::unique_ptr<T>, std::error_code>`
+- **Interface-Based**: Polymorphism via abstract interfaces (`logger_base`, `network_server_base`, `game_zone_base`)
 - **Update Loop**: Deterministic 30 Hz main loop via `tick(uint64_t now_ns)`
 
 ### Game Object Model
 
 **No Entity-Component-System (ECS)**. Direct object-oriented model for simplicity and debuggability.
 
-- **Game Objects**: `Ship`, `Projectile`, `Mine` - owned via `std::unique_ptr`
-- **Systems**: `PhysicsSystem`, `CombatSystem` - operate on GameZone's object collections
-
-### Scripting (LuaJIT)
-
-- **Sandboxed per GameZone**: Each zone has isolated script environment
-- **Garbage Collection**: Explicit GC every N ticks via `lua_gc(L, LUA_GCCOLLECT, 0)`
-- **Zone-specific logic**: Custom behaviors without recompiling
+- **Game Objects**: `ship`, `projectile`, `mine` - owned via `std::unique_ptr`
+- **Systems**: `physics_system_base`, `combat_system_base` - operate on `game_zone_base`'s object collections
 
 ### Key Server Systems
 
-1. **PhysicsSystem**
+1. **physics_system_base**
    - Sole authority for movement
    - Collision detection
    - No client prediction
 
-2. **CombatSystem**
+2. **combat_system_base**
    - Weapon firing logic
    - Cooldown management
    - Damage application
 
-3. **InterestManagementSystem**
+3. **intrest_management_system_base**
    - Spatial grid for visibility
    - Determines which clients see which entities
    - Critical for performance
 
-4. **StateBroadcastSystem**
+4. **state_broadcast_system_base**
    - Works with InterestManagement
-   - Serializes `ShipState` for relevant clients
+   - Serializes `ship_state_base` for relevant clients
    - **Per-client byte budget**: 512 bytes/tick
    - Prioritizes by distance and activity
    - Defers excess updates
@@ -68,8 +62,8 @@ The client is built using the Ion Vortex engine:
 ### Architecture Overview
 
 Following Ion Vortex principles:
-- Factory-based object creation returning `std::expected<std::unique_ptr<T>, Error>`
-- Interface-driven design (`IRenderer`, `INetworkClient`, `IInputHandler`)
+- Factory-based object creation returning `std::expected<std::unique_ptr<T>, std::error_code>`
+- Interface-driven design (`renderer_base`, `network_client_base`, `input_handler_base`)
 - Tick-based update loop synchronized with server rate
 
 ### State Management
@@ -133,7 +127,7 @@ Minimal, explicit, forward-compatible design.
 [1B: version][2B: length][1B: packet_type][...payload]
 ```
 
-**Example ShipState Payload**:
+**Example ship_state_base Payload**:
 ```
 [4B: entity_id][2B: pos_x][2B: pos_y][1B: angle][1B: shield][1B: hull][...]
 ```
@@ -147,7 +141,7 @@ Minimal, explicit, forward-compatible design.
 
 2. **Packet Framing**
    - Prevents stream corruption
-   - `FramedPacketReader` ensures complete packets
+   - `framed_packet_reader` ensures complete packets
    - Handles TCP stream fragmentation
 
 3. **Quantization**
@@ -157,7 +151,7 @@ Minimal, explicit, forward-compatible design.
 
 4. **State Updates**
    - Explicit messages, not generic replication
-   - Full `ShipState` for changed entities
+   - Full `ship_state_base` for changed entities
    - Respects per-tick send budget
 
 ## Technology Stack
