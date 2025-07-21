@@ -19,18 +19,23 @@ function(ion_generate_export_header TARGET)
     #ifdef _WIN32
         #ifdef ION_${_module_upper}_EXPORTS
             #define ION_${_module_upper}_API __declspec(dllexport)
+            #define ION_${_module_upper}_API_NOVIS __declspec(dllexport)
         #else
             #define ION_${_module_upper}_API __declspec(dllimport)
+            #define ION_${_module_upper}_API_NOVIS __declspec(dllimport)
         #endif
     #else
         #ifdef ION_${_module_upper}_EXPORTS
             #define ION_${_module_upper}_API __attribute__((visibility(\"default\")))
+            #define ION_${_module_upper}_API_NOVIS
         #else
             #define ION_${_module_upper}_API
+            #define ION_${_module_upper}_API_NOVIS
         #endif
     #endif
 #else
     #define ION_${_module_upper}_API
+    #define ION_${_module_upper}_API_NOVIS
 #endif
 
 // Export macros for templates and inline functions
