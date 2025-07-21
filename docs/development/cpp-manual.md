@@ -1457,7 +1457,7 @@ If your library has an *optional* dependency on a third-party library (e.g., a s
     ```cpp
     // Inside your system's implementation:
     // if (config_.logger) {
-    //     config_.logger->log(log_level::Info, "System started.");
+    //     config_.logger->log(log_level::info, "System started.");
     // }
     // // No else needed, or use a noop_logger instance.
     ```
@@ -1934,10 +1934,10 @@ Direct use of `std::cout`, `printf`, `spdlog::log()`, or any other concrete logg
             // Convenience methods (optional, can be implemented in terms of the above)
             // void trace(const std::string& message, const std::source_location& loc = ...){ log(log_level::trace, message, loc); }
             // void debug(const std::string& message, const std::source_location& loc = ...){ log(log_level::debug, message, loc); }
-            // void info(const std::string& message, const std::source_location& loc = ...){ log(log_level::Info, message, loc); }
+            // void info(const std::string& message, const std::source_location& loc = ...){ log(log_level::info, message, loc); }
             // void warn(const std::string& message, const std::source_location& loc = ...){ log(log_level::warn, message, loc); }
             // void error(const std::string& message, const std::source_location& loc = ...){ log(log_level::error, message, loc); }
-            // void critical(const std::string& message, const std::source_location& loc = ...){ log(log_level::Critical, message, loc); }
+            // void critical(const std::string& message, const std::source_location& loc = ...){ log(log_level::critical, message, loc); }
 
             virtual bool is_enabled(log_level level) const { // Optional: for performance critical paths
                  return true; // Default: always enabled, concrete loggers can be smarter

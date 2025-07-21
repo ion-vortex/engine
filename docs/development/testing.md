@@ -80,7 +80,7 @@ TEST_CASE("Async operations complete correctly", "[async]") {
     REQUIRE(completed);
     
     // Check result
-    auto result = system.value()->getResult();
+    auto result = system.value()->get_result();
     REQUIRE(result.has_value());
 }
 ```
@@ -165,7 +165,7 @@ public:
         return {};
     }
     
-    std::expected<void, std::error_code> send(BufferView data) override {
+    std::expected<void, std::error_code> send(buffer_view data) override {
         if (!connected_) {
             return std::unexpected(make_net_error(net_errc::not_connected));
         }

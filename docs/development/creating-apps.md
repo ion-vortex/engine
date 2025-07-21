@@ -212,7 +212,7 @@ application::~application() {
     shutdown();
 }
 
-std::expected<void, ion::core::Error> application::initialize() {
+std::expected<void, std::error_code> application::initialize() {
     using namespace ion::core;
     
     // create window through ion platform system
@@ -394,7 +394,7 @@ int main(int argc, char* argv[]) {
     
     auto app_result = your_app::application::create(config);
     if (!app_result) {
-        logger->log(ion::core::log_level::Error,
+        logger->log(ion::core::log_level::error,
             "Failed to create application: " + 
             std::string(app_result.error().what())
         );
@@ -404,7 +404,7 @@ int main(int argc, char* argv[]) {
     try {
         app_result.value()->run();
     } catch (const std::exception& e) {
-        logger->log(ion::core::log_level::Critical,
+        logger->log(ion::core::log_level::critical,
             "Unhandled exception: " + std::string(e.what())
         );
         return 2;

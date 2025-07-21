@@ -230,11 +230,11 @@ int main() {
 
     auto app_res = triangle_viewer_app::create();
     if (!app_res) {
-        logger->log(core::LogLevel::error,
+        logger->log(core::log_level::error,
             "Failed to create app: " + std::string(app_res.error().what()));
         return 1;
     }
-    logger->log(core::LogLevel::info, "Starting Triangle Viewer...");
+    logger->log(core::log_level::info, "Starting Triangle Viewer...");
     app_res.value()->run();
     return 0;
 }

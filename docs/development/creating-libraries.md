@@ -103,20 +103,20 @@ Create `src/your_implementation.h`:
 
 namespace ion::your_library::detail {
 
-class YourImplementation final : public your_type_base {
+class your_type_impl final : public your_type_base {
 public:
     // Factory method
     [[nodiscard("Handle the result"), gnu::warn_unused_result]]
-    static std::expected<std::unique_ptr<YourImplementation>, core::Error> 
-    Create(/* parameters */);
+    static std::expected<std::unique_ptr<your_type_impl>, std::error_code> 
+    create(/* parameters */);
     
     // your_type_base implementation
     void do_something() override;
-    std::expected<int, core::Error> compute_value() override;
+    std::expected<int, , std::error_code> compute_value() override;
     
 private:
     // Private constructor - use factory
-    YourImplementation(/* params */);
+    your_type_impl(/* params */);
     
     // Private members
     int state_ = 0;
@@ -133,49 +133,40 @@ Create `src/your_implementation.cpp`:
 
 namespace ion::your_library::detail {
 
-std::expected<std::unique_ptr<YourImplementation>, core::Error> 
-YourImplementation::Create(/* parameters */) {
+std::expected<std::unique_ptr<your_type_base>, std::error_code> 
+your_type_impl::create(/* parameters */) {
     // Validate parameters
     if (/* invalid */) {
-        return std::unexpected(core::Error(
-            ErrorCode::invalid_parameter,
-            "Description of what's wrong"
-        ));
+        return std::unexpected(lib_errc::invalid);
     }
     
     // Create instance (can't use make_unique with private constructor)
-    auto instance = std::unique_ptr<YourImplementation>(
-        new YourImplementation(/* params */)
+    auto instance = std::unique_ptr<your_type_impl>(
+        new your_type_impl(/* params */)
     );
     
     // Any initialization that can fail
     if (/* init failed */) {
-        return std::unexpected(core::Error(
-            ErrorCode::operation_failed,
-            "Initialization failed"
-        ));
+        return std::unexpected(lib_errc::operation_failed);
     }
     
     return instance;
 }
 
-void YourImplementation::do_something() {
+void your_type_impl::do_something() {
     // Implementation
     state_++;
 }
 
-std::expected<int, core::Error> YourImplementation::compute_value() {
+std::expected<int, std::error_code> your_type_impl::compute_value() {
     if (state_ < 0) {
-        return std::unexpected(core::Error(
-            ErrorCode::InvalidState,
-            "State is negative"
-        ));
+        return std::unexpected(lib_errc::invalid_state);
     }
     
     return state_ * 2;
 }
 
-YourImplementation::YourImplementation(/* params */) {
+your_type_impl::your_type_impl(/* params */) {
     // Constructor logic
 }
 
@@ -184,9 +175,9 @@ YourImplementation::YourImplementation(/* params */) {
 // Factory function implementation
 namespace ion::your_library {
 
-std::expected<std::unique_ptr<your_type_base>, core::Error> 
+std::expected<std::unique_ptr<your_type_base>, std::error_code> 
 make_your_interface(/* parameters */) {
-    auto result = detail::YourImplementation::Create(/* params */);
+    auto result = detail::your_type_impl::create(/* params */);
     if (!result) {
         return std::unexpected(result.error());
     }
