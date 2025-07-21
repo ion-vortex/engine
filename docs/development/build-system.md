@@ -11,10 +11,9 @@ Ion Vortex uses a modern CMake-based build system designed to support both monol
 3. [Build System Components](#build-system-components)
 4. [Building Ion Vortex](#building-ion)
 5. [Library Development](#library-development)
-6. [Application Development](#application-development)
-7. [Testing](#testing)
-8. [Installation and Packaging](#installation-and-packaging)
-9. [Troubleshooting](#troubleshooting)
+6. [Testing](#testing)
+7. [Installation and Packaging](#installation-and-packaging)
+8. [Troubleshooting](#troubleshooting)
 
 ## Architecture
 
@@ -22,7 +21,7 @@ Ion Vortex uses a modern CMake-based build system designed to support both monol
 
 1. **Static Linking Only**: All libraries are built as static archives to enable Link-Time Optimization (LTO)
 2. **Transitive Dependencies**: The build system automatically handles transitive dependencies
-3. **No Direct External Dependencies**: Applications and tests only link against `ion::` targets
+3. **No Direct External Dependencies**: Libraries and tests only link against `ion::` targets
 4. **Automatic Source Discovery**: Sources are discovered automatically based on standard directory layout
 5. **Modern CMake**: Target-based design using CMake 3.28+ features
 
@@ -32,24 +31,18 @@ Libraries are organized in layers with strict dependency rules:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    apps/*                           │
+│                    Libraries                        │
 ├─────────────────────────────────────────────────────┤
-│  ui          │  render       │  protocol            │
-├──────────────┼───────────────┼─────────────────────┤
-│  audio       │  physics      │  asset      │crypto │
-├──────────────┴───────────────┴─────────────┴───────┤
+│  engine_interface │  script       │  protocol       │
+├───────────────────┴───────────────┴─────────────────┤
 │                      core                           │
 └─────────────────────────────────────────────────────┘
 ```
 
 - **core**: No dependencies (bottom layer)
-- **crypto**: Depends on core only
-- **asset**: Depends on core, crypto
-- **physics**: Depends on core only
-- **audio**: Depends on core only
-- **protocol**: Depends on core, crypto
-- **render**: Depends on core, physics (read-only)
-- **ui**: Depends on core, render
+- **protocol**: Depends on core only
+- **engine_interface**: Depends on core, protocol
+- **script**: Depends on core, engine_interface
 
 ## Directory Structure
 
@@ -67,11 +60,6 @@ ion/
 │   │   ├── tests/              # Unit/integration tests
 │   │   └── CMakeLists.txt
 │   └── [other libraries...]
-├── apps/
-│   ├── client/
-│   │   ├── src/                # Application sources
-│   │   └── CMakeLists.txt
-│   └── [other apps...]
 ├── CMakeLists.txt              # Top-level build file
 ├── CMakePresets.json           # Build presets
 └── vcpkg.json                  # Dependencies manifest
@@ -112,22 +100,6 @@ ion_add_external_dependency(core
 ```
 
 Must be called BEFORE `ion_add_library()`.
-
-#### `ion_add_application()`
-
-Creates an executable with all transitive dependencies:
-
-```cmake
-ion_add_application(
-    NAME client
-    DEPENDENCIES ion::core ion::render ion::ui
-)
-```
-
-Features:
-- Automatically discovers sources in `src/`
-- Collects ALL transitive dependencies (internal and external)
-- Ensures static linking of everything
 
 #### `ion_add_test()`
 
@@ -178,7 +150,7 @@ cmake --install build/release-windows --prefix /path/to/install
 Libraries can be built standalone:
 
 ```bash
-cd libs/render
+cd libs/engine_interface
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
@@ -261,48 +233,6 @@ External dependencies are handled in two steps:
 
 This two-step process allows the build system to track all transitive external dependencies.
 
-## Application Development
-
-### Creating an Application
-
-1. Create directory structure:
-   ```
-   apps/myapp/
-   ├── src/
-   │   └── main.cpp
-   └── CMakeLists.txt
-   ```
-
-2. Write `CMakeLists.txt`:
-   ```cmake
-   cmake_minimum_required(VERSION 3.28)
-
-   if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-       project(IonMyApp VERSION 0.1.0 LANGUAGES CXX)
-       
-       list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
-       include(IonHelpers)
-       ion_setup_build_interface()
-       
-       # Build required libraries
-       add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../libs libs)
-   endif()
-
-   # Create executable - only specify ion:: dependencies
-   ion_add_application(
-       NAME myapp
-       DEPENDENCIES
-           ion::core
-           ion::render
-   )
-   ```
-
-### Important Notes
-
-- Applications should NEVER directly link external libraries
-- All external dependencies come transitively through ion:: libraries
-- The build system automatically handles all transitive dependencies
-
 ## Testing
 
 ### Writing Tests
@@ -362,14 +292,14 @@ find_package(Ion REQUIRED)
 add_executable(myapp main.cpp)
 target_link_libraries(myapp PRIVATE
     ion::core
-    ion::render
+    ion::engine_interface
 )
 ```
 
 With components:
 
 ```cmake
-find_package(Ion REQUIRED COMPONENTS core render ui)
+find_package(Ion REQUIRED COMPONENTS core engine_interface script)
 ```
 
 ## Troubleshooting

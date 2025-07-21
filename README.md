@@ -1,6 +1,6 @@
 # Ion Vortex
 
-[![CI](https://github.com/ion-vortex/engine/actions/workflows/ci.yml/badge.svg)](https://github.com/ion-vortex/engine/actions/workflows/ci.yml)
+[![CI](https://github.com/ion-vortex/framework/actions/workflows/ci.yml/badge.svg)](https://github.com/ion-vortex/framework/actions/workflows/ci.yml)
 
 ---
 
@@ -10,10 +10,10 @@
 
 ---
 
-> A lightweight, fully-authoritative real-time space-sim framework built in modern C++23.
+> A lightweight, fully-authoritative real-time game framework built in modern C++23.
 
 **Current Milestone (Tier 0):**  
-Spawn a single ship in one zone with car-style steering, 30 Hz deterministic sim on the server, and SDL3+ImGui rendering on the client.  
+Spawn a single entity in one zone with basic movement, 30 Hz deterministic simulation on the server, and a generic engine interface. 
 See the full [Roadmap](docs/development/README.md#roadmap) for what's next!
 
 ---

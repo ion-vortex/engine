@@ -47,8 +47,7 @@ ion_setup_build_interface()
 
 # ── Find all external dependencies upfront ────────────────────
 ion_find_dependencies(
-    stb SDL3 curl glm imgui lunasvg
-    sodium libuv curl json toml
+    curl glm sodium libuv curl json toml
 )
 
 # ── Enable testing if requested ───────────────────────────────

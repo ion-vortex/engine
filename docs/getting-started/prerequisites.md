@@ -78,20 +78,15 @@ Run this command to install all dependencies:
 ```bash
 sudo apt update && sudo apt install -y \
   git build-essential ninja-build pkg-config cmake \
-  libx11-dev libxi-dev libxrandr-dev libxinerama-dev \
-  libxcursor-dev libxfixes-dev libxext-dev \
-  libgl1-mesa-dev libglu1-mesa-dev \
   libssl-dev zlib1g-dev \
-  autoconf libtool automake libltdl-dev \
-  libxft-dev libwayland-dev libxkbcommon-dev \
-  libegl1-mesa-dev libibus-1.0-dev
+  autoconf libtool automake libltdl-dev
 ```
 
-**Important**: The autotools packages (autoconf, libtool, automake) are required by some vcpkg dependencies like libsodium.
+**Important**: The autotools packages (autoconf, libtool, automake) are required by some vcpkg dependencies.
 
 For other distributions:
-- **Fedora/RHEL**: `dnf install gcc-c++ cmake ninja-build pkg-config libX11-devel mesa-libGL-devel autoconf libtool automake`
-- **Arch**: `pacman -S base-devel cmake ninja git mesa libx11 libxi libxrandr autoconf automake libtool pkg-config`
+- **Fedora/RHEL**: `dnf install gcc-c++ cmake ninja-build pkg-config autoconf libtool automake`
+- **Arch**: `pacman -S base-devel cmake ninja git autoconf automake libtool pkg-config`
 
 ### macOS
 
