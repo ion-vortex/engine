@@ -149,7 +149,7 @@ All runtime code SHALL use `std::expected` for error propagation. See API.3 for 
 ```cpp
 // Example of catching an internal exception in a factory
 // static
-[[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+[[ION_NODISCARD("Handle this result! Failure to do so is a bug.")]]
 std::expected<std::unique_ptr<my_object>, std::error_code> my_object::create(const std::string& config_data) {
     try {
         // my_object_impl constructor might throw on bad config_data
@@ -186,7 +186,7 @@ public:
     virtual ~my_object() = default;
 
     // Factory function
-    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+    [[ION_NODISCARD("Handle this result! Failure to do so is a bug.")]]
     static std::expected<std::unique_ptr<my_object>, std::error_code> create(...);
 
 protected:
@@ -250,7 +250,7 @@ These layers establish strict boundaries crucial for maintainability, testabilit
 
 1.  **`[ Interface Layer ]`**
     *   **Location:** `include/oat/yourlib/...` (or similar public include path)
-    *   **Content:** Public headers defining abstract classes (interfaces), POD-like configuration structs, public enums (like `ErrorCode`), and factory function declarations (e.g., `static std::expected<std::unique_ptr<type_base>, std::error_code> create(...)`).
+    *   **Content:** Public headers defining abstract classes (interfaces), POD-like configuration structs, public enums (like `log_level`), and factory function declarations (e.g., `static std::expected<std::unique_ptr<type_base>, std::error_code> create(...)`).
     *   **Rule:** Interfaces expose **nothing private**. No implementation details, no private helper classes, no internal data structures. They define the "what," not the "how."
 
 2.  **`[ Implementation Layer ]`**
@@ -282,7 +282,7 @@ These layers establish strict boundaries crucial for maintainability, testabilit
 
             virtual void tick(uint64_t now_ns) = 0;
 
-            [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+            [[ION_NODISCARD("Handle this result! Failure to do so is a bug.")]]
             virtual std::expected<void, std::error_code> send_message(buffer_view payload) = 0;
             // ... other interface methods
         };
@@ -437,7 +437,7 @@ This convention enhances readability and consistency.
 | Private Implementation Source     | `snake_case_impl.cpp`| `session_manager_impl.cpp`  | `src/session_manager_impl.cpp`     |
 | Utility/Helper Header (Public)    | `snake_case.h`    | `buffer_utils.h`            | `include/oat/core/buffer_utils.h`  |
 | Utility/Helper Source (Private)   | `snake_case.cpp`  | `string_helpers.cpp`        | `src/string_helpers.cpp`           |
-| Test Source File                  | `PascalCaseTests.cpp` or `feature_tests.cpp` | `session_manager_tests.cpp`   | `tests/session_manager_tests.cpp`    |
+| Test Source File                  | `snake_cast_test.cpp` or `feature_tests.cpp` | `session_manager_tests.cpp`   | `tests/session_manager_tests.cpp`    |
 | Class / Struct / Enum Class       | `PascalCase`      | `session_manager`            | (Defined inside headers/sources)   |
 | Enum (C-style, if unavoidable)  | `ALL_CAPS_SNAKE`  | `MAX_CONNECTIONS`           | (Strongly prefer `enum class`)     |
 
@@ -556,16 +556,16 @@ private:
 ```cpp
 class data_processor {
 public:
-    [[OAT_NODISCARD("handle this result – failure to do so is a bug.")]]
-    static std::expected<std::unique_ptr<data_processor>, error>
+    [[ION_NODISCARD("handle this result – failure to do so is a bug.")]]
+    static std::expected<std::unique_ptr<data_processor>, std::error_code>
     create(config& cfg);                         // factory, still snake_case
 
     void submit_data(buffer_view data);
 
-    [[OAT_NODISCARD("handle this result – failure to do so is a bug.")]]
+    [[ION_NODISCARD("handle this result – failure to do so is a bug.")]]
     bool is_processing() const;
 
-    [[OAT_NODISCARD("handle this result – failure to do so is a bug.")]]
+    [[ION_NODISCARD("handle this result – failure to do so is a bug.")]]
     std::optional<result> get_result();
 
 private:
@@ -658,7 +658,7 @@ Strive to minimize the `#include` directives in your header files.
     // my_service.h
     #pragma once
     #include <memory> // For std::unique_ptr
-    #include <oat/core/error_code.h> // For ErrorCode, error (Tagged Enum Wrapper)
+    #include <oat/core/error.h> // for core_errc
     #include <oat/core/buffer_view.h> // For buffer_view
 
     // Forward declarations
@@ -768,7 +768,7 @@ public:
 
 class logger_factory {
 public:
-    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+    [[ION_NODISCARD("Handle this result! Failure to do so is a bug.")]]
     virtual std::expected<std::unique_ptr<logger_base>, std::error_code> create_logger() = 0;
     virtual ~logger_factory() = default;
 };
@@ -791,7 +791,7 @@ public:
         stream_ << msg << '\n';
     }
 
-    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+    [[ION_NODISCARD("Handle this result! Failure to do so is a bug.")]]
     static std::expected<std::unique_ptr<logger_base>, std::error_code> create(std::string_view path) {
         try {
             auto logger = std::unique_ptr<concrete_logger>(new concrete_logger(path));
@@ -831,7 +831,7 @@ private:
 
 class concrete_logger_factory : public logger_factory_base {
 public:
-    [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+    [[ION_NODISCARD("Handle this result! Failure to do so is a bug.")]]
     std::expected<std::unique_ptr<logger_base>, std::error_code> create_logger() override {
         return concrete_logger::create("log.txt");
     }
@@ -881,7 +881,7 @@ void reset_logger_factory() {
   class mock_logger : public logger_base { /* ... */ };
   class mock_logger_factory : public logger_factory_base {
   public:  
-      [[OAT_NODISCARD("Handle this result! Failure to do so is a bug.")]]
+      [[ION_NODISCARD("Handle this result! Failure to do so is a bug.")]]
       std::expected<std::unique_ptr<logger_base>, std::error_code> create_logger() override {
           return std::make_unique<mock_logger>();
       }
@@ -999,7 +999,7 @@ All public functions that can fail **shall**
 | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | **Return** `std::expected<T, std::error_code>` (or `std::expected<void, std::error_code>`).                                             | The value half (`T`) remains unconstrained; the error half is the *portable* C++11 struct whose layout is ABI-stable across DLLs. |
 | **Tag** every error code with a *module-local* strongly-typed `enum class`, then convert it to `std::error_code` via `make_error_code`. | Preserves type-safety at call sites while keeping one on-the-wire format.                                                         |
-| **Mark** every fallible API with `OAT_NODISCARD("…descriptive message…")`.                                                              | Forces callers to handle the result.                                                                                              |
+| **Mark** every fallible API with `ION_NODISCARD("…descriptive message…")`.                                                              | Forces callers to handle the result.                                                                                              |
 
 `bool`, sentinels, `nullptr`, raw integers, or `std::optional` **shall not** be used for error signalling. Exceptions remain an internal implementation detail; they do **not** cross public ABI boundaries.
 
@@ -1100,7 +1100,7 @@ static std::error_code to_net_error(std::error_code ec) noexcept {
 *Exported API*:
 
 ```cpp
-[[OAT_NODISCARD("check connect result")]]
+[[ION_NODISCARD("check connect result")]]
 std::expected<void, std::error_code> connect(socket s, address a)
 {
     if (::connect(s.fd(), …) == 0)  return {};
@@ -1118,21 +1118,21 @@ No caller ever sees `errno` or `DWORD`, only `oat::net::net_errc`.
 // oat/attributes.h
 #pragma once
 #if defined(__GNUC__) || defined(__clang__)
-#  define OAT_NODISCARD(msg) nodiscard(msg), gnu::warn_unused_result
+#  define ION_NODISCARD(msg) nodiscard(msg), gnu::warn_unused_result
 #elif defined(_MSC_VER)
-#  define OAT_NODISCARD(msg) nodiscard(msg)
+#  define ION_NODISCARD(msg) nodiscard(msg)
 #else
-#  define OAT_NODISCARD(msg) nodiscard
+#  define ION_NODISCARD(msg) nodiscard
 #endif
 ```
 
 *Usage examples*:
 
 ```cpp
-OAT_NODISCARD("handle the possible timeout")
+ION_NODISCARD("handle the possible timeout")
 std::expected<void, std::error_code> wait_for_ready(...);
 
-OAT_NODISCARD("did the asset actually load?")
+ION_NODISCARD("did the asset actually load?")
 std::expected<asset, std::error_code> load_asset(std::string_view path);
 ```
 
@@ -1168,7 +1168,7 @@ Each message explains *why* the caller shouldn’t ignore the value.
 * **Interoperable:** STL, Boost, gRPC and many third-party libraries already consume/produce `std::error_code`.
 * **Extensible:** each module owns its enum; no global registry or range reservation is required.
 * **Descriptive:** `message()` delivers human-readable text on demand; not stored unless logged.
-* **Enforced handling:** `OAT_NODISCARD` ensures the compiler reminds users to check every result.
+* **Enforced handling:** `ION_NODISCARD` ensures the compiler reminds users to check every result.
 
 Adhering to these rules yields clear, efficient, and portable error handling across all OAT C++ components.
 

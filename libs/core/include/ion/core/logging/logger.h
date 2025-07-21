@@ -28,7 +28,7 @@ public:
             std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...)));
     }
     
-    [[OAT_NODISCARD("You should be actually checking this if you're bothering to call it.")]]
+    [[ION_NODISCARD("You should be actually checking this if you're bothering to call it.")]]
     virtual bool is_enabled(log_level level) const = 0;
 };
 

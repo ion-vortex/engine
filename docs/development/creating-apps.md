@@ -145,7 +145,7 @@ public:
     };
     
     // Factory
-    [[OAT_NODISCARD("Please make sure to handle the creation failure.")]]
+    [[ION_NODISCARD("Please make sure to handle the creation failure.")]]
     static std::expected<std::unique_ptr<application>, std::error_code> 
     create(const config& config);
     
@@ -158,7 +158,7 @@ public:
 private:
     application(const config& config);
     
-    [[OAT_NODISCARD("Please ensure to handle init failure.")]]
+    [[ION_NODISCARD("Please ensure to handle init failure.")]]
     std::expected<void, std::error_code> initialize();
     
     void update(float delta_time);

@@ -47,7 +47,7 @@ public:
      * @brief Returns the root handle of the storage tree.
      * @return store_handle on success, or an error (e.g. IoFailure) on failure.
      */
-    [[OAT_NODISCARD("Check for error or valid root handle")]]
+    [[ION_NODISCARD("Check for error or valid root handle")]]
     virtual std::expected<store_handle, std::error_code> root() const = 0;
 
     /**
@@ -55,7 +55,7 @@ public:
      * @param h The handle to query.
      * @return The boolean value or an error.
      */
-    [[OAT_NODISCARD("Check for error or valid bool value")]]
+    [[ION_NODISCARD("Check for error or valid bool value")]]
     virtual std::expected<bool, std::error_code>
     get_bool   (store_handle h) const = 0;
 
@@ -64,7 +64,7 @@ public:
      * @param h The handle to query.
      * @return The integer value or an error.
      */
-    [[OAT_NODISCARD("Check for error or valid int value")]]
+    [[ION_NODISCARD("Check for error or valid int value")]]
     virtual std::expected<int64_t, std::error_code>
     get_int    (store_handle h) const = 0;
 
@@ -73,7 +73,7 @@ public:
      * @param h The handle to query.
      * @return The double value or an error.
      */
-    [[OAT_NODISCARD("Check for error or valid double value")]]
+    [[ION_NODISCARD("Check for error or valid double value")]]
     virtual std::expected<double, std::error_code>
     get_double (store_handle h) const = 0;
 
@@ -82,7 +82,7 @@ public:
      * @param h The handle to query.
      * @return The string value or an error.
      */
-    [[OAT_NODISCARD("Check for error or valid string value")]]
+    [[ION_NODISCARD("Check for error or valid string value")]]
     virtual std::expected<std::string, std::error_code>
     get_string (store_handle h) const = 0;
 
@@ -92,7 +92,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on set_bool")]]
+    [[ION_NODISCARD("Check for error on set_bool")]]
     virtual std::expected<void, std::error_code>
     set_bool   (store_handle h, bool   v) = 0;
 
@@ -102,7 +102,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on set_int")]]
+    [[ION_NODISCARD("Check for error on set_int")]]
     virtual std::expected<void, std::error_code>
     set_int    (store_handle h, int64_t v) = 0;
 
@@ -112,7 +112,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on set_double")]]
+    [[ION_NODISCARD("Check for error on set_double")]]
     virtual std::expected<void, std::error_code>
     set_double (store_handle h, double  v) = 0;
 
@@ -122,7 +122,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on set_string")]]
+    [[ION_NODISCARD("Check for error on set_string")]]
     virtual std::expected<void, std::error_code>
     set_string (store_handle h, std::string_view v) = 0;
 
@@ -132,7 +132,7 @@ public:
      * @param key The key for the new array.
      * @return Handle to the new array or error.
      */
-    [[OAT_NODISCARD("Check for error or valid array handle")]]
+    [[ION_NODISCARD("Check for error or valid array handle")]]
     virtual std::expected<store_handle, std::error_code>
     make_array  (store_handle parent, std::string_view key) = 0;
 
@@ -142,7 +142,7 @@ public:
      * @param key The key for the new object.
      * @return Handle to the new object or error.
      */
-    [[OAT_NODISCARD("Check for error or valid object handle")]]
+    [[ION_NODISCARD("Check for error or valid object handle")]]
     virtual std::expected<store_handle, std::error_code>
     make_object (store_handle parent, std::string_view key) = 0;
 
@@ -153,7 +153,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on make_bool")]]
+    [[ION_NODISCARD("Check for error on make_bool")]]
     virtual std::expected<void, std::error_code>
     make_bool   (store_handle parent, std::string_view key, bool   v) = 0;
 
@@ -164,7 +164,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on make_int")]]
+    [[ION_NODISCARD("Check for error on make_int")]]
     virtual std::expected<void, std::error_code>
     make_int    (store_handle parent, std::string_view key, int64_t v) = 0;
 
@@ -175,7 +175,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on make_double")]]
+    [[ION_NODISCARD("Check for error on make_double")]]
     virtual std::expected<void, std::error_code>
     make_double (store_handle parent, std::string_view key, double  v) = 0;
 
@@ -186,7 +186,7 @@ public:
      * @param v The value to set.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on make_string")]]
+    [[ION_NODISCARD("Check for error on make_string")]]
     virtual std::expected<void, std::error_code>
     make_string (store_handle parent, std::string_view key, std::string_view v) = 0;
 
@@ -196,7 +196,7 @@ public:
      * @param key The key to remove.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on remove")]]
+    [[ION_NODISCARD("Check for error on remove")]]
     virtual std::expected<void, std::error_code>
     remove        (store_handle parent, std::string_view key) = 0;
 
@@ -206,7 +206,7 @@ public:
      * @param key The key to check.
      * @return True if exists, false otherwise, or error.
      */
-    [[OAT_NODISCARD("Check for error or existence result")]]
+    [[ION_NODISCARD("Check for error or existence result")]]
     virtual std::expected<bool, std::error_code>
     has           (store_handle parent, std::string_view key) const = 0;
 
@@ -216,7 +216,7 @@ public:
      * @param idx The index to remove.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on erase_element")]]
+    [[ION_NODISCARD("Check for error on erase_element")]]
     virtual std::expected<void, std::error_code>
     erase_element (store_handle parent, size_t idx) = 0;
 
@@ -226,7 +226,7 @@ public:
      * @param idx The index to check.
      * @return True if exists, false otherwise, or error.
      */
-    [[OAT_NODISCARD("Check for error or existence result")]]
+    [[ION_NODISCARD("Check for error or existence result")]]
     virtual std::expected<bool, std::error_code>
     has_element   (store_handle parent, size_t idx) const = 0;
 
@@ -236,7 +236,7 @@ public:
      * @param key The key to retrieve.
      * @return The child handle or error.
      */
-    [[OAT_NODISCARD("Check for error or valid child handle")]]
+    [[ION_NODISCARD("Check for error or valid child handle")]]
     virtual std::expected<store_handle, std::error_code>
     child   (store_handle parent, std::string_view key) const = 0;
 
@@ -246,7 +246,7 @@ public:
      * @param idx The index to retrieve.
      * @return The element handle or error.
      */
-    [[OAT_NODISCARD("Check for error or valid element handle")]]
+    [[ION_NODISCARD("Check for error or valid element handle")]]
     virtual std::expected<store_handle, std::error_code>
     element (store_handle parent, size_t idx) const = 0;
 
@@ -254,7 +254,7 @@ public:
      * @brief Commits the transaction, making all changes durable.
      * @return Success or error.
      */
-    [[OAT_NODISCARD("Check for error on commit")]]
+    [[ION_NODISCARD("Check for error on commit")]]
     std::expected<void, std::error_code> commit() {
         auto e = commit_impl();
         if (e) committed_ = true;
@@ -269,7 +269,7 @@ public:
      * @param path The navigation path (e.g. "foo.bar[2].baz").
      * @return The resulting handle or error.
      */
-    [[OAT_NODISCARD("Check for error or valid navigation result")]]
+    [[ION_NODISCARD("Check for error or valid navigation result")]]
     std::expected<store_handle, std::error_code>
     navigate(store_handle base, std::string_view path) const {
         if (!base.valid()) return std::unexpected(make_error_code(core_errc::invalid_handle));
@@ -313,7 +313,7 @@ public:
      * @return The value or error.
      */
     template<typename T>
-    [[OAT_NODISCARD("Check for error or valid value")]]
+    [[ION_NODISCARD("Check for error or valid value")]]
     std::expected<T, std::error_code>
     get(store_handle base, std::string_view path) const {
         auto h = navigate(base, path);
@@ -329,7 +329,7 @@ protected:
     /**
      * @brief Implementation of commit. Must be provided by concrete class.
      */
-    [[OAT_NODISCARD("Check for error on commit_impl")]]
+    [[ION_NODISCARD("Check for error on commit_impl")]]
     virtual std::expected<void, std::error_code> commit_impl() = 0;
     /**
      * @brief Implementation of rollback. Must be provided by concrete class.
