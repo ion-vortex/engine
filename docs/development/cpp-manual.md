@@ -1118,11 +1118,11 @@ No caller ever sees `errno` or `DWORD`, only `oat::net::net_errc`.
 // oat/attributes.h
 #pragma once
 #if defined(__GNUC__) || defined(__clang__)
-#  define OAT_NODISCARD(msg) [[nodiscard(msg), gnu::warn_unused_result]]
+#  define OAT_NODISCARD(msg) nodiscard(msg), gnu::warn_unused_result
 #elif defined(_MSC_VER)
-#  define OAT_NODISCARD(msg) [[nodiscard(msg)]]
+#  define OAT_NODISCARD(msg) nodiscard(msg)
 #else
-#  define OAT_NODISCARD(msg) [[nodiscard]]
+#  define OAT_NODISCARD(msg) nodiscard
 #endif
 ```
 

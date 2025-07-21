@@ -17,7 +17,7 @@ public:
 
     std::expected<void, std::error_code> open(std::filesystem::path const& path) override;
     std::expected<void, std::error_code> close() override;
-    std::expected<std::unique_ptr<ITransaction>, std::error_code> begin_transaction() override;
+    std::expected<std::unique_ptr<transaction_base>, std::error_code> begin_transaction() override;
 
 private:
     friend class toml_transaction;

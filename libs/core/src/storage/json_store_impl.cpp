@@ -124,9 +124,9 @@ std::expected<void, std::error_code> json_store::load_from_file() {
         }
 
         return {};
-    } catch (const nlohmann::json::parse_error& e) {
+    } catch (const nlohmann::json::parse_error&) {
         return std::unexpected(make_error_code(core_errc::parse_error));
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
         return std::unexpected(make_error_code(core_errc::unknown));
     } catch (...) {
         return std::unexpected(make_error_code(core_errc::unknown));
@@ -166,7 +166,7 @@ std::expected<void, std::error_code> json_store::save_to_file(nlohmann::json con
         std::filesystem::rename(temp_path, path_);
         
         return {};
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
         return std::unexpected(make_error_code(core_errc::io_failure));
     } catch (...) {
         return std::unexpected(make_error_code(core_errc::unknown));

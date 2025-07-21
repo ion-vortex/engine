@@ -119,9 +119,9 @@ std::expected<void, std::error_code> toml_store::load_from_file() {
         data_ = std::move(result);
 
         return {};
-    } catch (const toml::parse_error& e) {
+    } catch (const toml::parse_error&) {
         return std::unexpected(make_error_code(core_errc::parse_error));
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
         return std::unexpected(make_error_code(core_errc::unknown));
     } catch (...) {
         return std::unexpected(make_error_code(core_errc::unknown));
@@ -160,7 +160,7 @@ std::expected<void, std::error_code> toml_store::save_to_file(toml::table const&
         std::filesystem::rename(temp_path, path_);
         
         return {};
-    } catch (const std::exception& e) {
+    } catch (const std::exception&) {
         return std::unexpected(make_error_code(core_errc::io_failure));
     } catch (...) {
         return std::unexpected(make_error_code(core_errc::unknown));

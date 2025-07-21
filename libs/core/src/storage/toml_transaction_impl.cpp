@@ -9,7 +9,7 @@ toml_transaction::toml_transaction(toml::table const& initial_data, toml_store* 
     : data_(initial_data), store_(store), options_(options) {
     // Initialize root handle with empty path
     // The root handle is always 1, created here
-    handle_map_[1] = Node{{}};  // Empty path for root
+    handle_map_[1] = node{{}};  // Empty path for root
     next_handle_ = 2;  // Start from 2 for subsequent handles
 }
 
@@ -25,7 +25,7 @@ std::expected<store_handle, std::error_code> toml_transaction::root() const {
 
 store_handle toml_transaction::make_handle(std::vector<std::string> path) const {
     uint64_t handle = next_handle_++;
-    handle_map_[handle] = Node{std::move(path)};
+    handle_map_[handle] = node{std::move(path)};
     return store_handle{handle};
 }
 

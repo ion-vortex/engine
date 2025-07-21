@@ -492,13 +492,13 @@ TEST_CASE("TOML Transaction - Error Handling", "[storage][toml]") {
         auto txn = (*store)->begin_transaction();
         REQUIRE(txn.has_value());
         
-        StoreHandle invalid{0};  // Invalid handle
+        store_handle invalid{0};  // Invalid handle
         
         auto result = (*txn)->get_string(invalid);
         REQUIRE_FALSE(result.has_value());
         REQUIRE(result.error() == core_errc::invalid_argument);
         
-        StoreHandle nonexistent{999999};  // Valid format but doesn't exist
+        store_handle nonexistent{999999};  // Valid format but doesn't exist
         
         auto result2 = (*txn)->get_string(nonexistent);
         REQUIRE_FALSE(result2.has_value());
